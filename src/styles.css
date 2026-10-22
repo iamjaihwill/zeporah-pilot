@@ -1,0 +1,321 @@
+@import "tailwindcss";
+
+/*
+ * Zeporah visual system — "quiet strength".
+ * Neutrals carry the UI; color means something (action, trust state, attention), never decoration.
+ * No webfonts: the serif/sans pairing uses local font stacks so the app makes no external requests.
+ */
+@theme {
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  --color-paper: oklch(0.975 0.008 80);
+  --color-surface: oklch(0.992 0.004 80);
+  --color-sunk: oklch(0.952 0.01 78);
+  --color-line: oklch(0.89 0.012 72);
+  --color-line-strong: oklch(0.8 0.016 70);
+  /* Form-field borders: at least 3:1 against paper (3.38), surface (3.55) and sunk (3.15), per WCAG 1.4.11. */
+  --color-field: oklch(0.62 0.016 70);
+  --color-ink: oklch(0.26 0.018 60);
+  --color-ink-soft: oklch(0.45 0.018 60);
+  --color-ink-faint: oklch(0.49 0.016 60);
+
+  --color-harbor: oklch(0.42 0.058 200); /* primary: actions, focus, trust */
+  --color-harbor-strong: oklch(0.35 0.055 200);
+  --color-harbor-soft: oklch(0.935 0.022 195);
+  --color-clay: oklch(0.5 0.075 40); /* warm accent */
+  --color-clay-soft: oklch(0.945 0.02 45);
+  --color-moss: oklch(0.44 0.07 135); /* done, allowed, active */
+  --color-moss-soft: oklch(0.94 0.03 130);
+  --color-ochre: oklch(0.46 0.085 70); /* held, waiting, attention */
+  --color-ochre-soft: oklch(0.95 0.035 80);
+  --color-rose: oklch(0.47 0.1 15); /* denied, revoked, sensitive boundary */
+  --color-rose-soft: oklch(0.95 0.02 15);
+  --color-staff: oklch(0.42 0.04 285); /* care-team-only content */
+  --color-staff-soft: oklch(0.95 0.015 285);
+
+  --radius-card: 1rem;
+  --shadow-card: 0 1px 2px oklch(0.3 0.02 60 / 0.05), 0 10px 28px -16px oklch(0.3 0.02 60 / 0.18);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  /* Phones: the family app's fixed bottom bar must never hide what's focused or scrolled to (WCAG 2.4.11). */
+  @media (width < 48rem) {
+    html:has([data-bottom-bar]) {
+      scroll-padding-bottom: 5.5rem;
+    }
+  }
+  html[data-text="larger"] {
+    font-size: 112.5%;
+  }
+  html[data-text="largest"] {
+    font-size: 125%;
+  }
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: -0.005em;
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  * {
+    border-color: var(--color-line);
+  }
+  :focus-visible {
+    outline: 3px solid var(--color-harbor);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  /* Chart columns are SVG groups, which can't draw an outline: a ring inside the column instead. */
+  .chart-mark-ring {
+    stroke: transparent;
+  }
+  .chart-mark:focus-visible .chart-mark-ring {
+    stroke: var(--color-harbor);
+  }
+  ::selection {
+    background: var(--color-harbor-soft);
+  }
+  dialog::backdrop {
+    background: oklch(0.25 0.02 60 / 0.4);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .rise {
+    animation: rise 0.25s ease-out both;
+  }
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+/*
+ * STAFF WORKSPACE (staff rework, section 1). Everything below applies only inside
+ * [data-surface="staff"], which only the staff layout sets: family pages never carry it, so their
+ * look is unchanged (checked by e2e-verify/family-unchanged.spec.ts). Unlayered on purpose so it
+ * takes precedence over the shared components' utility classes inside the staff surface.
+ *
+ * Type: sans throughout (the serif stays only in the wordmark), scale 20/16/14/13/12.
+ * Spacing: 4px base; panels 12–16px. Density: comfortable (40px rows) or compact (32px rows),
+ * each person's own setting. Touch screens keep 44px targets for row actions.
+ */
+/*
+ * Enterprise skin (2026-10-21): a cool, clinical palette after the founder's reference — light grey
+ * canvas, white panels with hairline borders, near-black text, one blue for action. The token names
+ * stay the same, so every staff screen picks it up; the family app keeps its warm palette.
+ * Contrast: ink-soft on white 5.4:1, on the canvas 4.9:1; harbor (blue) on white 5.9:1; the status
+ * colours on their soft fills at least 4.6:1.
+ */
+[data-surface="staff"] {
+  --color-paper: oklch(0.968 0.003 260); /* canvas */
+  --color-surface: oklch(1 0 0); /* panels */
+  --color-sunk: oklch(0.982 0.002 260); /* table headers, wells */
+  --color-line: oklch(0.925 0.004 260);
+  --color-line-strong: oklch(0.86 0.006 260);
+  --color-field: oklch(0.6 0.01 260);
+  --color-ink: oklch(0.2 0.012 265);
+  --color-ink-soft: oklch(0.47 0.014 265);
+  --color-ink-faint: oklch(0.5 0.012 265);
+  --color-harbor: oklch(0.5 0.15 255);
+  --color-harbor-strong: oklch(0.43 0.14 257);
+  --color-harbor-soft: oklch(0.955 0.022 250);
+  --color-moss: oklch(0.48 0.11 152);
+  --color-moss-soft: oklch(0.965 0.035 155);
+  --color-ochre: oklch(0.49 0.105 62);
+  --color-ochre-soft: oklch(0.97 0.045 85);
+  --color-rose: oklch(0.5 0.17 25);
+  --color-rose-soft: oklch(0.97 0.02 20);
+  --color-clay: oklch(0.5 0.13 45); /* accent; also chip text on clay-soft (5:1) */
+  --color-staff: oklch(0.45 0.08 285);
+  --color-staff-soft: oklch(0.96 0.02 285);
+  --s-fs-1: 1.25rem; /* 20: page titles */
+  --s-fs-2: 1rem; /* 16: section titles */
+  --s-fs-3: 0.875rem; /* 14: body */
+  --s-fs-4: 0.8125rem; /* 13: table, controls */
+  --s-fs-5: 0.75rem; /* 12: meta, chips */
+  --s-row: 2.5rem;
+  --s-pad: 1rem;
+  --s-gap: 0.75rem;
+  --s-ctl: 2.25rem;
+  --s-radius: 0.875rem;
+  --s-surface: var(--color-surface);
+  --s-border: var(--color-line);
+  --s-muted: var(--color-ink-soft);
+  --s-accent: var(--color-harbor);
+  font-size: var(--s-fs-3);
+  line-height: 1.45;
+}
+[data-surface="staff"][data-density="compact"] {
+  --s-row: 2rem;
+  --s-pad: 0.75rem;
+  --s-gap: 0.5rem;
+  --s-ctl: 1.875rem;
+}
+[data-surface="staff"] :is(h1, h2, h3, .font-display):not(.wordmark) {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+/* Page titles large and bold; panel titles a clear step down (enterprise skin). */
+[data-surface="staff"] h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+[data-surface="staff"] h2,
+[data-surface="staff"] [data-ui="card-title"] {
+  font-size: 1.125rem;
+  line-height: 1.35;
+  letter-spacing: -0.005em;
+}
+[data-surface="staff"] h3 {
+  font-size: var(--s-fs-3);
+}
+[data-surface="staff"] [data-ui="card"] {
+  padding: calc(var(--s-pad) * 1.25);
+  border-radius: var(--s-radius);
+  border-color: var(--color-line);
+  background: var(--color-surface);
+  box-shadow: 0 1px 2px oklch(0.2 0.01 265 / 0.04);
+  animation: none;
+}
+[data-surface="staff"] [data-ui="card"] > div:first-child:has([data-ui="card-title"]) {
+  margin-bottom: var(--s-gap);
+}
+[data-surface="staff"] [data-ui="button"] {
+  min-height: var(--s-ctl);
+  padding: 0.25rem 0.75rem;
+  font-size: var(--s-fs-4);
+  border-radius: 0.5rem;
+}
+[data-surface="staff"] [data-ui="button"][data-size="sm"] {
+  min-height: calc(var(--s-ctl) - 0.25rem);
+  padding: 0.125rem 0.625rem;
+}
+[data-surface="staff"] [data-ui="badge"] {
+  font-size: var(--s-fs-5);
+  padding: 0.0625rem 0.5rem;
+  border-radius: 999px;
+}
+/* Tables: a quiet grey header row, hairline rows, comfortable cells. */
+[data-surface="staff"] table thead {
+  background: var(--color-sunk);
+  color: var(--color-ink-soft);
+}
+[data-surface="staff"] table thead th {
+  font-weight: 500;
+}
+/* The top bar's icon buttons sit in small bordered squares (enterprise skin). */
+[data-surface="staff"] [data-topbar] > div > button,
+[data-surface="staff"] [data-topbar] > [data-icon-button] {
+  height: 2.5rem;
+  min-width: 2.5rem;
+  border: 1px solid var(--color-line);
+  background: var(--color-surface);
+  border-radius: 0.75rem;
+  color: var(--color-ink);
+}
+[data-surface="staff"] [data-topbar] > div > button:hover {
+  background: var(--color-sunk);
+}
+[data-surface="staff"] :is(input:not([type="checkbox"], [type="radio"]), select, textarea) {
+  min-height: var(--s-ctl);
+  padding: 0.25rem 0.625rem;
+  font-size: var(--s-fs-4);
+  border-radius: 0.5rem;
+}
+/* Touch screens: the controls people tap stay at least 44px tall, in either density. */
+@media (pointer: coarse) {
+  [data-surface="staff"] :is([data-ui="button"], [data-row-action]) {
+    min-height: 2.75rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-surface="staff"] * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Queue item cell: two lines when comfortable, one line in compact. */
+[data-surface="staff"] .q-item .q-inline {
+  display: none;
+}
+[data-surface="staff"][data-density="compact"] .q-item .q-inline {
+  display: inline;
+}
+[data-surface="staff"][data-density="compact"] .q-item .q-second {
+  display: none;
+}
+[data-surface="staff"] .q-next {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+[data-surface="staff"][data-density="compact"] .q-next {
+  -webkit-line-clamp: 1;
+}
+/* Table rows hold their height: row controls are compact inside rows (touch screens excepted). */
+[data-surface="staff"] td [data-ui="button"][data-size="sm"] {
+  min-height: 1.75rem;
+  padding-block: 0;
+}
+/* Grid children may shrink, so a wide table scrolls inside its own box instead of widening the page. */
+[data-surface="staff"] .grid > * {
+  min-width: 0;
+}
+
+/* Packet recipients (founder decision 45): Zeporah offers no print copy of a shared packet. */
+@media print {
+  [data-recipient] main {
+    display: none !important;
+  }
+}
+
+/* Rows that scroll sideways (tabs on tablets): fade the edge with more beyond it. */
+[data-scroll-fade][data-more-right="true"] {
+  mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent);
+}
+[data-scroll-fade][data-more-left="true"] {
+  mask-image: linear-gradient(to left, #000 calc(100% - 2.5rem), transparent);
+}
+[data-scroll-fade][data-more-left="true"][data-more-right="true"] {
+  mask-image: linear-gradient(to right, transparent, #000 2.5rem, #000 calc(100% - 2.5rem), transparent);
+}
+/* A scrolling table with more rows below fades its bottom edge (DataTable). */
+[data-scroll-fade-y][data-more-below="true"] {
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 2.5rem), transparent);
+}
+/* Tablets: queue and My work titles may use two lines instead of being cut short. */
+@media (max-width: 1279px) {
+  [data-surface="staff"] .q-item > span:first-child {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    white-space: normal;
+    overflow: hidden;
+  }
+}

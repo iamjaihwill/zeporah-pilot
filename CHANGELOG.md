@@ -1,0 +1,17 @@
+# Changelog
+
+Every change that alters behaviour is recorded here in the pull request that makes it. See
+[docs/release-governance.md](docs/release-governance.md).
+
+## Unreleased
+
+- Production-readiness workstream W1 (decision 64): git, CI workflow, release governance, rollback
+  runbook, and checks for formatting, documentation links, the readiness tracker, the frozen
+  baseline, migrations and dependency advisories. No product behaviour changed.
+- Planning for W3 and W7 (decision 65): deployment, environments, backup and recovery, and
+  monitoring designs, pending vendor and legal confirmation.
+
+## demo-baseline-2026-10-22
+
+The frozen synthetic full-demo baseline (`docs/demo-baseline.md`), including decisions up to 63 as
+built or recorded. Not a production release.

@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "memberships_one_active_household_role" ON "memberships" USING btree ("tenant_id","actor_id","household_id","role_code") WHERE "memberships"."status" = 'active' and "memberships"."household_id" is not null;

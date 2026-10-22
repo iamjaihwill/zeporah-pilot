@@ -1,0 +1,18 @@
+node_modules
+.data
+dist
+.output
+.tanstack
+.nitro
+test-results
+playwright-report
+.DS_Store
+*.log
+.env*
+
+# Local tool settings (personal paths); never committed
+.claude/
+# Keys and certificates must never be committed (decision 64: no PHI or secrets in the repository)
+*.pem
+*.key
+*.p12

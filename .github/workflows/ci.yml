@@ -1,0 +1,115 @@
+# Zeporah CI (decision 64). Runs on every pull request and on main. Synthetic data only: no job has
+# secrets or network access to staging, pilot or production, and every test server uses its own
+# isolated database. Required checks for merging to main: static, tests, e2e, verify-macos,
+# secret-scan (see docs/release-governance.md).
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  BUN_VERSION: "1.4.3"
+
+jobs:
+  static:
+    name: static
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - run: bun install --frozen-lockfile
+      - name: Type-check
+        run: bunx tsc --noEmit
+      - name: Formatting (frozen-baseline exceptions listed in docs/readiness/format-exceptions.txt)
+        run: bun scripts/check-format.ts
+      - name: Documentation links
+        run: bun scripts/check-doc-links.ts
+      - name: Readiness tracker (no gap closed without evidence and sign-off)
+        run: bun scripts/readiness-check.ts
+      - name: Frozen demo baseline
+        run: bun scripts/check-baseline.ts
+      - name: Migrations
+        run: bunx drizzle-kit check
+      - name: Dependency advisories (unrecorded or expired fail)
+        run: bun scripts/check-audit.ts
+
+  tests:
+    name: tests
+    runs-on: ubuntu-latest
+    needs: static
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - run: bun install --frozen-lockfile
+      - name: Unit and integration
+        run: bunx vitest run
+
+  e2e:
+    name: e2e
+    runs-on: ubuntu-latest
+    needs: static
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - run: bun install --frozen-lockfile
+      - run: bunx playwright install --with-deps chromium
+      - name: End-to-end
+        run: bunx playwright test
+      - name: Read-only incident mode
+        run: bunx playwright test --config playwright.readonly.config.ts
+      - name: Upgrade and downgrade
+        run: bunx playwright test --config playwright.upgrade.config.ts
+      - name: Keep the report (synthetic data only)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: test-results
+          retention-days: 7
+
+  # The family pixel baselines were recorded on macOS, so the verify suite runs there.
+  verify-macos:
+    name: verify-macos
+    runs-on: macos-latest
+    needs: static
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - run: bun install --frozen-lockfile
+      - run: bunx playwright install chromium
+      - name: Verify (pixel baselines, measurements, keyboard)
+        run: bunx playwright test --config playwright.verify.config.ts
+
+  # Defence in depth beside the code host's own secret scanning and push protection (decision 64).
+  secret-scan:
+    name: secret-scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

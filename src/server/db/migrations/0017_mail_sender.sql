@@ -1,0 +1,1 @@
+ALTER TABLE "dev_mailbox" ADD COLUMN "from_name" text DEFAULT 'Zeporah' NOT NULL;

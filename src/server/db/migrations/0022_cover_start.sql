@@ -1,0 +1,1 @@
+ALTER TABLE "memberships" ADD COLUMN "starts_at" timestamp with time zone;

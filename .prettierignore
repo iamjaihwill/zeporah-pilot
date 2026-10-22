@@ -1,0 +1,4 @@
+src/routeTree.gen.ts
+src/server/db/migrations
+bun.lock
+.claude
