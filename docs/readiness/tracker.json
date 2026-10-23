@@ -8,7 +8,7 @@
       "class": "pilot_blocker",
       "workstream": "W1",
       "targetStage": 1,
-      "status": "open",
+      "status": "in_progress",
       "owner": "Engineering lead",
       "approvers": ["Founder"],
       "dependsOn": [],
@@ -17,8 +17,25 @@
       "verification": "CI green on a sample change; a non-production rollback drill",
       "evidenceRequired": "Repository policy; CI run links; rollback drill record",
       "closureCriteria": "Every change reaches staging only through a reviewed PR with green CI, and a rollback was drilled",
-      "evidence": [],
-      "approvals": []
+      "evidence": [
+        {
+          "type": "document",
+          "ref": "docs/release-governance.md; docs/runbooks/release-and-rollback.md; docs/architecture/environments.md; .github/workflows/ci.yml; .github/pull_request_template.md",
+          "date": "2026-10-22"
+        },
+        {
+          "type": "test",
+          "ref": "docs/readiness/evidence/ci-local-run-2026-10-22.md (local run of every CI check: all passed)",
+          "date": "2026-10-22"
+        },
+        {
+          "type": "drill",
+          "ref": "docs/readiness/evidence/rollback-drill-2026-10-22.md (non-production rollback drill: passed)",
+          "date": "2026-10-22"
+        }
+      ],
+      "approvals": [],
+      "note": "Git initialized (decision 64); initial commit 936cb77 tagged demo-baseline-2026-10-22. Still needed: the code host and owner account, branch protection and required review on the host, a green hosted CI run, the release approver (D-13), and a rollback drill on staging once W3 exists."
     },
     {
       "id": "PB-02",
@@ -310,10 +327,15 @@
           "type": "document",
           "ref": "docs/production-readiness-gates.md, docs/pre-pilot-plan.md (stale statements corrected)",
           "date": "2026-10-22"
+        },
+        {
+          "type": "test",
+          "ref": "scripts/check-doc-links.ts in scripts/ci.sh and .github/workflows/ci.yml; local run passed (44 files)",
+          "date": "2026-10-22"
         }
       ],
       "approvals": [],
-      "note": "Documents corrected against the code. Still needs a documentation link check in CI (after D-01)."
+      "note": "Documents corrected and a link check added to CI. Still needed: a green hosted CI run, then founder approval."
     },
     {
       "id": "PC-01",

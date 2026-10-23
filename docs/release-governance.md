@@ -52,3 +52,10 @@ passed and the release's approver signs off (D-13). The demo environment is neve
 
 Every release names the release it rolls back to. See
 [runbooks/release-and-rollback.md](runbooks/release-and-rollback.md).
+
+## Known issues
+
+- `e2e-verify/sweep.spec.ts` (a frozen file) rewrites the screenshots in
+  `docs/review-screenshots/after/` every time the verify suite runs. `scripts/ci.sh` restores them
+  and CI ignores them; every other change a test run makes to tracked files fails. Fix the spec to
+  write to `test-results/` when the freeze lifts for `e2e-verify`.

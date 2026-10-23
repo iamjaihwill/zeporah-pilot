@@ -23,4 +23,13 @@ step "End-to-end"; bunx playwright test
 step "Read-only mode"; bunx playwright test --config playwright.readonly.config.ts
 step "Upgrade and downgrade"; bunx playwright test --config playwright.upgrade.config.ts
 step "Verify (includes macOS pixel baselines)"; bunx playwright test --config playwright.verify.config.ts
+
+# e2e-verify/sweep.spec.ts (frozen) rewrites docs/review-screenshots/after on every run. Put those
+# back, then fail on any other change the run made to tracked files. Fix the spec when the freeze
+# lifts for e2e-verify (docs/release-governance.md, known issues).
+step "No changes to tracked files"
+if [ -d .git ]; then
+  git checkout -- docs/review-screenshots/after 2>/dev/null && echo "Restored docs/review-screenshots/after (known side effect of sweep.spec.ts)."
+  if ! git diff --quiet; then git diff --stat; echo "✗ The run changed tracked files."; exit 1; fi
+fi
 printf '\nAll checks passed.\n'

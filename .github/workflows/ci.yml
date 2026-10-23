@@ -100,6 +100,9 @@ jobs:
       - run: bunx playwright install chromium
       - name: Verify (pixel baselines, measurements, keyboard)
         run: bunx playwright test --config playwright.verify.config.ts
+      # sweep.spec.ts (frozen) rewrites docs/review-screenshots/after; anything else changed fails.
+      - name: No unexpected changes to tracked files
+        run: git diff --exit-code -- . ':(exclude)docs/review-screenshots/after'
 
   # Defence in depth beside the code host's own secret scanning and push protection (decision 64).
   secret-scan:
