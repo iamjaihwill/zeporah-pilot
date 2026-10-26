@@ -1,10 +1,27 @@
-import { HeadContent, Link, Outlet, Scripts, createRootRoute } from "@tanstack/react-router";
+import { HeadContent, Link, Outlet, Scripts, createRootRoute, redirect } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { parseAddresses, redirectFor, type Addresses } from "@/domain/addresses";
+import { getAddresses } from "@/functions/session";
 import appCss from "../styles.css?url";
 import { LiveRegion } from "@/components/ui";
 import { SystemNotice } from "@/components/system-notice";
 
+/** Fetched once per page load: the addresses don't change while a server runs. */
+let addressesOnce: Promise<Addresses | null> | null = null;
+
 export const Route = createRootRoute({
+  // Moving between pages in the browser never reaches the server, so the address redirect in
+  // src/start.ts is repeated here: a family page opened from the care address (or the other way
+  // round) reloads on its own address.
+  beforeLoad: async ({ location }) => {
+    if (typeof window === "undefined") return;
+    addressesOnce ??= getAddresses()
+      .then((a) => (a ? parseAddresses(a.app, a.care) : null))
+      // Never block a page over this: the server still redirects on the next full load.
+      .catch(() => null);
+    const to = redirectFor(await addressesOnce, window.location.host, location.href);
+    if (to) throw redirect({ href: to, reloadDocument: true });
+  },
   head: () => ({
     meta: [
       { charSet: "utf-8" },

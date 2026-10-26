@@ -5,6 +5,10 @@ Every change that alters behaviour is recorded here in the pull request that mak
 
 ## Unreleased
 
+- Address awareness (docs/architecture/environments.md, "Addresses"): with `ZEPORAH_APP_URL` and
+  `ZEPORAH_CARE_URL` set, family pages open on the app address and the staff workspace and
+  recipient pages on the care address, whose root is the staff sign-in. Email and invitation links
+  name the right address. Nothing changes when they're unset (local, test, demo).
 - Development only: a demo launcher at `/demo` puts the consumer family app and the enterprise
   care-team workspace side by side, one click per synthetic persona. `/demo?as=<actorId>` signs
   straight in, so each persona can be bookmarked. Behind the same gate as persona sign-in; linked

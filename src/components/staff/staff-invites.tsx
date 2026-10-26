@@ -86,7 +86,7 @@ export function StaffInvites({
               e.preventDefault();
               const r = await act(() => createStaffInvitation({ data: v }), `${v.name} was invited.`);
               if (r) {
-                setIssued({ name: v.name, url: `${window.location.origin}${r.data.acceptPath}` });
+                setIssued({ name: v.name, url: new URL(r.data.acceptUrl, window.location.origin).href });
                 setV({ name: "", email: "", role: "care_guide" });
               }
             }}

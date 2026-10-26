@@ -210,6 +210,13 @@ export const getSystemNotice = createServerFn({ method: "GET" }).handler(async (
   return { readOnly: environment().readOnly };
 });
 
+/** The app and care addresses (domain/addresses.ts), or null. Public: they're the site's own addresses. */
+export const getAddresses = createServerFn({ method: "GET" }).handler(async () => {
+  const { addresses } = await import("@/server/environment");
+  const a = addresses();
+  return a ? { app: a.app.origin, care: a.care.origin } : null;
+});
+
 /* ------------------------------------------------------------------ password reset (decision 27) */
 
 type ResetResult = { ok: true; message?: string } | { ok: false; message: string };

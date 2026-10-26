@@ -16,6 +16,8 @@ import { hashToken, looksLikeEmail, newToken, normalizeEmail } from "../auth/cry
 import { INVITATION_DAYS } from "./auth";
 import { currentMessageExpectation } from "./settings";
 import { emailAvailable } from "../mail";
+import { addresses } from "../environment";
+import { publicUrl } from "@/domain/addresses";
 import { markExistingCovered } from "./email-notices";
 import { familyMayComplete, familyMaySee, markFamilyTaskDone, reopenTask } from "./tasks";
 import { AccessError, familyScope, protectedAccess, type ActorContext, type FamilyScope } from "../context";
@@ -658,7 +660,8 @@ export async function inviteContact(db: DB, ctx: ActorContext, input: ContactInp
     });
   });
   // The token is returned once, to the person who invited; only its hash is stored.
-  return { acceptPath: `/invite/${token}` };
+  // A household invitation opens on the family address, where the new member will sign in.
+  return { acceptPath: `/invite/${token}`, acceptUrl: publicUrl(addresses(), `/invite/${token}`, "app") };
 }
 
 /**
@@ -698,7 +701,8 @@ export async function reissueInvitation(db: DB, ctx: ActorContext, invitationId:
       visibility: "family",
     });
   });
-  return { acceptPath: `/invite/${token}` };
+  // A household invitation opens on the family address, where the new member will sign in.
+  return { acceptPath: `/invite/${token}`, acceptUrl: publicUrl(addresses(), `/invite/${token}`, "app") };
 }
 
 export async function cancelInvitation(db: DB, ctx: ActorContext, invitationId: string) {

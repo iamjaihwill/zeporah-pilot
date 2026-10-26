@@ -220,7 +220,7 @@ function InvitationRow({
                 () => reissueInvitation({ data: { id: i.id } }),
                 `New invitation link ready for ${i.name}.`,
               );
-              if (r) setIssued(`${window.location.origin}${r.data.acceptPath}`);
+              if (r) setIssued(new URL(r.data.acceptUrl, window.location.origin).href);
               return r;
             }}
           >

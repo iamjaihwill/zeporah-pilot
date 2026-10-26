@@ -416,7 +416,7 @@ export function InviteForm() {
                   `Invitation link ready for ${v.name}.`,
                 );
                 if (r) {
-                  setIssued({ name: v.name, url: `${window.location.origin}${r.data.acceptPath}` });
+                  setIssued({ name: v.name, url: new URL(r.data.acceptUrl, window.location.origin).href });
                   setV({
                     name: "",
                     contact: "",

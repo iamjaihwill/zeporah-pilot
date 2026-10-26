@@ -12,6 +12,8 @@ import * as s from "../db/schema";
 import { appendAudit } from "../audit";
 import { AccessError, requireStaffPermission, type ActorContext } from "../context";
 import { can } from "@/domain/permissions";
+import { publicUrl } from "@/domain/addresses";
+import { addresses } from "../environment";
 import {
   PASSWORD_MAX_LENGTH,
   PASSWORD_MIN_LENGTH,
@@ -157,7 +159,8 @@ export async function createStaffInvitation(
       context: { role: input.role },
     });
   });
-  return { acceptPath: `/invite/${token}` };
+  // A care-team invitation opens on the care address, where staff sign in.
+  return { acceptPath: `/invite/${token}`, acceptUrl: publicUrl(addresses(), `/invite/${token}`, "care") };
 }
 
 export async function listStaffInvitations(db: DB, ctx: ActorContext) {

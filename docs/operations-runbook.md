@@ -13,6 +13,8 @@ Read and checked in [src/server/environment.ts](../src/server/environment.ts).
 | `ZEPORAH_DATA_DIR`    | Local database folder (default `.data/pglite`). The end-to-end tests use `.data/e2e-pglite`.                                                                                   |
 | `ZEPORAH_READ_ONLY`   | `1` refuses every change (see Incident steps).                                                                                                                                 |
 | `ZEPORAH_ENVIRONMENT` | A deliberate name for a non-development deployment. **Required with `NODE_ENV=production`, or the server refuses to open the database.** No production deployment is approved. |
+| `ZEPORAH_APP_URL`     | The family address, e.g. `https://app.zeporah.co`. Set together with `ZEPORAH_CARE_URL`, or neither ([environments.md](architecture/environments.md#addresses)).               |
+| `ZEPORAH_CARE_URL`    | The hospice team address, e.g. `https://care.zeporah.co`. A half or malformed pair stops the server at start-up.                                                               |
 
 ## Checking the system
 

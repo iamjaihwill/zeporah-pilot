@@ -14,6 +14,8 @@ import { eq } from "drizzle-orm";
 import type { Conn } from "./db/client";
 import * as s from "./db/schema";
 import { devSignInEnabled } from "./auth/dev-gate";
+import { addresses } from "./environment";
+import { publicUrl } from "@/domain/addresses";
 
 export type Email = {
   tenantId: string;
@@ -23,9 +25,16 @@ export type Email = {
   kind: "notice" | "password_reset" | "password_changed" | "recipient_alert" | "invitation";
   subject: string;
   body: string;
-  /** A path inside Zeporah, e.g. "/family/notifications". */
+  /** A path inside Zeporah, e.g. "/family/notifications". Sent as a full address: see emailLink. */
   link: string;
 };
+
+/**
+ * The link as it goes out: on the address the page opens on (domain/addresses.ts), so the person
+ * lands where their sign-in works. Every email here is for a family member except the recipient
+ * alert, whose /recipient page belongs to the care address. A path when no addresses are set.
+ */
+export const emailLink = (email: Pick<Email, "link">) => publicUrl(addresses(), email.link);
 
 export interface MailChannel {
   readonly name: string;
@@ -42,7 +51,7 @@ const devSink: MailChannel = {
       kind: email.kind,
       subject: email.subject,
       body: email.body,
-      link: email.link,
+      link: emailLink(email),
     });
   },
 };
