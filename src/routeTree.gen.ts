@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CreateAccountRouteImport } from './routes/create-account'
+import { Route as DemoRouteImport } from './routes/demo'
 import { Route as FamilyRouteRouteImport } from './routes/family/route'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as HelperRouteImport } from './routes/helper'
@@ -73,6 +74,11 @@ const IndexRoute = IndexRouteImport.update({
 const CreateAccountRoute = CreateAccountRouteImport.update({
   id: '/create-account',
   path: '/create-account',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoRoute = DemoRouteImport.update({
+  id: '/demo',
+  path: '/demo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FamilyRouteRoute = FamilyRouteRouteImport.update({
@@ -351,6 +357,7 @@ export interface FileRoutesByFullPath {
   '/recipient': typeof RecipientRouteRouteWithChildren
   '/staff': typeof StaffRouteRouteWithChildren
   '/create-account': typeof CreateAccountRoute
+  '/demo': typeof DemoRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/helper': typeof HelperRoute
   '/staff-sign-in': typeof StaffSignInRoute
@@ -405,6 +412,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/create-account': typeof CreateAccountRoute
+  '/demo': typeof DemoRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/helper': typeof HelperRoute
   '/staff-sign-in': typeof StaffSignInRoute
@@ -463,6 +471,7 @@ export interface FileRoutesById {
   '/recipient': typeof RecipientRouteRouteWithChildren
   '/staff': typeof StaffRouteRouteWithChildren
   '/create-account': typeof CreateAccountRoute
+  '/demo': typeof DemoRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/helper': typeof HelperRoute
   '/staff-sign-in': typeof StaffSignInRoute
@@ -522,6 +531,7 @@ export interface FileRouteTypes {
     | '/recipient'
     | '/staff'
     | '/create-account'
+    | '/demo'
     | '/forgot-password'
     | '/helper'
     | '/staff-sign-in'
@@ -576,6 +586,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/create-account'
+    | '/demo'
     | '/forgot-password'
     | '/helper'
     | '/staff-sign-in'
@@ -633,6 +644,7 @@ export interface FileRouteTypes {
     | '/recipient'
     | '/staff'
     | '/create-account'
+    | '/demo'
     | '/forgot-password'
     | '/helper'
     | '/staff-sign-in'
@@ -691,6 +703,7 @@ export interface RootRouteChildren {
   RecipientRouteRoute: typeof RecipientRouteRouteWithChildren
   StaffRouteRoute: typeof StaffRouteRouteWithChildren
   CreateAccountRoute: typeof CreateAccountRoute
+  DemoRoute: typeof DemoRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   HelperRoute: typeof HelperRoute
   StaffSignInRoute: typeof StaffSignInRoute
@@ -714,6 +727,13 @@ declare module '@tanstack/react-router' {
       path: '/create-account'
       fullPath: '/create-account'
       preLoaderRoute: typeof CreateAccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demo': {
+      id: '/demo'
+      path: '/demo'
+      fullPath: '/demo'
+      preLoaderRoute: typeof DemoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/family': {
@@ -1213,6 +1233,7 @@ const rootRouteChildren: RootRouteChildren = {
   RecipientRouteRoute: RecipientRouteRouteWithChildren,
   StaffRouteRoute: StaffRouteRouteWithChildren,
   CreateAccountRoute: CreateAccountRoute,
+  DemoRoute: DemoRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   HelperRoute: HelperRoute,
   StaffSignInRoute: StaffSignInRoute,

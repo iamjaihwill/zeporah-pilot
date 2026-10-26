@@ -265,6 +265,12 @@ function Start() {
             >
               Recipients
             </a>
+            <Link
+              to="/demo"
+              className="inline-flex min-h-6 items-center font-medium text-harbor underline-offset-2 hover:underline"
+            >
+              Demo launcher →
+            </Link>
           </span>
         </p>
       )}

@@ -5,6 +5,10 @@ Every change that alters behaviour is recorded here in the pull request that mak
 
 ## Unreleased
 
+- Development only: a demo launcher at `/demo` puts the consumer family app and the enterprise
+  care-team workspace side by side, one click per synthetic persona. `/demo?as=<actorId>` signs
+  straight in, so each persona can be bookmarked. Behind the same gate as persona sign-in; linked
+  from the sign-in page's development shortcuts.
 - Production-readiness workstream W1 (decision 64): git, GitLab CI (`.gitlab-ci.yml`), release governance, rollback
   runbook, and checks for formatting, documentation links, the readiness tracker, the frozen
   baseline, migrations and dependency advisories. No product behaviour changed.
