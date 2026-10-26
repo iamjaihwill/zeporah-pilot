@@ -5,6 +5,8 @@ Every change that alters behaviour is recorded here in the pull request that mak
 
 ## Unreleased
 
+- Security: zod 4.6.6 (from 3.25.76) for GHSA-mrhx-c7xc-m3w5, and the four sharing-category lists
+  in staff requests are capped at the number of categories.
 - Address awareness (docs/architecture/environments.md, "Addresses"): with `ZEPORAH_APP_URL` and
   `ZEPORAH_CARE_URL` set, family pages open on the app address and the staff workspace and
   recipient pages on the care address, whose root is the staff sign-in. Email and invitation links

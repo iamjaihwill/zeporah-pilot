@@ -170,7 +170,12 @@ export const requestRelease = createServerFn({ method: "POST" })
   });
 
 export const setManifest = createServerFn({ method: "POST" })
-  .validator(z.object({ packetId: z.string().min(1), categories: z.array(z.enum(SHARE_CATEGORIES)) }))
+  .validator(
+    z.object({
+      packetId: z.string().min(1),
+      categories: z.array(z.enum(SHARE_CATEGORIES)).max(SHARE_CATEGORIES.length),
+    }),
+  )
   .handler(async ({ data }) => {
     const { run, sharing } = await server();
     return run((db, ctx) => sharing.setManifest(db, ctx, data));
@@ -184,7 +189,7 @@ export const createPacket = createServerFn({ method: "POST" })
       consentId: z.string().nullable(),
       authorityEvidenceId: z.string().nullable(),
       expiresAt: z.coerce.date(),
-      categories: z.array(z.enum(SHARE_CATEGORIES)),
+      categories: z.array(z.enum(SHARE_CATEGORIES)).max(SHARE_CATEGORIES.length),
       prepared: z.boolean().optional(),
     }),
   )
@@ -260,7 +265,7 @@ export const recordConsent = createServerFn({ method: "POST" })
       grantedByActorId: z.string().min(1),
       purpose: z.string().max(200),
       recipientName: z.string().max(200),
-      scope: z.array(z.enum(SHARE_CATEGORIES)),
+      scope: z.array(z.enum(SHARE_CATEGORIES)).max(SHARE_CATEGORIES.length),
       startsAt: z.coerce.date(),
       expiresAt: z.coerce.date(),
       revocationPath: z.string().max(300),
@@ -278,7 +283,7 @@ export const amendConsent = createServerFn({ method: "POST" })
       consentId: z.string().min(1),
       purpose: z.string().max(200),
       recipientName: z.string().max(200),
-      scope: z.array(z.enum(SHARE_CATEGORIES)),
+      scope: z.array(z.enum(SHARE_CATEGORIES)).max(SHARE_CATEGORIES.length),
       startsAt: z.coerce.date(),
       expiresAt: z.coerce.date(),
       revocationPath: z.string().max(300),

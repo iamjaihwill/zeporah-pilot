@@ -34,13 +34,20 @@ unset, as in the demo, every page behaves as before; the sign-in page shows one 
 link. Unit and integration tests passed (500 of 500); the end-to-end suites, including the pixel
 baselines, weren't re-run for this change. Decision 63 still waits for its own lift.
 
+**Freeze lifted and re-frozen again on 2026-10-26** for a dependency security fix only, with the
+founder's explicit approval: zod upgraded from 3.25.76 to 4.6.6 for GHSA-mrhx-c7xc-m3w5 (high;
+an oversized list in a request could exhaust memory during validation), and a length cap added to
+the four sharing-category lists in `src/functions/staff.ts` that had none. The manifest entries
+for `package.json`, `bun.lock` and `src/functions/staff.ts` were refreshed. No screen, copy, seed or
+workflow changed; a sharing request with more categories than exist is now refused.
+
 ## What's frozen
 
 - **The build:** 403 files covering the application code (including migrations through
   `0023_cover_notice` and seed fixtures), the tests, the configuration, the decision log and
   register, the presentation documents and the 22 run-through screenshots. Each file's SHA-256
   is in [demo-baseline-2026-10-22.sha256](demo-baseline-2026-10-22.sha256), and the manifest's
-  own SHA-256 is `0914e812cb4825157186dd8fcbad2dcd84455bdaf22ea3c8526b0f7b8e1c24d6`. To check
+  own SHA-256 is `909bc9c76cca7b6516be294607e4958174bc76fa987167a09d5ec85afeeec1fc`. To check
   for drift, run `shasum -a 256 -c docs/demo-baseline-2026-10-22.sha256 --quiet`.
 - **The presentation baseline:** [enterprise-demo-map.md](enterprise-demo-map.md) (the script,
   "Presenting it in about 15 minutes", with beat 8's note on decision 62 and an optional 30 s in
