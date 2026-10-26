@@ -5,25 +5,30 @@ the foundation; who may approve merges and production releases is decision D-13,
 
 ## Source control
 
-- **Repository:** private, on a code host still to be named (decision 64, option B). The workspace
+- **Repository:** private, on GitLab: `gitlab.com/twgi-group/zephora` (decision 64, option B; host
+  named by the founder on 2026-10-23). The workspace
   repository was initialized on 2026-10-22 with the frozen demo baseline as its first commit,
   tagged `demo-baseline-2026-10-22`.
 - **No PHI, real credentials or secrets, ever.** `.data/`, `.env*`, keys and local tool settings
-  are ignored. The code host's secret scanning and push protection are on, and CI runs gitleaks.
+  are ignored. GitLab's secret push protection is on, and CI runs GitLab Secret Detection.
 - **Attributable commits.** Every commit carries its author's real company account. Signed commits
   are recommended once the code host is named.
 
-## Branch protection for `main` (set on the code host when it's named)
+## Branch protection for `main` (set in GitLab: Settings → Repository → Protected branches)
 
-- No direct pushes; changes arrive by pull request only.
-- At least one approving review from someone other than the author.
-- Required checks: `static`, `tests`, `e2e`, `verify-macos`, `secret-scan` (`.github/workflows/ci.yml`).
+- No direct pushes ("Allowed to push and merge: No one"; "Allowed to merge: Maintainers"); changes
+  arrive by merge request only.
+- At least one approving review from someone other than the author. **GitLab Free can't enforce
+  required approvals** (approval rules need a paid tier): on Free this is a written rule checked at
+  release; enforcing it needs the paid tier (decision D-13).
+- Settings → Merge requests: "Pipelines must succeed" and "All threads must be resolved" on.
+- Required checks: `static`, `tests`, `e2e`, `secret_detection` (`.gitlab-ci.yml`). `verify-macos` runs by hand until a macOS runner is available, and the verify suite is run on a Mac before every release.
 - Branches must be up to date before merging; no force pushes; no deletion.
 - Administrators follow the same rules.
 
 ## What a pull request needs
 
-The template (`.github/pull_request_template.md`) asks for it: what and why, no PHI or secrets,
+The template (`.gitlab/merge_request_templates/Default.md`) asks for it: what and why, no PHI or secrets,
 synthetic data only, no weakened access rule, policy questions decided first, documentation and
 the readiness tracker updated.
 

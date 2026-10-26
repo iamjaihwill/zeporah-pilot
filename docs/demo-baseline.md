@@ -16,7 +16,8 @@ still matches. Decision 63 isn't built yet; it waits for the freeze to be lifted
 
 **Decision record updated again (no product change):** decisions 64 and 65 (production-readiness
 D-01 and D-02, approved in principle) were added to `founder-decision-log.md`, and its manifest
-entry was refreshed. From here, git history and `bun scripts/check-baseline.ts` in CI record every
+entry was refreshed. On 2026-10-23 decision 64 was updated with the named code host (GitLab), and
+the entry refreshed again. From here, git history and `bun scripts/check-baseline.ts` in CI record every
 change to a frozen file.
 
 ## What's frozen
@@ -25,7 +26,7 @@ change to a frozen file.
   `0023_cover_notice` and seed fixtures), the tests, the configuration, the decision log and
   register, the presentation documents and the 22 run-through screenshots. Each file's SHA-256
   is in [demo-baseline-2026-10-22.sha256](demo-baseline-2026-10-22.sha256), and the manifest's
-  own SHA-256 is `d975d41b9ea7b2a9ecd8637ecc39046fc85fb3696441b69f8f92ae783d62a8a6`. To check
+  own SHA-256 is `363eea659cdac48f5587cab594a8d4bd4a1994e4023df6d7cc27e40ade9eb326`. To check
   for drift, run `shasum -a 256 -c docs/demo-baseline-2026-10-22.sha256 --quiet`.
 - **The presentation baseline:** [enterprise-demo-map.md](enterprise-demo-map.md) (the script,
   "Presenting it in about 15 minutes", with beat 8's note on decision 62 and an optional 30 s in

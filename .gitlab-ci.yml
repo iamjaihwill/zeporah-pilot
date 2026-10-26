@@ -1,0 +1,92 @@
+# Zeporah CI on GitLab (decision 64; code host: gitlab.com/twgi-group). Runs on merge requests and on
+# main. Synthetic data only: no job uses secrets or can reach staging, pilot or production, and every
+# test server uses its own isolated database. Same checks, same order, as `sh scripts/ci.sh`.
+# Required before merging to main: static, tests, e2e, secret_detection (docs/release-governance.md).
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
+
+stages: [static, test]
+
+include:
+  # GitLab's built-in secret scanning, beside the project's own push protection (decision 64).
+  - template: Jobs/Secret-Detection.gitlab-ci.yml
+
+variables:
+  BUN_VERSION: "1.4.3"
+
+.bun: &bun
+  image: oven/bun:1.4.3
+  before_script:
+    - bun install --frozen-lockfile
+
+static:
+  <<: *bun
+  stage: static
+  timeout: 15m
+  script:
+    - bunx tsc --noEmit
+    - bun scripts/check-format.ts # frozen-baseline exceptions: docs/readiness/format-exceptions.txt
+    - bun scripts/check-doc-links.ts
+    - bun scripts/readiness-check.ts # no gap closed without evidence and sign-off
+    - bun scripts/check-baseline.ts # frozen demo baseline
+    - bunx drizzle-kit check
+    - bun scripts/check-audit.ts # unrecorded or expired advisories fail
+
+tests:
+  <<: *bun
+  stage: test
+  needs: [static]
+  timeout: 20m
+  script:
+    - bunx vitest run
+
+e2e:
+  stage: test
+  needs: [static]
+  timeout: 45m
+  # The Playwright image matches the locked @playwright/test version (bun.lock), so browsers and
+  # system libraries are already installed.
+  image: mcr.microsoft.com/playwright:v1.64.0-noble
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq git unzip > /dev/null
+    - curl -fsSL https://bun.sh/install | bash -s "bun-v${BUN_VERSION}"
+    - export PATH="$HOME/.bun/bin:$PATH"
+    - bun install --frozen-lockfile
+  script:
+    - bunx playwright test
+    - bunx playwright test --config playwright.readonly.config.ts
+    - bunx playwright test --config playwright.upgrade.config.ts
+    # Fail if the run changed any tracked file.
+    - git diff --exit-code
+  artifacts:
+    when: on_failure
+    paths: [test-results]
+    expire_in: 7 days # synthetic data only
+
+# The family pixel baselines were recorded on macOS, so the verify suite needs a macOS runner.
+# GitLab's hosted macOS runners need a paid tier; until one is available this job is started by hand
+# and the verify suite is also run on a Mac (`sh scripts/ci.sh`) before every release.
+verify-macos:
+  stage: test
+  needs: [static]
+  timeout: 30m
+  tags: [saas-macos-medium-m1]
+  image: macos-14-xcode-15
+  rules:
+    - when: manual
+  allow_failure: true
+  before_script:
+    - curl -fsSL https://bun.sh/install | bash -s "bun-v${BUN_VERSION}"
+    - export PATH="$HOME/.bun/bin:$PATH"
+    - bun install --frozen-lockfile
+    - bunx playwright install chromium
+  script:
+    - bunx playwright test --config playwright.verify.config.ts
+    # sweep.spec.ts (frozen) rewrites docs/review-screenshots/after; anything else changed fails.
+    - git diff --exit-code -- . ':(exclude)docs/review-screenshots/after'

@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# Runs every CI check locally, in the same order as .github/workflows/ci.yml. Synthetic data only:
+# Runs every CI check locally, in the same order as .gitlab-ci.yml. Synthetic data only:
 # the end-to-end suites start their own isolated servers and databases (never .data/pglite).
 #
 #   sh scripts/ci.sh          # everything

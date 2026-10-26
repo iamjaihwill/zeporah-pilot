@@ -20,7 +20,7 @@
       "evidence": [
         {
           "type": "document",
-          "ref": "docs/release-governance.md; docs/runbooks/release-and-rollback.md; docs/architecture/environments.md; .github/workflows/ci.yml; .github/pull_request_template.md",
+          "ref": "docs/release-governance.md; docs/runbooks/release-and-rollback.md; docs/architecture/environments.md; .gitlab-ci.yml; .gitlab/merge_request_templates/Default.md",
           "date": "2026-10-22"
         },
         {
@@ -35,7 +35,7 @@
         }
       ],
       "approvals": [],
-      "note": "Git initialized (decision 64); initial commit 936cb77 tagged demo-baseline-2026-10-22. Still needed: the code host and owner account, branch protection and required review on the host, a green hosted CI run, the release approver (D-13), and a rollback drill on staging once W3 exists."
+      "note": "Git initialized (decision 64); initial commit 936cb77 tagged demo-baseline-2026-10-22. Code host named: GitLab (twgi-group/zephora). Still needed: the first push, branch protection and the merge rules on GitLab, a green GitLab pipeline, the release approver (D-13), and a rollback drill on staging once W3 exists."
     },
     {
       "id": "PB-02",
@@ -330,7 +330,7 @@
         },
         {
           "type": "test",
-          "ref": "scripts/check-doc-links.ts in scripts/ci.sh and .github/workflows/ci.yml; local run passed (44 files)",
+          "ref": "scripts/check-doc-links.ts in scripts/ci.sh and .gitlab-ci.yml; local run passed (44 files)",
           "date": "2026-10-22"
         }
       ],
