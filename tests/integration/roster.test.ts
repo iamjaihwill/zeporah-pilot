@@ -38,12 +38,16 @@ describe("roster", () => {
     const r = await assignments.roster(t.db, await t.as("st-dana"));
     expect(r.guides.map((g) => [g.name, g.count])).toEqual([
       ["Maya Chen", 4],
-      ["Sofia Reyes", 1],
+      ["Sofia Reyes", 2],
       ["Tomás Alvarez", 2],
     ]);
     expect(r.guides[2]!.households.map((h) => h.id)).toEqual(["hh-lindqvist", "hh-patel"]);
     expect(r.uncovered.map((h) => h.id)).toEqual(["hh-nguyen"]);
-    expect(r.organizationWide.map((p) => p.name).sort()).toEqual(["Dana Brooks", "Lena Hoffman", "Priya Raman"]);
+    expect(r.organizationWide.map((p) => p.name).sort()).toEqual([
+      "Dana Brooks",
+      "Lena Hoffman",
+      "Priya Raman",
+    ]);
     expect(r.ineligible).toEqual([]);
     // Nothing from another hospice.
     expect(JSON.stringify(r)).not.toMatch(/Moss|Cedar|cst-/);

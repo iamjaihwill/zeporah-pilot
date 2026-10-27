@@ -24,11 +24,12 @@ describe("operations report", () => {
     const r = await reports.operationsReport(t.db, await t.as("st-dana"));
     const stage = new Map(r.households.byStage.map((x) => [x.stage, x.n]));
     expect(stage.get("Bereavement support")).toBe(1);
-    expect(stage.get("Getting started")).toBe(1);
+    // Rivera and Wells.
+    expect(stage.get("Getting started")).toBe(2);
     expect(r.households.uncovered).toBe(1);
     expect(r.caseload).toEqual([
       { name: "Maya Chen", n: 4 },
-      { name: "Sofia Reyes", n: 1 },
+      { name: "Sofia Reyes", n: 2 },
       { name: "Tomás Alvarez", n: 2 },
     ]);
     expect(r.corrections).toBeGreaterThan(0);

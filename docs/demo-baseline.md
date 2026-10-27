@@ -41,13 +41,23 @@ the four sharing-category lists in `src/functions/staff.ts` that had none. The m
 for `package.json`, `bun.lock` and `src/functions/staff.ts` were refreshed. No screen, copy, seed or
 workflow changed; a sharing request with more categories than exist is now refused.
 
+**Freeze lifted and re-frozen on 2026-10-27** for one synthetic persona, with the founder's
+explicit approval: Rehanna Wells (`fm-rehanna`), a patient in a new household (`hh-wells`) enrolled
+the same day, with Sofia Reyes as care guide and nothing added, so the demo can show a first-time
+patient. She's featured on the demo launcher and listed with the other personas on the sign-in
+page. The manifest entries for `src/fixtures/synthetic.ts` and three tests whose counts include the
+new household (`tests/integration/assignment.test.ts`, `reports.test.ts`, `roster.test.ts`) were
+refreshed. No rule, screen or copy changed. Unit and integration tests passed (500 of 500); the
+end-to-end suites, including the pixel baselines, weren't run (the test browser isn't installed
+on this computer).
+
 ## What's frozen
 
 - **The build:** 403 files covering the application code (including migrations through
   `0023_cover_notice` and seed fixtures), the tests, the configuration, the decision log and
   register, the presentation documents and the 22 run-through screenshots. Each file's SHA-256
   is in [demo-baseline-2026-10-22.sha256](demo-baseline-2026-10-22.sha256), and the manifest's
-  own SHA-256 is `909bc9c76cca7b6516be294607e4958174bc76fa987167a09d5ec85afeeec1fc`. To check
+  own SHA-256 is `31209f3d7248472eb6b64adfd60d6d9793e1f828862b7043c0ad401b03badbdc`. To check
   for drift, run `shasum -a 256 -c docs/demo-baseline-2026-10-22.sha256 --quiet`.
 - **The presentation baseline:** [enterprise-demo-map.md](enterprise-demo-map.md) (the script,
   "Presenting it in about 15 minutes", with beat 8's note on decision 62 and an optional 30 s in

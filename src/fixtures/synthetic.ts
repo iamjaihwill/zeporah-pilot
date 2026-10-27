@@ -7,6 +7,7 @@
  *
  * Scenario map (tenant t-willow unless noted):
  *   hh-rivera    enrolled, onboarding not started            → onboarding → dashboard flow
+ *   hh-wells     enrolled today; Rehanna, the patient, hasn't signed in → first-time patient view
  *   hh-okafor    active, everything in order                  → normal packet release (ALLOW), messaging, vault,
  *                                                                 consent revocation, bereavement transition
  *   hh-bennett   two conflicting healthcare-agent records     → AUTHORITY_CONFLICT hold + open escalation
@@ -34,6 +35,12 @@ export const PERSONAS: { actorId: string; tenantId: string; blurb: string }[] = 
     actorId: "fm-marisol",
     tenantId: "t-willow",
     blurb: "Sees the Rivera household as its coordinator. Hasn't set it up yet.",
+  },
+  {
+    actorId: "fm-rehanna",
+    tenantId: "t-willow",
+    blurb:
+      "A patient the hospice enrolled today. First time in Zeporah: hasn't added anything, and no one else is in her household yet.",
   },
   {
     actorId: "fm-daniel",
@@ -197,6 +204,7 @@ export function buildFixtures(now: Date) {
     actor("st-sofia", W, "staff", "Sofia Reyes"),
     actor("fm-elena", W, "family", "Elena Rivera"),
     actor("fm-marisol", W, "family", "Marisol Rivera"),
+    actor("fm-rehanna", W, "family", "Rehanna Wells"),
     actor("fm-grace", W, "family", "Grace Okafor"),
     actor("fm-daniel", W, "family", "Daniel Okafor"),
     actor("fm-ada", W, "family", "Ada Okafor"),
@@ -243,6 +251,7 @@ export function buildFixtures(now: Date) {
   });
   const households: Row[] = [
     household("hh-rivera", "The Rivera household", "Elena Rivera", "enrolled", 1),
+    household("hh-wells", "The Wells household", "Rehanna Wells", "enrolled", 0),
     household("hh-okafor", "The Okafor household", "Grace Okafor", "active_hospice", 21),
     household("hh-bennett", "The Bennett household", "Harold Bennett", "active_hospice", 14),
     household("hh-patel", "The Patel household", "Ravi Patel", "active_hospice", 9),
@@ -283,6 +292,8 @@ export function buildFixtures(now: Date) {
     member("st-sofia", "care_guide", org, W, { createdAt: d(-30) }),
     // Sofia shares the Hart household with Maya, so tasks there can move between them (decision 40).
     member("st-sofia", "care_guide", { householdId: "hh-hart" }, W, { createdAt: d(-6) }),
+    // Sofia enrolled the Wells household today. Rehanna hasn't signed in yet.
+    member("st-sofia", "care_guide", { householdId: "hh-wells" }, W, { createdAt: d(0) }),
     // Care-guide assignments (see services/assignments.ts), each dated from the household's enrollment.
     ...(
       [
@@ -307,6 +318,8 @@ export function buildFixtures(now: Date) {
     }),
     member("fm-elena", "patient", { householdId: "hh-rivera" }),
     member("fm-marisol", "coordinator", { householdId: "hh-rivera" }),
+    // The only person in her household so far: no coordinator, no one else invited.
+    member("fm-rehanna", "patient", { householdId: "hh-wells" }, W, { createdAt: d(0) }),
     member("fm-grace", "patient", { householdId: "hh-okafor" }),
     member("fm-daniel", "coordinator", { householdId: "hh-okafor" }),
     member("fm-ada", "proxy", { householdId: "hh-okafor" }),
@@ -412,6 +425,7 @@ export function buildFixtures(now: Date) {
   });
   const careCoordinationRecords: Row[] = [
     record("hh-rivera", "st-maya", "First visits being scheduled", ""),
+    record("hh-wells", "st-sofia", "First visits being scheduled", ""),
     record(
       "hh-okafor",
       "st-maya",
@@ -503,6 +517,7 @@ export function buildFixtures(now: Date) {
     });
   const vaultItems: Row[] = [
     ...vault("hh-rivera", []),
+    ...vault("hh-wells", []),
     ...vault("hh-okafor", [
       ["reviewed", "On the fridge"],
       ["reviewed", "Kitchen drawer, blue folder"],

@@ -5,6 +5,8 @@ Every change that alters behaviour is recorded here in the pull request that mak
 
 ## Unreleased
 
+- Synthetic data: Rehanna Wells, a first-time patient in a household enrolled the same day, with
+  Sofia Reyes as care guide. Featured on the demo launcher.
 - Security: zod 4.6.6 (from 3.25.76) for GHSA-mrhx-c7xc-m3w5, and the four sharing-category lists
   in staff requests are capped at the number of categories.
 - Address awareness (docs/architecture/environments.md, "Addresses"): with `ZEPORAH_APP_URL` and

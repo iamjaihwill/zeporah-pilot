@@ -66,8 +66,8 @@ describe("seeded assignments", () => {
     expect(list.find((h) => h.id === "hh-nguyen")?.careGuides).toEqual([]);
     expect(list.find((h) => h.id === "hh-okafor")?.careGuides).toEqual(["Maya Chen"]);
     expect((await t.as("st-tom")).assignedHouseholdIds.sort()).toEqual(["hh-lindqvist", "hh-patel"]);
-    // Seven plus Sofia's second-guide assignment on Hart (decision 40's seed).
-    expect((await events("assignment.created")).length).toBe(8);
+    // Seven, Sofia's second-guide assignment on Hart (decision 40's seed) and hers on Wells.
+    expect((await events("assignment.created")).length).toBe(9);
     expect((await events("assignment.ended")).length).toBe(1);
   });
 });

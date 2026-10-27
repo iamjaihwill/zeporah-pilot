@@ -27,7 +27,7 @@ const experiences = [
     eyebrow: "Consumer",
     title: "Family app",
     hint: "What a household sees — works on phones and computers.",
-    featured: ["fm-daniel", "fm-marisol"],
+    featured: ["fm-daniel", "fm-marisol", "fm-rehanna"],
     match: (p: Persona) => p.kind === "family",
   },
   {
