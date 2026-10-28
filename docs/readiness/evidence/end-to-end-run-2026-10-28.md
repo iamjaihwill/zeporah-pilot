@@ -18,11 +18,17 @@ The 12 skipped verify tests are screenshot-capture runs that only run when asked
 (`SHOT_SET`, `STAFF_SHOTS`, `ENTERPRISE_SHOTS`, `MARKETING_SHOTS`), by design.
 
 The end-to-end suite includes the axe-core accessibility checks (WCAG 2.0/2.1/2.2 A and AA) on the
-pages, dialogs and phone layouts it opens, and they passed. It has **no browser tests yet** for
-several things built since 2026-10-22: listed contacts, enrollment, the staff access log and offline
-status (the request lifecycle is covered only through the offer test). Those are checked by unit and
-integration tests and by hand in the preview, not by axe. All of this is automated checking, not a
-manual review (D-12).
+pages, dialogs and phone layouts it opens, and they passed. All of this is automated checking, not
+a manual review (D-12).
+
+**Added the same day:** browser tests, each with axe checks, for features built since 2026-10-22
+that had none: `family-contacts.spec.ts` (listed contacts, desktop and phone; the staff household
+view on desktop), `enrollment.spec.ts`, `access-log.spec.ts` and `offline.spec.ts` (with the test
+browser's network really cut, and a send whose reply is dropped on the way back). With them the
+end-to-end suite is **199 passed, 2 skipped** (the new skip is the staff contacts test on phone).
+`offline.spec.ts` keeps its own console guard: it allows only the connection errors it causes on
+purpose and React's report of the one the root page catches; anything else fails. No frozen file
+changed. The request lifecycle's family screens are still covered only through the offer test.
 
 ## What failed, and what was done
 

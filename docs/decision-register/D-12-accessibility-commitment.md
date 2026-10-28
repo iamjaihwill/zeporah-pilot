@@ -29,9 +29,9 @@ for evidence (for example an accessibility conformance report).
   announcements, no color-only status, text-size preference, 200% reflow, reduced motion, 44 px targets
   ([accessibility.md](../accessibility.md)). [Code]
 - **Automated:** axe-core with WCAG 2.0/2.1/2.2 A and AA rules on the family and staff pages, dialogs
-  and phone layouts, plus keyboard paths ([Test] end-to-end suites, last run 2026-10-28, passing on
-  the pages they open; they don't yet open listed contacts, enrollment, the access log or offline
-  status: [evidence](../readiness/evidence/end-to-end-run-2026-10-28.md)).
+  and phone layouts, plus keyboard paths ([Test] end-to-end suites, last run 2026-10-28, passing,
+  now including listed contacts, enrollment, the access log and offline status:
+  [evidence](../readiness/evidence/end-to-end-run-2026-10-28.md)).
 - **Manual:** a protocol with severity definitions and exit criteria
   ([manual-accessibility-review-protocol.md](../manual-accessibility-review-protocol.md)), and one
   **partial** Safari and VoiceOver session on 2026-10-12, marked incomplete
