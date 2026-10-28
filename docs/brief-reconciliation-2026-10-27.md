@@ -22,6 +22,9 @@ build, closes a readiness item or approves a decision. Labels follow
   and 500 of 500 unit and integration tests: **passed**. The end-to-end, read-only, upgrade and
   verify suites were **not run** (the test browser isn't installed on this computer); their last
   recorded pass is the 2026-10-22 freeze (187 end-to-end with 1 skipped, 22 verify, 10 upgrade). [Doc]
+  _Run on 2026-10-28 after the test browser was installed: end-to-end 187 passed with 1 skipped
+  (after fixes), read-only 2, upgrade 10, verify 21 with one date-only screenshot difference
+  ([evidence](readiness/evidence/end-to-end-run-2026-10-28.md))._
 - **Decisions on record:** founder decisions 1–65
   ([founder-decision-log.md](founder-decision-log.md)); product register R-01 to R-19
   ([enterprise-decision-register.md](enterprise-decision-register.md)); readiness decisions D-01 to
