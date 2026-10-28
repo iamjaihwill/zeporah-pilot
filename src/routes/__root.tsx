@@ -3,8 +3,9 @@ import { useEffect, type ReactNode } from "react";
 import { parseAddresses, redirectFor, type Addresses } from "@/domain/addresses";
 import { getAddresses } from "@/functions/session";
 import appCss from "../styles.css?url";
-import { LiveRegion } from "@/components/ui";
+import { Button, LiveRegion } from "@/components/ui";
 import { SystemNotice } from "@/components/system-notice";
+import { isLostRequest } from "@/lib/connection";
 
 /** Fetched once per page load: the addresses don't change while a server runs. */
 let addressesOnce: Promise<Addresses | null> | null = null;
@@ -46,7 +47,8 @@ export const Route = createRootRoute({
       </Link>
     </main>
   ),
-  errorComponent: ({ error }) => <UnexpectedError error={error} />,
+  errorComponent: ({ error }) =>
+    isLostRequest(error) ? <ConnectionLost /> : <UnexpectedError error={error} />,
 });
 
 /** Marks the page as interactive (used by end-to-end tests so they never click before React is ready). */
@@ -84,6 +86,26 @@ function Shell({ children }: { children: ReactNode }) {
         <Scripts />
       </body>
     </html>
+  );
+}
+
+/**
+ * A page whose data never arrived: the connection dropped, or a change of page cut the request off.
+ * That isn't a fault on our side, so it says so plainly (decision 85's wording) and offers a retry.
+ * Nothing is logged as an error.
+ */
+function ConnectionLost() {
+  return (
+    <main id="main" className="mx-auto max-w-xl px-5 py-16" data-testid="connection-lost">
+      <h1 className="text-3xl">Couldn't reach Zeporah</h1>
+      <p className="mt-2">
+        This page couldn't load. Check your connection and try again. If someone needs urgent help, call 911
+        or your hospice's 24-hour line.
+      </p>
+      <Button className="mt-6" onClick={() => window.location.reload()}>
+        Try again
+      </Button>
+    </main>
   );
 }
 

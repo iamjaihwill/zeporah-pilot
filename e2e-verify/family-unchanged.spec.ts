@@ -3,8 +3,8 @@ import { ready } from "../e2e/helpers";
 
 /**
  * The staff workspace rework must not change the family app. Pixel comparison of three family
- * pages (desktop and phone) against baselines taken before the rework. Times are masked: they're
- * relative to when the synthetic data was seeded. Update baselines only on purpose:
+ * pages (desktop and phone) against baselines taken before the rework. Times and dates are masked:
+ * they're relative to when the synthetic data was seeded. Update baselines only on purpose:
  * `bunx playwright test --config playwright.verify.config.ts family-unchanged --update-snapshots`.
  */
 const PAGES = [
@@ -32,7 +32,12 @@ async function shoot(
   await page.waitForTimeout(300);
   await expect(page).toHaveScreenshot(name, {
     fullPage: true,
-    mask: [page.locator("time"), page.getByText(/\d{1,2}:\d\d [AP]M/)],
+    // Dates without a time too ("Oct 28, 2026"): they move with the seed day.
+    mask: [
+      page.locator("time"),
+      page.getByText(/\d{1,2}:\d\d [AP]M/),
+      page.getByText(/\b[A-Z][a-z]{2} \d{1,2}, \d{4}\b/),
+    ],
     maxDiffPixelRatio: 0.002,
   });
   await ctx.close();

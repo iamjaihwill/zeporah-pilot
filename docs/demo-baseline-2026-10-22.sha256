@@ -1,11 +1,11 @@
 2eb4a2428bddba4869ec4ca0470c6331db602377c44177df7e4f417099be72cd  e2e-verify/enterprise-shots.spec.ts
-23dc7f64c4a52d33cf87b2535e6af8290855dcca9b66fdf55c762b35531e11aa  e2e-verify/family-unchanged.spec.ts
+e76788a102c7b9c77d7377e971befbac6c3976b87d94a99cf546ee93e178e571  e2e-verify/family-unchanged.spec.ts
 699653d849e82a4ac480c78f543489db2f6ce6169b046bac1bb113e9b3a0d123  e2e-verify/family-unchanged.spec.ts-snapshots/family-1280-desktop-darwin.png
 026440b092a999bdc043a6babf0dcf36beca11ec528fbb10893ba27ffa5d3efb  e2e-verify/family-unchanged.spec.ts-snapshots/family-390-desktop-darwin.png
 a330f1dec5c250f991c87e450d841054fa82a9d2fcfc10b49fdcb7d7947bb6b5  e2e-verify/family-unchanged.spec.ts-snapshots/family-messages-1280-desktop-darwin.png
 0e05c2e065d264309cbb0c8702bdc82781c3c20d6d2451f91cf3c80650a9ee05  e2e-verify/family-unchanged.spec.ts-snapshots/family-messages-390-desktop-darwin.png
-c180c6212ef994391cd5a847b88dad312e44f4e256ff04497f015fa236ef3d0e  e2e-verify/family-unchanged.spec.ts-snapshots/family-sharing-1280-desktop-darwin.png
-4433de0e82e3dd381aafb621222067aff6a08ef4b8a924fd03718a9478af538d  e2e-verify/family-unchanged.spec.ts-snapshots/family-sharing-390-desktop-darwin.png
+b04cd627f07df9482850b90009083e136a1e54699dd634182a53ea094e48eb94  e2e-verify/family-unchanged.spec.ts-snapshots/family-sharing-1280-desktop-darwin.png
+4a20b8080689e28ff0daaba131285dea8aa27e9c96e7d0eeeabe1eba42033db7  e2e-verify/family-unchanged.spec.ts-snapshots/family-sharing-390-desktop-darwin.png
 ec5957ef8dc683fc1a37db940c425e826ce43175baf8edf078c061ace524f764  e2e-verify/marketing-shots.spec.ts
 81ecd31bb5ce37ff7a4cc84e48686d640edc73fd3287bbe1b915865152fd82dd  e2e-verify/shots.spec.ts
 745c4643e177faf53a5f6631259db90e1a7399d14b11137a734b6471c6d801f0  e2e-verify/staff-shots.spec.ts
@@ -133,7 +133,7 @@ aadef4bfb36af4f3f7ec5eac858382fd18e7bfa91f5dc9d7a33d29e4fec78764  src/lib/stable
 7d38c09fcdb1b35f274793e78fdf7dac978ac19c3cee3498f44c72499d172081  src/lib/use-hash-target.ts
 8ccf541e75325cd9aea5046a529d9cc0a56c012aa0a4899c3f976f6900546f5c  src/routeTree.gen.ts
 11aa6bfff768fbad3e4e152335efbc2ca8c4d41a60164c31cb80a78a5fbb975f  src/router.tsx
-289cf308fb47357c9e366e8690001d37f6e2175b5b73eb65602e145c0c016afa  src/routes/__root.tsx
+860a5dbb5ea6d3e76b1c0af4419ce91bdf6553b3922ebbef996da7417c68b5b2  src/routes/__root.tsx
 cae030a5ee143a94b6d76c5dbfb8413c1c9d6bf8683c1ac509a3cd35bb4cc59c  src/routes/create-account.tsx
 c6aaba3bad27ea99223ab27c149edc54c09a208291b1f9ffbf0154a49a904c0d  src/routes/dev/mail.tsx
 482a973094f9ddc0c7885ed117cb006797bd217245289c09b3281c7000f765b3  src/routes/family/bereavement.tsx

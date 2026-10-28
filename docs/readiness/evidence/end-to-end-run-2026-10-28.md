@@ -7,12 +7,12 @@ into `~/Library/Caches/ms-playwright`, outside the repository.
 
 ## Results
 
-| Suite                                       | First run (at `1b09428`)        | After fixes (at `05dc8f0`) |
-| ------------------------------------------- | ------------------------------- | -------------------------- |
-| End-to-end (desktop, plus phone for family) | 181 passed, 6 failed, 1 skipped | 187 passed, 1 skipped      |
-| Read-only mode                              | 2 passed                        | not re-run                 |
-| Upgrade and downgrade                       | 10 passed                       | not re-run                 |
-| Verify (with pixel baselines)               | 21 passed, 1 failed, 12 skipped | not re-run                 |
+| Suite                                       | First run (at `1b09428`)        | After fixes           |
+| ------------------------------------------- | ------------------------------- | --------------------- |
+| End-to-end (desktop, plus phone for family) | 181 passed, 6 failed, 1 skipped | 187 passed, 1 skipped |
+| Read-only mode                              | 2 passed                        | not re-run            |
+| Upgrade and downgrade                       | 10 passed                       | not re-run            |
+| Verify (with pixel baselines)               | 21 passed, 1 failed, 12 skipped | 22 passed, 12 skipped |
 
 The 12 skipped verify tests are screenshot-capture runs that only run when asked for
 (`SHOT_SET`, `STAFF_SHOTS`, `ENTERPRISE_SHOTS`, `MARKETING_SHOTS`), by design.
@@ -33,18 +33,18 @@ manual review (D-12).
   (decision 80), offering an escalation (83), eight households (the Rehanna persona), the 24-hour
   line's "What you reached" field (72), "No findings" (increment 2). Updated in `05dc8f0`; the offer
   test now also signs in as the offered person and accepts.
-- **Verify, `family-sharing` at phone size:** 3,029 pixels (1%) differ, all in the dates on the
-  page. The demo data is seeded relative to today, and the stored picture was taken on another day,
-  so this comparison changes from day to day. Not changed yet.
+- **Verify, `family-sharing` at phone size:** 3,029 pixels (1%) differed, all in the dates on the
+  page: the demo data is seeded relative to today, and the test masked times but not dates without
+  a time. The test now masks those too, and the two Sharing baselines were retaken (with the freeze
+  lifted); the family home and messages baselines were unchanged and still pass.
 
 ## Notes
 
-- **"Failed to fetch" in the browser console** (21 times in the first end-to-end run, 36 in verify),
-  only in passing tests that switch between people (sign out, sign in as someone else). A page
-  request is cut off by the full-page change, and for a moment the app shows and logs its
-  "Something went wrong on our side" page (`UnexpectedError` in `src/routes/__root.tsx`) before the
-  next page loads. Nothing is lost, but the message blames the server for a lost connection. Not
-  changed yet.
+- **"Failed to fetch" in the browser console,** only in passing tests that switch between people: a
+  page request is cut off by the full-page change. The app used to show and log its "Something went
+  wrong on our side" page for a moment. It now shows "Couldn't reach Zeporah … try again" for a
+  lost request and logs nothing (`ConnectionLost` in `src/routes/__root.tsx`); the remaining
+  console lines (5 and 10 in the reruns) are the framework's own.
 - Each suite starts its own server with freshly reset data; the preview server wasn't used.
 - The verify run rewrites `docs/review-screenshots/after` (a known side effect); those files were
   restored, as CI does.

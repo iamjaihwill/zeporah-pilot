@@ -176,13 +176,22 @@ decision 83), `households-review.spec.ts` (8 households, with Rehanna's), `setti
 (the "What you reached" field, decision 72) and `status.spec.ts` ("No findings", increment 2). The
 manifest entries were refreshed. **What a demo now shows differently:** nothing.
 
+**Freeze lifted on 2026-10-28** for `e2e-verify/family-unchanged.spec.ts`, its two `family-sharing`
+baselines and `src/routes/__root.tsx`, with the founder's explicit approval. The screenshot test
+now masks dates without a time as well as times, since they move with the seed day; the two Sharing
+baselines were retaken and the other four are unchanged. A page whose data never arrived (a dropped
+connection, or a request cut off by a change of page) now says "Couldn't reach Zeporah" with Try
+again, instead of "Something went wrong on our side", and isn't logged as an error. End-to-end 187
+passed with 1 skipped; verify 22 passed with 12 skipped. The manifest entries were refreshed. **What
+a demo now shows differently:** only when a page can't load.
+
 ## What's frozen
 
 - **The build:** 403 files covering the application code (including migrations through
   `0023_cover_notice` and seed fixtures), the tests, the configuration, the decision log and
   register, the presentation documents and the 22 run-through screenshots. Each file's SHA-256
   is in [demo-baseline-2026-10-22.sha256](demo-baseline-2026-10-22.sha256), and the manifest's
-  own SHA-256 is `13d9407f46f55e9da71d65ae07fdf45169f4ae812ee08ea9b5c270a0519e011d`. To check
+  own SHA-256 is `9647cf7fc2494c73582584f97bd0742b131357d39b8aae2e060c9163ec903eaa`. To check
   for drift, run `shasum -a 256 -c docs/demo-baseline-2026-10-22.sha256 --quiet`.
 - **The presentation baseline:** [enterprise-demo-map.md](enterprise-demo-map.md) (the script,
   "Presenting it in about 15 minutes", with beat 8's note on decision 62 and an optional 30 s in

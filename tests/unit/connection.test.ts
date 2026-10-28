@@ -84,3 +84,14 @@ describe("every tracked send settles through the page (decision 86)", () => {
     expect(raw).toEqual([]);
   });
 });
+
+describe("a request that never got an answer", () => {
+  it("is recognised by each browser's own words, and nothing else", async () => {
+    const { isLostRequest } = await import("@/lib/connection");
+    for (const m of ["Failed to fetch", "NetworkError when attempting to fetch resource.", "Load failed"])
+      expect(isLostRequest(new TypeError(m))).toBe(true);
+    expect(isLostRequest(new TypeError("Cannot read properties of undefined"))).toBe(false);
+    expect(isLostRequest(new Error("Failed to fetch"))).toBe(false);
+    expect(isLostRequest("Failed to fetch")).toBe(false);
+  });
+});

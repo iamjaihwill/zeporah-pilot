@@ -99,3 +99,16 @@ export function useUncertain() {
 export function resetUncertainCache() {
   cache = null;
 }
+
+/* ---------------- a request that never got an answer ---------------- */
+
+/**
+ * The browser's own words when a request never reached the server or its answer was lost (Chrome,
+ * Firefox, Safari). Distinct from a fault on the server, which always comes back as an answer.
+ */
+export function isLostRequest(error: unknown) {
+  return (
+    error instanceof TypeError &&
+    /^(Failed to fetch|NetworkError when attempting to fetch resource\.?|Load failed)$/.test(error.message)
+  );
+}
