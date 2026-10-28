@@ -5,6 +5,9 @@ Every change that alters behaviour is recorded here in the pull request that mak
 
 ## Unreleased
 
+- Staff read-access logging (decision 71, PB-12): opening a household's record or a list view is
+  recorded in an append-only access log (migration `0028_access_log`), reviewable by privileged
+  reviewers and administrators on "Who opened records". A read that can't be recorded is refused.
 - Enrollment (decisions 66–70): operations and administrators enroll a household; operations or its
   care guide invite the patient and one coordinator after confirming who they are; a patient with
   no coordinator can complete setup; enrollment stops at the pilot cap (25 by default, set by

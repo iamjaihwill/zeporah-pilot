@@ -34,8 +34,10 @@ export const deleteQueueView = createServerFn({ method: "POST" })
 export const staffSearch = createServerFn({ method: "GET" })
   .validator(z.object({ q: z.string().max(80) }))
   .handler(async ({ data }) => {
-    const { run, staffShell } = await server();
-    return run((db, ctx) => staffShell.staffSearch(db, ctx, data.q));
+    const { run, staffShell, accessLog } = await server();
+    return run((db, ctx) =>
+      accessLog.loggedList(db, ctx, "staff_search", () => staffShell.staffSearch(db, ctx, data.q)),
+    );
   });
 
 /* ---------------- queue: detail panel and bulk actions (staff rework, section 3) ---------------- */
@@ -50,8 +52,16 @@ export const getQueueDetail = createServerFn({ method: "GET" })
     }),
   )
   .handler(async ({ data }) => {
-    const { run, queueDetail } = await server();
-    return run((db, ctx) => queueDetail.queueDetail(db, ctx, data));
+    const { run, queueDetail, accessLog } = await server();
+    return run((db, ctx) =>
+      accessLog.loggedRead(
+        db,
+        ctx,
+        "queue_detail",
+        () => queueDetail.queueDetail(db, ctx, data),
+        () => data.householdId,
+      ),
+    );
   });
 
 export const bulkEscalations = createServerFn({ method: "POST" })
@@ -152,8 +162,10 @@ export const recordReachedByPhone = createServerFn({ method: "POST" })
   });
 
 export const getResolvedExceptions = createServerFn({ method: "GET" }).handler(async () => {
-  const { run, exceptions } = await server();
-  return run((db, ctx) => exceptions.resolvedExceptions(db, ctx));
+  const { run, exceptions, accessLog } = await server();
+  return run((db, ctx) =>
+    accessLog.loggedList(db, ctx, "resolved_exceptions", () => exceptions.resolvedExceptions(db, ctx)),
+  );
 });
 
 /* ------------------------------------------------------------------ coverage and handoffs (decisions 59–61) */
@@ -161,8 +173,10 @@ export const getResolvedExceptions = createServerFn({ method: "GET" }).handler(a
 const when = z.string().datetime();
 
 export const getCoverageBoard = createServerFn({ method: "GET" }).handler(async () => {
-  const { run, coverage } = await server();
-  return run((db, ctx) => coverage.coverageBoard(db, ctx));
+  const { run, coverage, accessLog } = await server();
+  return run((db, ctx) =>
+    accessLog.loggedList(db, ctx, "coverage_board", () => coverage.coverageBoard(db, ctx)),
+  );
 });
 
 export const recordAbsence = createServerFn({ method: "POST" })
@@ -229,8 +243,8 @@ export const withdrawHandoff = createServerFn({ method: "POST" })
   });
 
 export const getMyHandoffs = createServerFn({ method: "GET" }).handler(async () => {
-  const { run, coverage } = await server();
-  return run((db, ctx) => coverage.myHandoffs(db, ctx));
+  const { run, coverage, accessLog } = await server();
+  return run((db, ctx) => accessLog.loggedList(db, ctx, "my_handoffs", () => coverage.myHandoffs(db, ctx)));
 });
 
 export const acceptHandoff = createServerFn({ method: "POST" })
@@ -259,6 +273,14 @@ export const getCatchMeUp = createServerFn({ method: "POST" })
 export const getPreparedDrafts = createServerFn({ method: "GET" })
   .validator(z.object({ householdId: z.string().min(1).max(100) }))
   .handler(async ({ data }) => {
-    const { run, prepared } = await server();
-    return run((db, ctx) => prepared.preparedDrafts(db, ctx, data.householdId));
+    const { run, prepared, accessLog } = await server();
+    return run((db, ctx) =>
+      accessLog.loggedRead(
+        db,
+        ctx,
+        "prepared_drafts",
+        () => prepared.preparedDrafts(db, ctx, data.householdId),
+        () => data.householdId,
+      ),
+    );
   });

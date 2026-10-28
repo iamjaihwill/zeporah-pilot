@@ -197,6 +197,13 @@
       "when": 1793149734085,
       "tag": "0027_enrollment",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1793153424511,
+      "tag": "0028_access_log",
+      "breakpoints": true
     }
   ]
 }

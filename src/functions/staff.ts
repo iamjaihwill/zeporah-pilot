@@ -10,27 +10,49 @@ const id = z.object({ id: z.string().min(1) });
 const hid = z.object({ householdId: z.string().min(1) });
 
 export const getStaffHome = createServerFn({ method: "GET" }).handler(async () => {
-  const { run, staff } = await server();
-  return run((db, ctx) => staff.staffHome(db, ctx));
+  const { run, staff, accessLog } = await server();
+  return run((db, ctx) => accessLog.loggedList(db, ctx, "staff_home", () => staff.staffHome(db, ctx)));
 });
 
 export const getQueue = createServerFn({ method: "GET" }).handler(async () => {
-  const { run, staff } = await server();
-  return run((db, ctx) => staff.coordinationQueue(db, ctx));
+  const { run, staff, accessLog } = await server();
+  return run((db, ctx) => accessLog.loggedList(db, ctx, "queue", () => staff.coordinationQueue(db, ctx)));
 });
 
 export const searchHouseholds = createServerFn({ method: "GET" })
   .validator(z.object({ q: z.string().max(100) }))
   .handler(async ({ data }) => {
-    const { run, staff } = await server();
-    return run((db, ctx) => staff.searchHouseholds(db, ctx, data.q));
+    const { run, staff, accessLog } = await server();
+    return run((db, ctx) =>
+      accessLog.loggedList(db, ctx, "household_search", () => staff.searchHouseholds(db, ctx, data.q)),
+    );
   });
 
 export const getHouseholdOverview = createServerFn({ method: "GET" })
   .validator(hid)
   .handler(async ({ data }) => {
-    const { run, staff } = await server();
-    return run((db, ctx) => staff.householdOverview(db, ctx, data.householdId));
+    const { run, staff, accessLog } = await server();
+    return run((db, ctx) =>
+      accessLog.loggedRead(
+        db,
+        ctx,
+        "household_overview",
+        () => staff.householdOverview(db, ctx, data.householdId),
+        (r) => r.household.id,
+      ),
+    );
+  });
+
+/** Decision 71: who opened household records. Privileged reviewers and administrators. */
+export const getAccessLog = createServerFn({ method: "GET" })
+  .validator(
+    z.object({ householdId: z.string().max(100).optional(), actorId: z.string().max(100).optional() }),
+  )
+  .handler(async ({ data }) => {
+    const { run, accessLog } = await server();
+    return run((db, ctx) =>
+      accessLog.loggedList(db, ctx, "access_log", () => accessLog.accessLogReview(db, ctx, data)),
+    );
   });
 
 /** Enrollment (decisions 66 and 70): the count, the cap and the care guides to choose from. */
@@ -65,8 +87,16 @@ export const inviteFirstMember = createServerFn({ method: "POST" })
 export const getHouseholdAccessMap = createServerFn({ method: "GET" })
   .validator(hid)
   .handler(async ({ data }) => {
-    const { run, accessMap } = await server();
-    return run((db, ctx) => accessMap.householdAccessMap(db, ctx, data.householdId));
+    const { run, accessMap, accessLog } = await server();
+    return run((db, ctx) =>
+      accessLog.loggedRead(
+        db,
+        ctx,
+        "access_map",
+        () => accessMap.householdAccessMap(db, ctx, data.householdId),
+        () => data.householdId,
+      ),
+    );
   });
 
 /** Record what an outside organization said: staff-entered, labelled simulated (decision 60). */
@@ -132,8 +162,8 @@ export const completeStaffTask = createServerFn({ method: "POST" })
   });
 
 export const getEscalations = createServerFn({ method: "GET" }).handler(async () => {
-  const { run, staff } = await server();
-  return run((db, ctx) => staff.listEscalations(db, ctx));
+  const { run, staff, accessLog } = await server();
+  return run((db, ctx) => accessLog.loggedList(db, ctx, "escalations", () => staff.listEscalations(db, ctx)));
 });
 
 export const updateEscalation = createServerFn({ method: "POST" })
@@ -175,20 +205,30 @@ export const cancelBereavement = createServerFn({ method: "POST" })
 /* ---------------- controlled sharing ---------------- */
 
 export const getPackets = createServerFn({ method: "GET" }).handler(async () => {
-  const { run, sharing } = await server();
-  return run((db, ctx) => sharing.listPackets(db, ctx));
+  const { run, sharing, accessLog } = await server();
+  return run((db, ctx) => accessLog.loggedList(db, ctx, "packets", () => sharing.listPackets(db, ctx)));
 });
 
 export const getPacketDraftHouseholds = createServerFn({ method: "GET" }).handler(async () => {
-  const { run, staff } = await server();
-  return run((db, ctx) => staff.packetDraftHouseholds(db, ctx));
+  const { run, staff, accessLog } = await server();
+  return run((db, ctx) =>
+    accessLog.loggedList(db, ctx, "packet_draft_households", () => staff.packetDraftHouseholds(db, ctx)),
+  );
 });
 
 export const getPacket = createServerFn({ method: "GET" })
   .validator(id)
   .handler(async ({ data }) => {
-    const { run, sharing } = await server();
-    return run((db, ctx) => sharing.getPacket(db, ctx, data.id));
+    const { run, sharing, accessLog } = await server();
+    return run((db, ctx) =>
+      accessLog.loggedRead(
+        db,
+        ctx,
+        "packet",
+        () => sharing.getPacket(db, ctx, data.id),
+        (r) => r.household.id,
+      ),
+    );
   });
 
 export const requestRelease = createServerFn({ method: "POST" })
@@ -242,13 +282,21 @@ export const getPolicyScenarios = createServerFn({ method: "GET" }).handler(asyn
 export const getAuthority = createServerFn({ method: "GET" })
   .validator(hid)
   .handler(async ({ data }) => {
-    const { run, sharing } = await server();
-    return run((db, ctx) => sharing.listAuthority(db, ctx, data.householdId));
+    const { run, sharing, accessLog } = await server();
+    return run((db, ctx) =>
+      accessLog.loggedRead(
+        db,
+        ctx,
+        "authority",
+        () => sharing.listAuthority(db, ctx, data.householdId),
+        () => data.householdId,
+      ),
+    );
   });
 
 export const getReviewQueue = createServerFn({ method: "GET" }).handler(async () => {
-  const { run, sharing } = await server();
-  return run((db, ctx) => sharing.reviewQueue(db, ctx));
+  const { run, sharing, accessLog } = await server();
+  return run((db, ctx) => accessLog.loggedList(db, ctx, "review_queue", () => sharing.reviewQueue(db, ctx)));
 });
 
 export const submitEvidence = createServerFn({ method: "POST" })
@@ -284,8 +332,16 @@ export const reviewEvidence = createServerFn({ method: "POST" })
 export const getConsents = createServerFn({ method: "GET" })
   .validator(hid)
   .handler(async ({ data }) => {
-    const { run, sharing } = await server();
-    return run((db, ctx) => sharing.listConsents(db, ctx, data.householdId));
+    const { run, sharing, accessLog } = await server();
+    return run((db, ctx) =>
+      accessLog.loggedRead(
+        db,
+        ctx,
+        "consents",
+        () => sharing.listConsents(db, ctx, data.householdId),
+        () => data.householdId,
+      ),
+    );
   });
 
 export const recordConsent = createServerFn({ method: "POST" })
@@ -453,8 +509,8 @@ export const reassignCareGuide = createServerFn({ method: "POST" })
   });
 
 export const getRoster = createServerFn({ method: "GET" }).handler(async () => {
-  const { run, assignments } = await server();
-  return run((db, ctx) => assignments.roster(db, ctx));
+  const { run, assignments, accessLog } = await server();
+  return run((db, ctx) => accessLog.loggedList(db, ctx, "roster", () => assignments.roster(db, ctx)));
 });
 
 /* ------------------------------------------------------------------ staff lifecycle */
@@ -464,8 +520,10 @@ const staffRole = z.enum(["care_guide", "hospice_ops", "privileged_reviewer", "h
 export const getStaffMember = createServerFn({ method: "GET" })
   .validator(z.object({ actorId: z.string().min(1).max(100) }))
   .handler(async ({ data }) => {
-    const { run, team } = await server();
-    return run((db, ctx) => team.staffMember(db, ctx, data.actorId));
+    const { run, team, accessLog } = await server();
+    return run((db, ctx) =>
+      accessLog.loggedList(db, ctx, "staff_member", () => team.staffMember(db, ctx, data.actorId)),
+    );
   });
 
 export const changeStaffRole = createServerFn({ method: "POST" })
@@ -500,22 +558,34 @@ export const giveEscalation = createServerFn({ method: "POST" })
 /* ------------------------------------------------------------------ sharing register */
 
 export const getSharingRegister = createServerFn({ method: "GET" }).handler(async () => {
-  const { run, register } = await server();
-  return run((db, ctx) => register.sharingRegister(db, ctx));
+  const { run, register, accessLog } = await server();
+  return run((db, ctx) =>
+    accessLog.loggedList(db, ctx, "sharing_register", () => register.sharingRegister(db, ctx)),
+  );
 });
 
 export const getConsentHistory = createServerFn({ method: "GET" })
   .validator(z.object({ consentId: z.string().min(1).max(100) }))
   .handler(async ({ data }) => {
-    const { run, register } = await server();
-    return run((db, ctx) => register.consentHistory(db, ctx, data.consentId));
+    const { run, register, accessLog } = await server();
+    return run((db, ctx) =>
+      accessLog.loggedRead(
+        db,
+        ctx,
+        "consent_history",
+        () => register.consentHistory(db, ctx, data.consentId),
+        (r) => r.consent.householdId,
+      ),
+    );
   });
 
 /* ------------------------------------------------------------------ bereavement follow-up */
 
 export const getBereavementWorkload = createServerFn({ method: "GET" }).handler(async () => {
-  const { run, bereavement } = await server();
-  return run((db, ctx) => bereavement.bereavementWorkload(db, ctx));
+  const { run, bereavement, accessLog } = await server();
+  return run((db, ctx) =>
+    accessLog.loggedList(db, ctx, "bereavement_workload", () => bereavement.bereavementWorkload(db, ctx)),
+  );
 });
 
 export const recordCheckIn = createServerFn({ method: "POST" })
@@ -555,8 +625,10 @@ export const getAuditReview = createServerFn({ method: "GET" })
     }),
   )
   .handler(async ({ data }) => {
-    const { run, auditReview } = await server();
-    return run((db, ctx) => auditReview.auditReview(db, ctx, data));
+    const { run, auditReview, accessLog } = await server();
+    return run((db, ctx) =>
+      accessLog.loggedList(db, ctx, "audit_review", () => auditReview.auditReview(db, ctx, data)),
+    );
   });
 
 /** CSV of audit review under the same filters (decision 28). The server audit-logs every export. */
@@ -633,8 +705,10 @@ const bulkTasks = z.object({
 });
 
 export const getCoverageTasks = createServerFn({ method: "GET" }).handler(async () => {
-  const { run, staffTasks } = await server();
-  return run((db, ctx) => staffTasks.myCoverageTasks(db, ctx));
+  const { run, staffTasks, accessLog } = await server();
+  return run((db, ctx) =>
+    accessLog.loggedList(db, ctx, "coverage_tasks", () => staffTasks.myCoverageTasks(db, ctx)),
+  );
 });
 
 /** Changes nothing: what bulk assigning would do. */

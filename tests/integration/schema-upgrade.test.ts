@@ -28,7 +28,7 @@ async function previousThenMigrated() {
   close = h.close;
   await seed(h.db);
   // Three versions back: the database the reviewers had (before 0014), across 0016 too.
-  await downgradeToPrevious(h.db, 14);
+  await downgradeToPrevious(h.db, 15);
   const cols = await h.db.execute(
     sql.raw(`SELECT column_name FROM information_schema.columns WHERE table_name = 'preferences'`),
   );
@@ -90,7 +90,7 @@ describe("a dev server that stays running while code changes", () => {
     const h = await openDb();
     close = h.close;
     await seed(h.db);
-    await downgradeToPrevious(h.db, 14);
+    await downgradeToPrevious(h.db, 15);
     // As a server opened before the migration existed would hold it.
     const holder = (globalThis as { __zeporahDb?: { promise: unknown; migrated?: string } }).__zeporahDb!;
     const saved = { ...holder };

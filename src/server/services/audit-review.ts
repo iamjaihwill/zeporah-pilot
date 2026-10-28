@@ -240,6 +240,7 @@ export async function auditReview(db: DB, ctx: ActorContext, filter: AuditFilter
     })),
     total: picked.length,
     canExport: can(ctx.staffRoles, "audit.export"),
+    canSeeAccessLog: can(ctx.staffRoles, "access_log.view"),
     truncated: picked.length > LIMIT,
     integrity: chain.ok
       ? { ok: true as const, checked: chain.count }

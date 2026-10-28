@@ -108,13 +108,21 @@ refreshed. **What a demo now shows differently:** Households offers "Enroll a ho
 Lena; household overviews that aren't fully started show a Getting started card; Hospice settings
 has an Enrollment card; and Rehanna (alone in the Wells household) can now start setup.
 
+**Decision record updated and freeze lifted on 2026-10-27** for the D-04 build only, with the
+founder's explicit approval: decision 71 (staff read-access logging) was added to
+`founder-decision-log.md` and built ([evidence](readiness/evidence/staff-read-logging-2026-10-27.md)):
+an append-only access log of staff record opens and list views (migration `0028_access_log`) and a
+"Who opened records" page for reviewers and administrators. The manifest entries for the 12 frozen
+files it touches were refreshed. **What a demo now shows differently:** Audit review links to "Who
+opened records" for Priya and Lena; nothing else on screen changes.
+
 ## What's frozen
 
 - **The build:** 403 files covering the application code (including migrations through
   `0023_cover_notice` and seed fixtures), the tests, the configuration, the decision log and
   register, the presentation documents and the 22 run-through screenshots. Each file's SHA-256
   is in [demo-baseline-2026-10-22.sha256](demo-baseline-2026-10-22.sha256), and the manifest's
-  own SHA-256 is `a7b276104b7d490ab1726e78db5f9788d80a365984943b3c7081bc93bed81c61`. To check
+  own SHA-256 is `83e8e02442b06c27122d4f04793ff4214e5056ab748eb7732e7cd6aa95dba5c6`. To check
   for drift, run `shasum -a 256 -c docs/demo-baseline-2026-10-22.sha256 --quiet`.
 - **The presentation baseline:** [enterprise-demo-map.md](enterprise-demo-map.md) (the script,
   "Presenting it in about 15 minutes", with beat 8's note on decision 62 and an optional 30 s in

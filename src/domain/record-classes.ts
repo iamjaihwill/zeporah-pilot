@@ -81,6 +81,7 @@ export const TABLE_CLASSES: Record<string, Entry> = {
   sessions: { class: "account_security" },
   password_resets: { class: "account_security" },
   audit_events: { class: "security_audit" },
+  staff_access_events: { class: "security_audit" },
   retention_holds: { class: "hold" },
   dev_mailbox: { class: "development_only" },
 };

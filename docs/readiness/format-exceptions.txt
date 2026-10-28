@@ -2,7 +2,6 @@ e2e-verify/marketing-shots.spec.ts
 src/domain/claims.ts
 src/domain/sign-in.ts
 src/domain/task-scope.ts
-src/routes/staff/audit.tsx
 tests/integration/auth.test.ts
 tests/integration/founder-decisions-23-28.test.ts
 tests/integration/interaction-review.test.ts

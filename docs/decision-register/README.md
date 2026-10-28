@@ -11,7 +11,7 @@ production readiness.
 | D-01 | Source control, code hosting and CI (and permission to initialize git) | W1 · PB-01, PB-17          | [D-01-source-control.md](D-01-source-control.md)         | Approved in principle → #64 |
 | D-02 | Hosting provider, region and BAA posture                               | W3, W7 · PB-02, 03, 10, 14 | [D-02-hosting-and-baa.md](D-02-hosting-and-baa.md)       | Approved in principle → #65 |
 | D-03 | Staff identity provider and mandatory MFA                              | W4 · PB-08                 | When W4 starts                                           | Not yet written             |
-| D-04 | Staff read-access logging: standard and visibility                     | W5 · PB-12                 | [D-04-staff-read-logging.md](D-04-staff-read-logging.md) | Written, awaiting decision  |
+| D-04 | Staff read-access logging: standard and visibility                     | W5 · PB-12                 | [D-04-staff-read-logging.md](D-04-staff-read-logging.md) | Decided → #71               |
 | D-05 | Retention and deletion (R-10)                                          | W5 · PB-11                 | When W5 starts                                           | Not yet written             |
 | D-06 | Whether the Stage 1 pilot includes email                               | W9 · PC-02                 | When W9 is considered                                    | Not yet written             |
 | D-07 | Incident and breach roles in the hospice agreement                     | W6, W7 · PB-13, 14         | When W7 starts                                           | Not yet written             |

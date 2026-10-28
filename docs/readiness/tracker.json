@@ -244,7 +244,7 @@
       "class": "pilot_blocker",
       "workstream": "W5",
       "targetStage": 1,
-      "status": "open",
+      "status": "in_progress",
       "owner": "Engineering lead",
       "approvers": ["Privacy and security officer"],
       "dependsOn": [],
@@ -253,9 +253,15 @@
       "verification": "Tests: every household read writes one event; staff-only visibility",
       "evidenceRequired": "Inventory; test results; audit review procedure",
       "closureCriteria": "Every staff read of household information is logged and reviewable",
-      "evidence": [],
+      "evidence": [
+        {
+          "type": "test",
+          "ref": "docs/readiness/evidence/staff-read-logging-2026-10-27.md (staff read-access log, decision 71: passed)",
+          "date": "2026-10-27"
+        }
+      ],
       "approvals": [],
-      "note": "2026-10-27: decision brief written (docs/decision-register/D-04-staff-read-logging.md), awaiting the founder. Nothing built."
+      "note": "Decision 71 built: an append-only access log of staff record opens and list views (src/server/services/access-log.ts). Still needed: the audit review procedure, end-to-end tests, and the privacy and security officer's approval."
     },
     {
       "id": "PB-13",

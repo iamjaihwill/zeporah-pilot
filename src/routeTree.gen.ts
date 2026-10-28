@@ -35,6 +35,7 @@ import { Route as InviteTokenRouteImport } from './routes/invite/$token'
 import { Route as RecipientIndexRouteImport } from './routes/recipient/index'
 import { Route as ResetTokenRouteImport } from './routes/reset/$token'
 import { Route as StaffIndexRouteImport } from './routes/staff/index'
+import { Route as StaffAccessLogRouteImport } from './routes/staff/access-log'
 import { Route as StaffAdminRouteImport } from './routes/staff/admin'
 import { Route as StaffAuditRouteImport } from './routes/staff/audit'
 import { Route as StaffBereavementRouteImport } from './routes/staff/bereavement'
@@ -194,6 +195,11 @@ const ResetTokenRoute = ResetTokenRouteImport.update({
 const StaffIndexRoute = StaffIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => StaffRouteRoute,
+} as any)
+const StaffAccessLogRoute = StaffAccessLogRouteImport.update({
+  id: '/access-log',
+  path: '/access-log',
   getParentRoute: () => StaffRouteRoute,
 } as any)
 const StaffAdminRoute = StaffAdminRouteImport.update({
@@ -375,6 +381,7 @@ export interface FileRoutesByFullPath {
   '/info/$page': typeof InfoPageRoute
   '/invite/$token': typeof InviteTokenRoute
   '/reset/$token': typeof ResetTokenRoute
+  '/staff/access-log': typeof StaffAccessLogRoute
   '/staff/admin': typeof StaffAdminRoute
   '/staff/audit': typeof StaffAuditRoute
   '/staff/bereavement': typeof StaffBereavementRoute
@@ -430,6 +437,7 @@ export interface FileRoutesByTo {
   '/info/$page': typeof InfoPageRoute
   '/invite/$token': typeof InviteTokenRoute
   '/reset/$token': typeof ResetTokenRoute
+  '/staff/access-log': typeof StaffAccessLogRoute
   '/staff/admin': typeof StaffAdminRoute
   '/staff/audit': typeof StaffAuditRoute
   '/staff/bereavement': typeof StaffBereavementRoute
@@ -489,6 +497,7 @@ export interface FileRoutesById {
   '/info/$page': typeof InfoPageRoute
   '/invite/$token': typeof InviteTokenRoute
   '/reset/$token': typeof ResetTokenRoute
+  '/staff/access-log': typeof StaffAccessLogRoute
   '/staff/admin': typeof StaffAdminRoute
   '/staff/audit': typeof StaffAuditRoute
   '/staff/bereavement': typeof StaffBereavementRoute
@@ -549,6 +558,7 @@ export interface FileRouteTypes {
     | '/info/$page'
     | '/invite/$token'
     | '/reset/$token'
+    | '/staff/access-log'
     | '/staff/admin'
     | '/staff/audit'
     | '/staff/bereavement'
@@ -604,6 +614,7 @@ export interface FileRouteTypes {
     | '/info/$page'
     | '/invite/$token'
     | '/reset/$token'
+    | '/staff/access-log'
     | '/staff/admin'
     | '/staff/audit'
     | '/staff/bereavement'
@@ -662,6 +673,7 @@ export interface FileRouteTypes {
     | '/info/$page'
     | '/invite/$token'
     | '/reset/$token'
+    | '/staff/access-log'
     | '/staff/admin'
     | '/staff/audit'
     | '/staff/bereavement'
@@ -895,6 +907,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/staff/'
       preLoaderRoute: typeof StaffIndexRouteImport
+      parentRoute: typeof StaffRouteRoute
+    }
+    '/staff/access-log': {
+      id: '/staff/access-log'
+      path: '/access-log'
+      fullPath: '/staff/access-log'
+      preLoaderRoute: typeof StaffAccessLogRouteImport
       parentRoute: typeof StaffRouteRoute
     }
     '/staff/admin': {
@@ -1167,6 +1186,7 @@ const RecipientRouteRouteWithChildren = RecipientRouteRoute._addFileChildren(
 )
 
 interface StaffRouteRouteChildren {
+  StaffAccessLogRoute: typeof StaffAccessLogRoute
   StaffAdminRoute: typeof StaffAdminRoute
   StaffAuditRoute: typeof StaffAuditRoute
   StaffBereavementRoute: typeof StaffBereavementRoute
@@ -1195,6 +1215,7 @@ interface StaffRouteRouteChildren {
 }
 
 const StaffRouteRouteChildren: StaffRouteRouteChildren = {
+  StaffAccessLogRoute: StaffAccessLogRoute,
   StaffAdminRoute: StaffAdminRoute,
   StaffAuditRoute: StaffAuditRoute,
   StaffBereavementRoute: StaffBereavementRoute,

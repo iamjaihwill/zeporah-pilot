@@ -258,12 +258,25 @@ function Audit() {
     <>
       <StaffPageHeader
         title="Audit review"
-        description="Append-only. Summaries never include message or note text."
+        description={
+          <>
+            Append-only. Summaries never include message or note text.
+            {d.canSeeAccessLog && (
+              <>
+                {" "}
+                <Link to="/staff/access-log" className="text-harbor underline underline-offset-2">
+                  Who opened records
+                </Link>
+              </>
+            )}
+          </>
+        }
         actions={
           d.integrity.ok ? (
             // One line while it passes; the full warning below if it ever doesn't.
             <span className="text-[0.8125rem] text-moss" data-testid="integrity-line">
-              <span aria-hidden>✓ </span>Audit chain verified · {d.integrity.checked} events across the hospice · just now
+              <span aria-hidden>✓ </span>Audit chain verified · {d.integrity.checked} events across the
+              hospice · just now
             </span>
           ) : undefined
         }

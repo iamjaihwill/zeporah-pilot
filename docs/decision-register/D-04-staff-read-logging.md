@@ -1,6 +1,6 @@
 # D-04 · Staff read-access logging: standard and visibility
 
-**Status:** written 2026-10-27, awaiting the founder's decision. Blocks PB-12 (W5). Related: D-09
+**Status:** decided by the founder on 2026-10-27 as recommended (decision 71). Blocks PB-12 (W5). Related: D-09
 (minimum necessary for operations and reviewers), D-05 (retention), SB-04 (external anchoring).
 
 ## Decision to make

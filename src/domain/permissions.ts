@@ -51,6 +51,8 @@ export const PERMISSIONS = [
   // Decisions 66 and 67: enrolling a household, and inviting its patient or coordinator.
   "household.enroll",
   "household.invite_first",
+  // Decision 71: reviewing who opened household records.
+  "access_log.view",
   "staff.lifecycle.manage",
   /** Change a staff member's role, reactivate them, or invite into a role other than care guide (decisions 38–39). */
   "staff.role.manage",
@@ -180,6 +182,7 @@ const STAFF_MATRIX: Record<StaffRole, readonly Permission[]> = {
     "staff.escalation.manage",
     "audit.view",
     "audit.export",
+    "access_log.view",
   ],
   // Decision 39: roles, organization and access settings. No household work: no household records,
   // queue, consent or packets. Sees the team roster and the audit trail.
@@ -194,6 +197,7 @@ const STAFF_MATRIX: Record<StaffRole, readonly Permission[]> = {
     "staff.role.manage",
     // Decision 66: enrolls, and then sees the household's name only (coverage).
     "household.enroll",
+    "access_log.view",
   ],
 };
 

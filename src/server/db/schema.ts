@@ -17,6 +17,7 @@ import {
   bigserial,
   boolean,
   foreignKey,
+  index,
   integer,
   jsonb,
   pgTable,
@@ -1303,5 +1304,34 @@ export const retentionHolds = pgTable(
       columns: [t.tenantId, t.householdId],
       foreignColumns: [households.tenantId, households.id],
     }),
+  ],
+);
+
+/**
+ * Staff read-access log (founder decision 71). One entry when a staff member opens one household's
+ * record or a part of it (coalesced per person, household and view), or a list view (household null,
+ * with its row count). Append-only: the database refuses changes (migration 0028). Never content.
+ */
+export const staffAccessEvents = pgTable(
+  "staff_access_events",
+  {
+    id: id(),
+    tenantId: tenantId().references(() => tenants.id),
+    actorId: text("actor_id").notNull(),
+    /** The person's staff roles when they read. */
+    roles: jsonb("roles").$type<string[]>().notNull(),
+    /** Null for a list view. */
+    householdId: text("household_id"),
+    view: text("view").notNull(),
+    kind: text("kind").$type<"record" | "list">().notNull(),
+    /** List views: how many rows were shown. */
+    rowCount: integer("row_count"),
+    /** The household wasn't one the person is assigned to or covering (decision 71, for D-09). */
+    outsideAssignment: boolean("outside_assignment").notNull().default(false),
+    occurredAt: nowCol("occurred_at"),
+  },
+  (t) => [
+    index("staff_access_household_idx").on(t.tenantId, t.householdId, t.occurredAt),
+    index("staff_access_recent_idx").on(t.tenantId, t.actorId, t.view, t.occurredAt),
   ],
 );
