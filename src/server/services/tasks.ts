@@ -7,6 +7,7 @@
  *
  * Marking someone else's task done records "Marked done by X for Y" and tells the assignee.
  */
+import { assertMayRemove } from "./retention";
 import { and, eq } from "drizzle-orm";
 import type { Conn } from "../db/client";
 import * as s from "../db/schema";
@@ -130,7 +131,13 @@ export async function reopenTask(conn: Conn, t: TaskRow, by: { actorId: string; 
       .returning({ id: s.tasks.id });
     if (!reopened.length) return;
     // "Your care team asked to know when it's done": it isn't done any more.
-    if (t.completedByActorId)
+    if (t.completedByActorId) {
+      await assertMayRemove(tx, {
+        tenantId: t.tenantId,
+        householdId: t.householdId,
+        table: "acknowledgements",
+        purpose: "correction",
+      });
       await tx
         .delete(s.acknowledgements)
         .where(
@@ -141,6 +148,7 @@ export async function reopenTask(conn: Conn, t: TaskRow, by: { actorId: string; 
             eq(s.acknowledgements.actorId, t.completedByActorId),
           ),
         );
+    }
     await appendAudit(tx, {
       tenantId: t.tenantId,
       householdId: t.householdId,

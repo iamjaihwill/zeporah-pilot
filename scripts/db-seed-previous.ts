@@ -44,7 +44,7 @@ if (import.meta.main) {
   const { db, close } = await openDb(DATA_DIR);
   await seed(db);
   // The reviewers database was at 0013: upgrade across everything since.
-  await downgradeToPrevious(db, Number(process.env["ZEPORAH_DOWNGRADE_STEPS"] ?? 12));
+  await downgradeToPrevious(db, Number(process.env["ZEPORAH_DOWNGRADE_STEPS"] ?? 13));
   await close();
   console.log(`Synthetic data at the previous schema version in ${DATA_DIR}`);
 }

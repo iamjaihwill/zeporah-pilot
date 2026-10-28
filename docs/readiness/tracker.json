@@ -228,8 +228,15 @@
       "verification": "Deletion job tested on synthetic data",
       "evidenceRequired": "Policy approved by counsel; test results",
       "closureCriteria": "Approved policy, and the product follows it in test",
-      "evidence": [],
-      "approvals": []
+      "evidence": [
+        {
+          "type": "test",
+          "ref": "docs/readiness/evidence/retention-guard-2026-10-27.md (holds and a removal guard; disposal always refused; no retention periods set)",
+          "date": "2026-10-27"
+        }
+      ],
+      "approvals": [],
+      "note": "2026-10-27: proposed record classes, retention holds and a removal guard exist (src/server/services/retention.ts); disposal is always refused. Still needed: decision D-05 and counsel on periods and classes, who may place holds, and any disposal design."
     },
     {
       "id": "PB-12",

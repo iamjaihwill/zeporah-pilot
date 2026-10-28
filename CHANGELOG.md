@@ -5,6 +5,10 @@ Every change that alters behaviour is recorded here in the pull request that mak
 
 ## Unreleased
 
+- Retention: proposed record classes for every table, retention holds (migration
+  `0026_retention_holds`) and a removal guard. Disposal is always refused; undoing an
+  acknowledgement, reopening a task or changing a draft packet is refused while a hold covers it.
+  No deletion path and no retention periods.
 - Security (PB-05): every response carries a content security policy and the nosniff, referrer,
   frame, permissions and cross-origin headers; HSTS over https.
 - Messages and support requests send once: a retry after a lost reply returns the first copy

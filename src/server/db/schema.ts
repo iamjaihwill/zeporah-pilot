@@ -1263,3 +1263,36 @@ export const partnerEvents = pgTable(
     foreignKey({ columns: [t.tenantId, t.enteredByActorId], foreignColumns: [actors.tenantId, actors.id] }),
   ],
 );
+
+/**
+ * Retention holds (brief reconciliation increment 5). A hold preserves records: while one is active,
+ * nothing it covers may be removed (services/retention.ts). It grants no access and discloses
+ * nothing. Holds are never deleted; releasing one only marks it released (migration 0026).
+ */
+export const retentionHolds = pgTable(
+  "retention_holds",
+  {
+    id: id(),
+    tenantId: tenantId().references(() => tenants.id),
+    /** Null: every household in the tenant. */
+    householdId: text("household_id"),
+    /** Record classes covered (domain/record-classes.ts). Empty: every class. */
+    recordClasses: jsonb("record_classes").$type<string[]>().notNull().default([]),
+    /** Why, without names or health details (e.g. "Preservation request, matter ref on file"). */
+    reason: text("reason").notNull(),
+    /** The outside authorization this hold rests on, e.g. counsel's matter reference. */
+    authorizationRef: text("authorization_ref").notNull(),
+    placedByActorId: text("placed_by_actor_id").notNull(),
+    placedAt: nowCol("placed_at"),
+    status: text("status").$type<"active" | "released">().notNull().default("active"),
+    releasedAt: ts("released_at"),
+    releasedByActorId: text("released_by_actor_id"),
+    releaseAuthorizationRef: text("release_authorization_ref"),
+  },
+  (t) => [
+    foreignKey({
+      columns: [t.tenantId, t.householdId],
+      foreignColumns: [households.tenantId, households.id],
+    }),
+  ],
+);

@@ -4,6 +4,7 @@
  * release and its audit event are written in one transaction: if the audit write fails, nothing
  * is released and the answer is a deny.
  */
+import { assertMayRemove } from "./retention";
 import {
   alertedPackets,
   endRecipientAccess,
@@ -590,6 +591,12 @@ export async function setManifest(
     (SHARE_CATEGORIES as readonly string[]).includes(c),
   );
   await db.transaction(async (tx) => {
+    await assertMayRemove(tx, {
+      tenantId: ctx.tenantId,
+      householdId: p.householdId,
+      table: "packet_manifest_items",
+      purpose: "correction",
+    });
     await tx
       .delete(s.packetManifestItems)
       .where(and(eq(s.packetManifestItems.tenantId, ctx.tenantId), eq(s.packetManifestItems.packetId, p.id)));

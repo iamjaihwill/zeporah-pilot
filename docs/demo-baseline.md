@@ -88,13 +88,23 @@ with the founder's explicit approval: the security-header baseline on every resp
 `vite.config.ts` (security headers on static files in the development server); its manifest entry
 was refreshed. No screen or wording changed.
 
+**Freeze lifted and re-frozen on 2026-10-27** for increment 5 of the brief reconciliation only,
+with the founder's explicit approval: proposed record classes, retention holds (migration
+`0026_retention_holds`) and a removal guard consulted by every path that removes a record, with no
+deletion path and no retention periods ([evidence](readiness/evidence/retention-guard-2026-10-27.md)).
+The manifest entries for the 8 frozen files it touches were refreshed: `src/server/db/schema.ts`,
+`src/server/db/migrations/meta/_journal.json`, `src/server/services/family.ts`,
+`src/server/services/tasks.ts`, `src/server/services/sharing.ts`, `src/domain/labels.ts`,
+`scripts/db-seed-previous.ts` and `tests/integration/schema-upgrade.test.ts`. With no hold in place,
+as in the demo, nothing on screen behaves differently.
+
 ## What's frozen
 
 - **The build:** 403 files covering the application code (including migrations through
   `0023_cover_notice` and seed fixtures), the tests, the configuration, the decision log and
   register, the presentation documents and the 22 run-through screenshots. Each file's SHA-256
   is in [demo-baseline-2026-10-22.sha256](demo-baseline-2026-10-22.sha256), and the manifest's
-  own SHA-256 is `ac5582c2803ff7e592882a175b427ebc41040367eddaf2bd4f7ec875d8dfc290`. To check
+  own SHA-256 is `39ddd6b841f6c948cf61e50677a289da696d9a4acf6cf2101af5879734b7dd91`. To check
   for drift, run `shasum -a 256 -c docs/demo-baseline-2026-10-22.sha256 --quiet`.
 - **The presentation baseline:** [enterprise-demo-map.md](enterprise-demo-map.md) (the script,
   "Presenting it in about 15 minutes", with beat 8's note on decision 62 and an optional 30 s in

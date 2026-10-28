@@ -103,6 +103,8 @@ export const AUDIT_LABELS: Record<string, string> = {
   "packet.released": "Packet released",
   "packet.revoked": "Packet access withdrawn",
   "preferences.updated": "Preferences changed",
+  "retention.hold_placed": "Retention hold placed",
+  "retention.hold_released": "Retention hold released",
   "session.ended": "Signed out",
   "session.started": "Signed in",
   "settings.message_expectation_off": "Routine-message wording turned off",

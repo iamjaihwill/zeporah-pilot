@@ -13,6 +13,7 @@ import * as s from "../db/schema";
 import { appendAudit } from "../audit";
 import { closeOpenCorrection } from "./corrections";
 import { createOnce, messageBySubmission } from "./send-once";
+import { assertMayRemove } from "./retention";
 import { hashToken, looksLikeEmail, newToken, normalizeEmail } from "../auth/crypto";
 import { INVITATION_DAYS } from "./auth";
 import { currentMessageExpectation } from "./settings";
@@ -1322,6 +1323,12 @@ export async function acknowledgeUpdate(db: DB, ctx: ActorContext, updateId: str
 export async function undoAcknowledgeUpdate(db: DB, ctx: ActorContext, updateId: string, now = new Date()) {
   const scope = await familyScope(db, ctx, "updates.acknowledge");
   await db.transaction(async (tx) => {
+    await assertMayRemove(tx, {
+      tenantId: ctx.tenantId,
+      householdId: scope.householdId,
+      table: "acknowledgements",
+      purpose: "correction",
+    });
     const gone = await tx
       .delete(s.acknowledgements)
       .where(
