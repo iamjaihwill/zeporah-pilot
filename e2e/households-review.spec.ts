@@ -7,7 +7,7 @@ test.beforeEach(async ({ page }) => resetData(page));
 test("operations: filters, count, sorting, unassigned stands out, rows open", async ({ page }) => {
   await signInAs(page, "Dana Brooks");
   await open(page, "/staff/households");
-  await expect(page.getByTestId("household-count")).toHaveText("7 households");
+  await expect(page.getByTestId("household-count")).toHaveText("8 households");
   // 5. Not assigned is a warning with an Assign link to the care-team section.
   const nguyen = page.locator("tbody tr").filter({ hasText: "The Nguyen household" });
   await expect(nguyen.locator("[data-unassigned]")).toContainText("Not assigned");
@@ -18,7 +18,7 @@ test("operations: filters, count, sorting, unassigned stands out, rows open", as
   await page.getByLabel("Care guide").selectOption("none");
   await expect(page).toHaveURL(/guide=none/);
   await expect(page.locator("tbody tr")).toHaveCount(1);
-  await expect(page.getByTestId("household-count")).toHaveText("1 of 7 households match");
+  await expect(page.getByTestId("household-count")).toHaveText("1 of 8 households match");
   await page.getByLabel("Care guide").selectOption("");
   await page.getByLabel("Stage").selectOption("bereavement");
   await expect(page.locator("tbody tr")).toHaveCount(1);

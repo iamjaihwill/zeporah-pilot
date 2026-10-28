@@ -48,7 +48,9 @@ test("operations read administrator settings as text, and Invitations points to 
   await expect(access.getByRole("spinbutton")).toHaveCount(0);
   await expect(page.getByTestId("settings-retention")).toContainText("Not set");
   await open(page, "/staff/settings?section=organization");
-  await expect(page.getByRole("textbox")).toHaveCount(0);
+  // The one field is for re-confirming the 24-hour line by calling it (decision 72).
+  await expect(page.getByRole("textbox")).toHaveCount(1);
+  await expect(page.getByRole("textbox", { name: "What you reached" })).toBeVisible();
   await expect(page.getByText("555-0100 (synthetic 24-hour line)")).toBeVisible();
   await open(page, "/staff/settings?section=invitations");
   await page.getByRole("link", { name: "Team & coverage" }).last().click();

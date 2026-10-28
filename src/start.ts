@@ -17,6 +17,8 @@ const headers = createMiddleware().server(async ({ request, next }) => {
   const proto =
     request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim() || new URL(request.url).protocol;
   const add = securityHeaders({ https: proto.replace(/:$/, "") === "https" });
+  // No response yet (the framework reports that itself): nothing to add headers to.
+  if (!result.response) return result;
   try {
     for (const [k, v] of Object.entries(add)) result.response.headers.set(k, v);
     return result;

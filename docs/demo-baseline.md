@@ -164,13 +164,25 @@ is unchanged. Checked by seeding at ten times from 12:30 AM to 11:59 PM. The man
 refreshed. **What a demo now shows differently:** only when reset between 8 and 9 AM, where Maya's
 leave starts an hour later than 8 AM.
 
+**Freeze lifted on 2026-10-28** for `src/functions/session.ts`, `src/routes/__root.tsx` and five
+end-to-end specs, with the founder's explicit approval, after the end-to-end suites ran for the first
+time since 2026-10-22 (the test browser was installed that day). **A fix:** with no addresses set,
+`getAddresses` returned a bare null, which the framework can't send to a caller other than the app's
+own client, so replaying it gave a 500 where `boundaries.spec.ts` expects 200 or 403; it now returns
+`{ app: null, care: null }`, and the security-headers middleware in `src/start.ts` (not frozen) no
+longer throws when a result has no response. **Specs brought up to date** with approved changes:
+`boundaries.spec.ts` ("Received", decision 80), `handoff.spec.ts` (Offer, then Maya accepts,
+decision 83), `households-review.spec.ts` (8 households, with Rehanna's), `settings-review.spec.ts`
+(the "What you reached" field, decision 72) and `status.spec.ts` ("No findings", increment 2). The
+manifest entries were refreshed. **What a demo now shows differently:** nothing.
+
 ## What's frozen
 
 - **The build:** 403 files covering the application code (including migrations through
   `0023_cover_notice` and seed fixtures), the tests, the configuration, the decision log and
   register, the presentation documents and the 22 run-through screenshots. Each file's SHA-256
   is in [demo-baseline-2026-10-22.sha256](demo-baseline-2026-10-22.sha256), and the manifest's
-  own SHA-256 is `d0d9f0508098fc582f5fe4ed45470154255c8a9f3f7c2da0209d21eeb7741d09`. To check
+  own SHA-256 is `13d9407f46f55e9da71d65ae07fdf45169f4ae812ee08ea9b5c270a0519e011d`. To check
   for drift, run `shasum -a 256 -c docs/demo-baseline-2026-10-22.sha256 --quiet`.
 - **The presentation baseline:** [enterprise-demo-map.md](enterprise-demo-map.md) (the script,
   "Presenting it in about 15 minutes", with beat 8's note on decision 62 and an optional 30 s in

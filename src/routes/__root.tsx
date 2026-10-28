@@ -16,7 +16,7 @@ export const Route = createRootRoute({
   beforeLoad: async ({ location }) => {
     if (typeof window === "undefined") return;
     addressesOnce ??= getAddresses()
-      .then((a) => (a ? parseAddresses(a.app, a.care) : null))
+      .then((a) => (a.app && a.care ? parseAddresses(a.app, a.care) : null))
       // Never block a page over this: the server still redirects on the next full load.
       .catch(() => null);
     const to = redirectFor(await addressesOnce, window.location.host, location.href);

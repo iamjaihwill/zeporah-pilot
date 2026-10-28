@@ -1,7 +1,7 @@
 import { expect, test } from "./fixtures";
-import { expectAccessible, open, resetData, signInAs } from "./helpers";
+import { expectAccessible, open, resetData, signInAs, signOutFromShell } from "./helpers";
 
-/** Handing work on: reassigning a household with its open work, and giving an escalation to a named person. */
+/** Handing work on: reassigning a household with its open work, and offering an escalation to a named person. */
 test.beforeEach(async ({ page }) => resetData(page));
 
 test("reassigning with hand-over moves the open escalation to the new care guide", async ({ page }) => {
@@ -25,7 +25,7 @@ test("reassigning with hand-over moves the open escalation to the new care guide
   await expect(hart).toContainText("Tomás Alvarez");
 });
 
-test("operations gives an escalation to a named person who can see the household", async ({ page }) => {
+test("operations offers an escalation to a named person, who owns it once they accept", async ({ page }) => {
   await signInAs(page, "Dana Brooks");
   await open(page, "/staff/exceptions?view=all&kind=escalation");
   await expectAccessible(page);
@@ -37,19 +37,30 @@ test("operations gives an escalation to a named person who can see the household
     .first()
     .click();
   const panel = page.getByTestId("detail-panel");
-  const select = panel.getByLabel("Assign to");
+  const select = panel.getByLabel("Offer to");
   await select.focus();
   await expect(select.locator("option", { hasText: "Maya Chen" })).toHaveCount(1);
   await select.selectOption({ label: "Maya Chen" });
-  await panel.getByRole("button", { name: "Assign", exact: true }).click();
-  await expect(page.getByTestId("live-region")).toHaveText("Assigned.");
-  await expect(panel).toContainText("Owner: Maya Chen");
+  await panel.getByRole("button", { name: "Offer", exact: true }).click();
+  // Decision 83: an offer, not an assignment; the owner changes only when Maya accepts.
+  await expect(page.getByTestId("live-region")).toHaveText("Offered. They own it once they accept.");
+  await expect(panel).toContainText("Offered to Maya Chen");
+  const url = page.url();
+  await signOutFromShell(page);
+
+  await signInAs(page, "Maya Chen");
+  await open(page, url.replace(/^https?:\/\/[^/]+/, ""));
+  const mine = page.getByTestId("detail-panel");
+  await expect(mine).toContainText("This was offered to you");
+  await mine.getByRole("button", { name: "Accept", exact: true }).click();
+  await expect(page.getByTestId("live-region")).toHaveText("You own this now.");
+  await expect(mine).toContainText("Owner: Maya Chen");
 });
 
-test("care guides don't get the assign control", async ({ page }) => {
+test("care guides don't get the offer control", async ({ page }) => {
   await signInAs(page, "Maya Chen");
   await open(page, "/staff/exceptions?view=all&kind=escalation");
   await page.locator("tbody tr").first().locator("button").first().click();
   await expect(page.getByTestId("detail-panel")).toBeVisible();
-  await expect(page.getByLabel("Assign to")).toHaveCount(0);
+  await expect(page.getByLabel("Offer to")).toHaveCount(0);
 });

@@ -11,7 +11,7 @@ test("operations sees configuration, schema and audit integrity", async ({ page 
   await expect(page.getByRole("heading", { level: 1, name: "System status" })).toBeVisible();
   const data = page.getByRole("region", { name: "Data and access" });
   await expect(data).toContainText(/Up to date \(\d+ migrations\)/);
-  await expect(data).toContainText(/Verified \(\d+ events\)/);
+  await expect(data).toContainText(/No findings \(\d+ events\)/);
   await expect(page.getByRole("region", { name: "Environment" })).toContainText("On (development only)");
   const integrations = page.getByRole("region", { name: "Integrations" });
   await expect(integrations).toContainText("EHR / hospice system");

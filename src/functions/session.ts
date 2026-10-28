@@ -211,11 +211,15 @@ export const getSystemNotice = createServerFn({ method: "GET" }).handler(async (
   return { readOnly: environment().readOnly };
 });
 
-/** The app and care addresses (domain/addresses.ts), or null. Public: they're the site's own addresses. */
+/**
+ * The app and care addresses (domain/addresses.ts), both null when they aren't set. Public: they're
+ * the site's own addresses. Never a bare null: a server function that returns nothing can't answer
+ * a caller other than the app's own client.
+ */
 export const getAddresses = createServerFn({ method: "GET" }).handler(async () => {
   const { addresses } = await import("@/server/environment");
   const a = addresses();
-  return a ? { app: a.app.origin, care: a.care.origin } : null;
+  return a ? { app: a.app.origin, care: a.care.origin } : { app: null, care: null };
 });
 
 /* ------------------------------------------------------------------ password reset (decision 27) */

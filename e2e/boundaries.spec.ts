@@ -40,8 +40,8 @@ test("support says exactly what a request does, and the removed control is gone"
   await expect(page.getByTestId("live-region")).toHaveText(
     supportConfirmation("555-0100 (synthetic 24-hour line)", "within 1 business day"),
   );
-  // "Your requests" shows it with the family wording (item 6), never "Escalation created".
-  await expect(page.getByTestId("your-requests").getByText("Sent to your care team").first()).toBeVisible();
+  // "Your requests" shows it with the family wording (decision 80), never "Escalation created".
+  await expect(page.getByTestId("your-requests").getByText("Received").first()).toBeVisible();
   await expect(page.getByText("Escalation created")).toHaveCount(0);
   await expectAccessible(page);
 });
