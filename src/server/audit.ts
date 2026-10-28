@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import type { Conn } from "./db/client";
 import { actors, auditEvents, memberships } from "./db/schema";
 import type { AuditApproval, AuditSource } from "@/domain/audit-shape";
@@ -39,9 +39,23 @@ export type AuditInput = {
 /**
  * The only way to write an audit event. There is deliberately no update or delete here, and the
  * database rejects both anyway. Each event's hash covers its content plus the previous event's
- * hash in the same tenant, so any later tampering is detectable by `verifyAuditChain`.
+ * hash in the same tenant, so any later tampering is detectable by `auditChainFindings`.
+ *
+ * Appends to one tenant's chain happen one at a time: a transaction-scoped advisory lock is held
+ * from reading the previous event until the caller's transaction ends, so two requests can't both
+ * follow the same event. The database refuses a fork anyway (migration 0024). Keep the
+ * surrounding transaction short: other audit writes for the tenant wait for it.
  */
 export async function appendAudit(conn: Conn, e: AuditInput) {
+  return conn.transaction(async (tx) => {
+    await tx.execute(
+      sql`select pg_advisory_xact_lock(hashtextextended(${`zeporah.audit:${e.tenantId}`}, 0))`,
+    );
+    return appendLocked(tx, e);
+  });
+}
+
+async function appendLocked(conn: Conn, e: AuditInput) {
   const [prev] = await conn
     .select({ hash: auditEvents.hash })
     .from(auditEvents)
@@ -125,18 +139,60 @@ function hashEvent(row: Record<string, unknown>) {
   return createHash("sha256").update(canonical(row)).digest("hex");
 }
 
-/** Recompute every hash in a tenant's chain. Returns the first broken event, if any. */
-export async function verifyAuditChain(conn: Conn, tenantId: string) {
+export type ChainFinding =
+  /** The event's content no longer matches its hash: it was changed after it was written. */
+  | { kind: "hash_mismatch"; eventId: string; seq: number }
+  /** The event doesn't follow the one before it: something between them is missing or reordered. */
+  | { kind: "broken_link"; eventId: string; seq: number }
+  /** More than one event follows the same event (or starts the chain): the chain forked. */
+  | { kind: "fork"; eventIds: string[]; after: string | null }
+  /** The earliest event follows something that isn't there: the start of the chain is missing. */
+  | { kind: "missing_start"; eventId: string; seq: number };
+
+/** What a clean result still can't show. Reported with every result, so "no findings" isn't read as more. */
+export const CHAIN_LIMITS = [
+  "Events removed from the end, or a whole chain rewritten, can't be detected until checkpoints are kept outside the database (SB-04).",
+  "It shows the recorded events weren't changed, not that every action was recorded.",
+  "Times come from the server's clock, not an independent time source.",
+] as const;
+
+/**
+ * Checks a tenant's whole chain and reports every problem found, in order. A clean result has no
+ * findings; it is still bounded by `CHAIN_LIMITS`.
+ */
+export async function auditChainFindings(conn: Conn, tenantId: string) {
   const rows = await conn
     .select()
     .from(auditEvents)
     .where(and(eq(auditEvents.tenantId, tenantId)))
     .orderBy(auditEvents.seq);
-  let prev: string | null = null;
+  const findings: ChainFinding[] = [];
+  const followers = new Map<string | null, string[]>();
+  let prev: string | null | undefined;
   for (const r of rows) {
     const { id: _id, seq: _seq, hash, ...rest } = r;
-    if (r.prevHash !== prev || hashEvent(rest) !== hash) return { ok: false as const, brokenAt: r.id };
+    followers.set(r.prevHash, [...(followers.get(r.prevHash) ?? []), r.id]);
+    if (prev === undefined) {
+      if (r.prevHash !== null) findings.push({ kind: "missing_start", eventId: r.id, seq: r.seq });
+    } else if (r.prevHash !== prev) findings.push({ kind: "broken_link", eventId: r.id, seq: r.seq });
+    if (hashEvent(rest) !== hash) findings.push({ kind: "hash_mismatch", eventId: r.id, seq: r.seq });
     prev = hash;
   }
-  return { ok: true as const, count: rows.length };
+  for (const [after, ids] of followers)
+    if (ids.length > 1) findings.push({ kind: "fork", eventIds: ids, after });
+  const last = rows.at(-1);
+  return {
+    events: rows.length,
+    head: last ? { eventId: last.id, seq: last.seq, hash: last.hash } : null,
+    findings,
+    limits: CHAIN_LIMITS,
+  };
+}
+
+/** The short form: whether the chain checked clean, and the first event with a finding. */
+export async function verifyAuditChain(conn: Conn, tenantId: string) {
+  const r = await auditChainFindings(conn, tenantId);
+  const first = r.findings[0];
+  if (!first) return { ok: true as const, count: r.events };
+  return { ok: false as const, brokenAt: "eventId" in first ? first.eventId : first.eventIds[0]! };
 }

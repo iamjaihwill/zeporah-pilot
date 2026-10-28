@@ -746,24 +746,35 @@ export const packetReleaseReceipts = pgTable(
  * Each event carries a hash of its content chained to the previous event in the same tenant,
  * so tampering is detectable. Summaries are written to be safe; contents are never copied in.
  */
-export const auditEvents = pgTable("audit_events", {
-  id: id(),
-  seq: bigserial("seq", { mode: "number" }).notNull(),
-  tenantId: tenantId().references(() => tenants.id),
-  householdId: text("household_id"),
-  actorId: text("actor_id"),
-  action: text("action").notNull(),
-  subjectType: text("subject_type").notNull(),
-  subjectId: text("subject_id"),
-  decision: text("decision"),
-  reasonCode: text("reason_code"),
-  summary: text("summary").notNull(),
-  visibility: text("visibility").$type<"family" | "sharing" | "protected" | "staff">().notNull(),
-  context: jsonb("context").$type<Record<string, unknown>>().notNull().default({}),
-  createdAt: createdAt(),
-  prevHash: text("prev_hash"),
-  hash: text("hash").notNull(),
-});
+export const auditEvents = pgTable(
+  "audit_events",
+  {
+    id: id(),
+    seq: bigserial("seq", { mode: "number" }).notNull(),
+    tenantId: tenantId().references(() => tenants.id),
+    householdId: text("household_id"),
+    actorId: text("actor_id"),
+    action: text("action").notNull(),
+    subjectType: text("subject_type").notNull(),
+    subjectId: text("subject_id"),
+    decision: text("decision"),
+    reasonCode: text("reason_code"),
+    summary: text("summary").notNull(),
+    visibility: text("visibility").$type<"family" | "sharing" | "protected" | "staff">().notNull(),
+    context: jsonb("context").$type<Record<string, unknown>>().notNull().default({}),
+    createdAt: createdAt(),
+    prevHash: text("prev_hash"),
+    hash: text("hash").notNull(),
+  },
+  (t) => [
+    // One chain per tenant, never a fork: no two events may follow the same event, and only one may
+    // start the chain (src/server/audit.ts serializes appends; this is the database's backstop).
+    uniqueIndex("audit_events_one_successor").on(t.tenantId, t.prevHash),
+    uniqueIndex("audit_events_one_genesis")
+      .on(t.tenantId)
+      .where(sql`${t.prevHash} is null`),
+  ],
+);
 
 export const bereavementTransitions = pgTable(
   "bereavement_transitions",
@@ -1190,7 +1201,10 @@ export const handoffs = pgTable(
     absenceId: text("absence_id"),
     kind: text("kind").$type<"cover" | "transfer">().notNull(),
     note: text("note").notNull().default(""),
-    state: text("state").$type<"offered" | "accepted" | "declined" | "withdrawn">().notNull().default("offered"),
+    state: text("state")
+      .$type<"offered" | "accepted" | "declined" | "withdrawn">()
+      .notNull()
+      .default("offered"),
     /** Cover only: when the access starts and ends. */
     startsAt: ts("starts_at"),
     endsAt: ts("ends_at"),

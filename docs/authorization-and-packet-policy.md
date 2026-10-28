@@ -105,7 +105,7 @@ Zeporah never chooses between people.
 
 ## Audit events
 
-[src/server/audit.ts](../src/server/audit.ts) is the only writer. Events are append-only: a database trigger rejects `UPDATE`, `DELETE` and `TRUNCATE` on `audit_events`. Each event stores a SHA-256 hash of its canonical content chained to the previous event in the same tenant; `verifyAuditChain` detects tampering. Summaries are written to be safe — message bodies, note text and document contents are never copied in. Each event has a visibility: `family` (every household member), `sharing` (members who can view consents), `protected` (members with protected access), `staff` (care team only).
+[src/server/audit.ts](../src/server/audit.ts) is the only writer. Events are append-only: a database trigger rejects `UPDATE`, `DELETE` and `TRUNCATE` on `audit_events`. Each event stores a SHA-256 hash of its canonical content chained to the previous event in the same tenant. Appends to a tenant's chain happen one at a time (an advisory lock), and the database refuses a fork (migration `0024`). `auditChainFindings` reports each changed, removed or forked event; it can't detect events removed from the end until checkpoints are kept outside the database (SB-04). Summaries are written to be safe — message bodies, note text and document contents are never copied in. Each event has a visibility: `family` (every household member), `sharing` (members who can view consents), `protected` (members with protected access), `staff` (care team only).
 
 ## Escalation
 

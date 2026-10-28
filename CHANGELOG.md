@@ -5,6 +5,9 @@ Every change that alters behaviour is recorded here in the pull request that mak
 
 ## Unreleased
 
+- Audit: appends to a hospice's chain happen one at a time and the database refuses a fork
+  (migration `0024_audit_chain_link`). The chain check reports each finding; System status shows
+  "No findings" with its limit instead of "Verified".
 - Security (PB-06): a change sent from another site is refused with 403. `Origin` must name this
   server or a configured address; without it, `Sec-Fetch-Site` must be same-origin.
 - Synthetic data: Rehanna Wells, a first-time patient in a household enrolled the same day, with

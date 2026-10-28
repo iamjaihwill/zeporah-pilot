@@ -59,13 +59,22 @@ manifest (`src/start.ts`, `src/domain/same-origin.ts`, `tests/unit/same-origin.t
 manifest entry changed; it's recorded because the demo build's behaviour changed. Pages and
 same-origin changes behave as before.
 
+**Freeze lifted and re-frozen on 2026-10-27** for increment 2 of the brief reconciliation only,
+with the founder's explicit approval: audit appends serialized per tenant, a database guard against
+a forked chain (migration `0024_audit_chain_link`), and verification that reports findings
+([evidence](readiness/evidence/audit-chain-integrity-2026-10-27.md)). The manifest entries for
+`src/server/audit.ts`, `src/server/db/schema.ts`, `src/server/db/migrations/meta/_journal.json`,
+`src/server/services/system.ts`, `src/routes/staff/status.tsx`, `scripts/db-seed-previous.ts` and
+`tests/integration/schema-upgrade.test.ts` were refreshed. System status now reads "No findings"
+instead of "Verified"; nothing else on screen changed.
+
 ## What's frozen
 
 - **The build:** 403 files covering the application code (including migrations through
   `0023_cover_notice` and seed fixtures), the tests, the configuration, the decision log and
   register, the presentation documents and the 22 run-through screenshots. Each file's SHA-256
   is in [demo-baseline-2026-10-22.sha256](demo-baseline-2026-10-22.sha256), and the manifest's
-  own SHA-256 is `31209f3d7248472eb6b64adfd60d6d9793e1f828862b7043c0ad401b03badbdc`. To check
+  own SHA-256 is `adaab8016e0c2f9c7ee79a9b07ab6c4884698ee8db46ac4542a3b9378db43514`. To check
   for drift, run `shasum -a 256 -c docs/demo-baseline-2026-10-22.sha256 --quiet`.
 - **The presentation baseline:** [enterprise-demo-map.md](enterprise-demo-map.md) (the script,
   "Presenting it in about 15 minutes", with beat 8's note on decision 62 and an optional 30 s in

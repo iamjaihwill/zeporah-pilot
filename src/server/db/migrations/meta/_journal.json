@@ -169,6 +169,13 @@
       "when": 1792700743789,
       "tag": "0023_cover_notice",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1793145982389,
+      "tag": "0024_audit_chain_link",
+      "breakpoints": true
     }
   ]
 }

@@ -74,7 +74,7 @@ function Status() {
   const summary = [
     `Zeporah ${d.version} (${d.environment.name})`,
     `Schema: ${d.database.migrationsApplied ?? "?"} of ${d.database.migrationsAvailable} migrations`,
-    `Audit chain: ${d.audit.ok ? `verified, ${d.audit.events} events` : "did not verify"}`,
+    `Audit chain: ${d.audit.ok ? `no findings in ${d.audit.events} events` : `${d.audit.findings} findings (${d.audit.kinds.join(", ")})`}`,
     `Read-only mode: ${d.environment.readOnly ? "on" : "off"}`,
     `Checked: ${stamp(d.checkedAt)}`,
   ].join("\n");
@@ -169,11 +169,15 @@ function Status() {
                   ? `Up to date (${d.database.migrationsApplied} migrations)`
                   : `${d.database.migrationsApplied} of ${d.database.migrationsAvailable} migrations applied`}
             </Row>
-            <Row label="Audit chain" tone={d.audit.ok ? "ok" : "attention"}>
+            <Row
+              label="Audit chain"
+              hint="Finds changed, removed or forked events. Can't yet find events removed from the very end."
+              tone={d.audit.ok ? "ok" : "attention"}
+            >
               <Link to="/staff/audit" className="text-harbor underline-offset-2 hover:underline">
                 {d.audit.ok
-                  ? `Verified (${d.audit.events} events)`
-                  : "Didn't verify — report to the security lead"}
+                  ? `No findings (${d.audit.events} events)`
+                  : `${d.audit.findings} ${d.audit.findings === 1 ? "finding" : "findings"} — report to the security lead`}
               </Link>
             </Row>
             <Row

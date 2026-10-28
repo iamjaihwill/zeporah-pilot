@@ -3,7 +3,6 @@ src/domain/claims.ts
 src/domain/sign-in.ts
 src/domain/task-scope.ts
 src/routes/staff/audit.tsx
-src/server/db/schema.ts
 tests/integration/auth.test.ts
 tests/integration/founder-decisions-23-28.test.ts
 tests/integration/interaction-review.test.ts

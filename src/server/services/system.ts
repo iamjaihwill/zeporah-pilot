@@ -8,7 +8,7 @@ import { and, eq, gt, gte, inArray, sql } from "drizzle-orm";
 import * as s from "../db/schema";
 import { mailChannel } from "../mail";
 import type { DB } from "../db/client";
-import { verifyAuditChain } from "../audit";
+import { auditChainFindings } from "../audit";
 import { requireStaffPermission, type ActorContext } from "../context";
 import { environment } from "../environment";
 import { integrationStatus } from "../integrations/registry";
@@ -41,7 +41,7 @@ export async function systemStatus(db: DB, ctx: ActorContext, now = new Date()) 
   } catch {
     applied = null;
   }
-  const chain = await verifyAuditChain(db, ctx.tenantId);
+  const chain = await auditChainFindings(db, ctx.tenantId);
   // Sign-in health over the last 24 hours, and who is signed in now (counts only).
   const since = new Date(now.getTime() - 24 * 3_600_000);
   const signIns = await db
@@ -67,7 +67,13 @@ export async function systemStatus(db: DB, ctx: ActorContext, now = new Date()) 
       migrationsApplied: applied,
       migrationsAvailable: available,
     },
-    audit: chain.ok ? { ok: true as const, events: chain.count } : { ok: false as const },
+    // Findings, not a pass mark: a clean check still can't see events removed from the end (SB-04).
+    audit: {
+      ok: chain.findings.length === 0,
+      events: chain.events,
+      findings: chain.findings.length,
+      kinds: [...new Set(chain.findings.map((f) => f.kind))],
+    },
     integrations: integrationStatus(),
     /** Email goes only to the development mailbox (decision 18); nothing leaves this computer. */
     email: mailChannel() ? ("dev_mailbox" as const) : ("off" as const),
