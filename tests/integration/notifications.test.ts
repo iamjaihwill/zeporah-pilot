@@ -76,7 +76,7 @@ describe("notification visibility follows current access", () => {
     await staff.giveEscalation(t.db, await t.as("st-dana"), { id: esc!.id, actorId: "st-maya" });
     const handoffs = await t.db.select().from(s.notifications).where(eq(s.notifications.kind, "handoff"));
     expect(handoffs.map((n) => n.title).sort()).toEqual([
-      "An escalation was given to you",
+      "An escalation was offered to you",
       "Open work for a household was handed to you",
     ]);
     expect(handoffs.every((n) => !/Hart|Bennett|June|Maya|Tom/.test(n.title))).toBe(true);

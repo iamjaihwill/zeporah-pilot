@@ -137,13 +137,23 @@ listed contacts, patient-private contacts and invitations from a contact (migrat
 **What a demo now shows differently:** the family People page has "Other people who help"; the
 staff household overview has "Listed contacts".
 
+**Decision record updated and freeze lifted on 2026-10-28** for increment 8 only, with the
+founder's explicit approval: decisions 79–83 (the request lifecycle) were added to
+`founder-decision-log.md` and built ([evidence](readiness/evidence/request-lifecycle-2026-10-28.md)):
+shared request states, withdraw and reopen, a next-update time with an Update overdue exception, and
+escalation offers that need accepting (migration `0031_request_lifecycle`). The manifest entries for
+the frozen files it touches were refreshed. **What a demo now shows differently:** "Your requests" on
+the family Support page shows each request's state, owner's first name and next update, with
+Withdraw… and Reopen…; the staff exception detail has "Where it stands" and "Offer to…" in place of
+"Assign to…".
+
 ## What's frozen
 
 - **The build:** 403 files covering the application code (including migrations through
   `0023_cover_notice` and seed fixtures), the tests, the configuration, the decision log and
   register, the presentation documents and the 22 run-through screenshots. Each file's SHA-256
   is in [demo-baseline-2026-10-22.sha256](demo-baseline-2026-10-22.sha256), and the manifest's
-  own SHA-256 is `ab98a291a36a32f658ea11514fa2e9ebd93818ab0bc5a2b2d068a58f0115203d`. To check
+  own SHA-256 is `be0ef4f4c71d261bc99c68b46c19d363a57c31967255df03cfc55ce9919d1c15`. To check
   for drift, run `shasum -a 256 -c docs/demo-baseline-2026-10-22.sha256 --quiet`.
 - **The presentation baseline:** [enterprise-demo-map.md](enterprise-demo-map.md) (the script,
   "Presenting it in about 15 minutes", with beat 8's note on decision 62 and an optional 30 s in

@@ -211,6 +211,7 @@ export const updateEscalation = createServerFn({ method: "POST" })
       resolution: z.string().max(1000).optional(),
       takeOver: z.boolean().optional(),
       familyMessage: z.string().max(600).optional(),
+      nextUpdateBy: z.string().max(40).optional(),
     }),
   )
   .handler(async ({ data }) => {
@@ -590,6 +591,37 @@ export const giveEscalation = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { run, staff } = await server();
     return run((db, ctx) => staff.giveEscalation(db, ctx, data));
+  });
+
+/* ------------------------------------------------------------------ request lifecycle (decisions 79–83) */
+
+const escalationId = z.object({ id: z.string().min(1).max(100) });
+
+export const setRequestProgress = createServerFn({ method: "POST" })
+  .validator(
+    escalationId.extend({
+      waitingOn: z.enum(["family", "other"]).nullable(),
+      waitingOnLabel: z.string().max(60).optional(),
+      nextUpdateBy: z.string().max(40).nullable().optional(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const { run, requests } = await server();
+    return run((db, ctx) => requests.setRequestProgress(db, ctx, data));
+  });
+
+export const acceptEscalationOffer = createServerFn({ method: "POST" })
+  .validator(escalationId.extend({ nextUpdateBy: z.string().max(40).optional() }))
+  .handler(async ({ data }) => {
+    const { run, requests } = await server();
+    return run((db, ctx) => requests.acceptEscalationOffer(db, ctx, data));
+  });
+
+export const declineEscalationOffer = createServerFn({ method: "POST" })
+  .validator(escalationId.extend({ reason: z.string().max(300) }))
+  .handler(async ({ data }) => {
+    const { run, requests } = await server();
+    return run((db, ctx) => requests.declineEscalationOffer(db, ctx, data));
   });
 
 /* ------------------------------------------------------------------ sharing register */

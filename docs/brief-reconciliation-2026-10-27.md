@@ -50,7 +50,7 @@ Status vocabulary: **Implemented and verified** (code plus a passing test), **Ev
 | 6                     | Adult/pediatric scope                                           | Not found                                    | No decision or code; needs a founder decision                                                                                                                                                                                                                                                        |
 | 7                     | Admission-to-first-use (offer, minimal case, activation owner…) | Implemented and verified (synthetic)         | [Code] `src/server/services/enrollment.ts`, migration `0027`, decisions 66–70; [Test] `tests/integration/enrollment.test.ts`. Activation is a tracked checklist                                                                                                                                      |
 | 7                     | Declined/deferred enrollment, no smartphone, assisted use       | Partial                                      | [Code] family-side opt-out and closure (decisions 12–14); no assisted-use mode                                                                                                                                                                                                                       |
-| 8                     | Request lifecycle with owner, acknowledgement, next update      | Partial                                      | [Code] tasks open/done/closed; escalations open/acknowledged/resolved; exception claims with `waitingOn`; no "awaiting sender", "transfer awaiting acceptance" or next-update fields on one request model                                                                                            |
+| 8                     | Request lifecycle with owner, acknowledgement, next update      | Implemented (aligned, decisions 79–83)       | [Code] decisions 79–83, `src/server/services/requests.ts`, `src/domain/request-lifecycle.ts`; [Test] `tests/integration/request-lifecycle.test.ts`. Tasks, escalations and exceptions keep their models                                                                                              |
 | 8                     | Staff queue, aging, coverage, handover, reassignment            | Implemented and verified                     | [Code] `coordinationQueue`, `exceptions.ts`, `coverage.ts`, `assignments.ts`; [Test] assignment, coverage, roster, queue suites                                                                                                                                                                      |
 | 9                     | Step by step / full view / listen modes                         | Not found                                    | No mode switch or audio                                                                                                                                                                                                                                                                              |
 | 9                     | Accessibility                                                   | Evidence incomplete                          | [Test] axe and keyboard checks in end-to-end and verify suites (last run 2026-10-22); manual assistive-technology review not done (PB-16)                                                                                                                                                            |
@@ -85,7 +85,7 @@ Status vocabulary: **Implemented and verified** (code plus a passing test), **Ev
 
 ## 3. Conflicting or missing decisions
 
-1. **Positioning.** _Decided 2026-10-28 for Stage 1: decisions 74–78 (hospice-configured, with listed contacts)._ _Decided 2026-10-28 for Stage 1: decisions 74–78 (hospice-configured, with listed contacts)._ The brief says "person-centered, hospice-first, not hospice-exclusive" with a
+1. **Positioning.** _Decided 2026-10-28 for Stage 1: decisions 74–78 (hospice-configured, with listed contacts)._ The brief says "person-centered, hospice-first, not hospice-exclusive" with a
    whole-person care network. [product-context.md](product-context.md) (2026-10-11) defines a
    "hospice-configured household coordination workspace" and names "a broad consumer marketplace"
    as out of scope. Needs a founder decision on whether independent supporters are in Stage 1.
@@ -100,7 +100,7 @@ Status vocabulary: **Implemented and verified** (code plus a passing test), **Ev
 4. **Patient setup.** _Decided 2026-10-27: decision 69._ Only coordinators can complete onboarding (`onboarding.complete`,
    `src/domain/permissions.ts`); a household whose only member is the patient (the Wells demo
    household) can never unlock messaging or the vault.
-5. **Request model.** The brief asks for one request lifecycle; the repository has three
+5. **Request model.** _Decided 2026-10-28: decisions 79–83 (align, don't merge)._ The brief asks for one request lifecycle; the repository has three
    (tasks, escalations, exception claims). Decision 58's spec chose separate models; unifying them is
    a major redesign, so it needs approval.
 6. **Messaging scope.** Selected-participant threads, history visibility and membership versions
@@ -176,3 +176,5 @@ integration test that a cross-origin POST is refused, and the existing suites un
 **PB-22 addressed 2026-10-28** after the founder decided 72 and lifted the freeze: the 24-hour line is confirmed by a second person's call, re-confirmed every 90 days, and read from one source; verified in synthetic testing ([evidence](readiness/evidence/verified-line-2026-10-28.md)).
 
 **Increment 7 done 2026-10-28** after the founder decided 74–78 and lifted the freeze: listed contacts, patient-private contacts and invitations from a contact; verified in synthetic testing ([evidence](readiness/evidence/listed-contacts-2026-10-28.md)).
+
+**Increment 8 done 2026-10-28** after the founder decided 79–83 and lifted the freeze: family requests share lifecycle words (Received, With <first name>, Waiting on you, Waiting on someone else, Resolved, Withdrawn), withdraw and reopen, a next-update time with an Update overdue exception, and offers that need accepting; verified in synthetic testing ([evidence](readiness/evidence/request-lifecycle-2026-10-28.md)).

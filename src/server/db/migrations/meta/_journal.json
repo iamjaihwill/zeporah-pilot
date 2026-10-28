@@ -218,6 +218,13 @@
       "when": 1793187484390,
       "tag": "0030_household_contacts",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1793188948168,
+      "tag": "0031_request_lifecycle",
+      "breakpoints": true
     }
   ]
 }

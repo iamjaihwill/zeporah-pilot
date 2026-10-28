@@ -10,9 +10,17 @@ import {
   releaseException,
   takeException,
 } from "@/functions/staff-shell";
-import { activateConsent, giveEscalation, sendStaffMessage, updateEscalation } from "@/functions/staff";
+import {
+  acceptEscalationOffer,
+  activateConsent,
+  declineEscalationOffer,
+  giveEscalation,
+  sendStaffMessage,
+  setRequestProgress,
+  updateEscalation,
+} from "@/functions/staff";
 import { dateOnly, stamp, UNCONFIRMED_SEND, useAction, useSubmission } from "@/lib/client";
-import { Button, ConfirmDialog, ErrorText, inputClass } from "@/components/ui";
+import { Button, ConfirmDialog, ErrorText, Field, inputClass } from "@/components/ui";
 import { StatusChip } from "./status-chip";
 import { Skeleton } from "./page";
 import { CATEGORY_LABELS, PRIORITY_LABELS, type QueueKind, type QueueRow } from "@/domain/queue";
@@ -241,10 +249,24 @@ function EscalationDetail({
           </ol>
         </section>
       )}
-      {d.status === "resolved" && (
+      {d.reopenedAt && (
         <p className="rounded bg-sunk p-2">
-          Resolved by {d.resolvedBy ?? "someone"} {d.resolvedAt ? stamp(d.resolvedAt) : ""}: {d.resolution}
+          Reopened by the family {stamp(d.reopenedAt)}: {d.reopenReason}
         </p>
+      )}
+      {d.status === "resolved" &&
+        (d.withdrawn ? (
+          <p className="rounded bg-sunk p-2">
+            Withdrawn by {d.raisedBy ?? "the family"} {d.resolvedAt ? stamp(d.resolvedAt) : ""}.
+          </p>
+        ) : (
+          <p className="rounded bg-sunk p-2">
+            Resolved by {d.resolvedBy ?? "someone"} {d.resolvedAt ? stamp(d.resolvedAt) : ""}: {d.resolution}
+          </p>
+        ))}
+      {open && d.offer && <OfferPanel d={d} onChanged={onChanged} />}
+      {open && d.mine && d.fromFamily && d.status === "acknowledged" && (
+        <ProgressForm d={d} onChanged={onChanged} />
       )}
       <ErrorText error={error} />
       {open && !d.isCorrection && (
@@ -330,7 +352,7 @@ function EscalationDetail({
           {d.canAssign && (
             <span className="inline-flex items-center gap-1">
               <select
-                aria-label="Assign to"
+                aria-label="Offer to"
                 className={inputClass + " !w-auto"}
                 value={to}
                 onFocus={async () => {
@@ -340,7 +362,7 @@ function EscalationDetail({
                 }}
                 onChange={(e) => setTo(e.target.value)}
               >
-                <option value="">Assign to…</option>
+                <option value="">Offer to…</option>
                 {owners?.map((o) => (
                   <option key={o.actorId} value={o.actorId}>
                     {o.name}
@@ -352,12 +374,13 @@ function EscalationDetail({
                 variant="secondary"
                 disabled={!to || pending}
                 onClick={() =>
-                  act(() => giveEscalation({ data: { id: d.id, actorId: to } }), "Assigned.").then(
-                    (r) => r && onChanged(),
-                  )
+                  act(
+                    () => giveEscalation({ data: { id: d.id, actorId: to } }),
+                    "Offered. They own it once they accept.",
+                  ).then((r) => r && onChanged())
                 }
               >
-                Assign
+                Offer
               </Button>
             </span>
           )}
@@ -369,6 +392,177 @@ function EscalationDetail({
         </p>
       )}
     </div>
+  );
+}
+
+type EscalationD = Extract<Detail, { kind: "escalation" }>;
+
+/** A local date-time for <input type="datetime-local">. */
+const localInput = (d: Date) => {
+  const z = new Date(d.getTime() - d.getTimezoneOffset() * 60_000);
+  return z.toISOString().slice(0, 16);
+};
+const fromLocal = (v: string) => (v ? new Date(v).toISOString() : undefined);
+
+function NextUpdateField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  return (
+    <Field
+      label="The family will next hear by"
+      hint="About where the request stands, not a clinical promise. If it passes, it shows as Update overdue."
+    >
+      {(id, d) => (
+        <input
+          id={id}
+          aria-describedby={d}
+          type="datetime-local"
+          className={inputClass}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      )}
+    </Field>
+  );
+}
+
+/** Decision 83: an offer stays with the current owner until the offered person accepts. */
+function OfferPanel({ d, onChanged }: { d: EscalationD; onChanged: () => void }) {
+  const offer = d.offer!;
+  const [reason, setReason] = useState("");
+  const [next, setNext] = useState(d.nextUpdateBy ? localInput(new Date(d.nextUpdateBy)) : "");
+  const { act, pending, error } = useAction();
+  if (!offer.mine)
+    return (
+      <p className="rounded bg-sunk p-2">
+        Offered to {offer.to}
+        {offer.at ? ` ${stamp(offer.at)}` : ""}. {d.owner ? `${d.owner.name} keeps it` : "It stays unowned"}{" "}
+        until they accept.
+      </p>
+    );
+  return (
+    <section aria-labelledby="esc-offer" className="space-y-2 rounded border p-3">
+      <h3 id="esc-offer" className="text-[0.8125rem] font-semibold">
+        This was offered to you
+      </h3>
+      {d.fromFamily && <NextUpdateField value={next} onChange={setNext} />}
+      <ErrorText error={error} />
+      <div className="flex flex-wrap gap-2">
+        <Button
+          size="sm"
+          disabled={pending}
+          onClick={() => {
+            const at = fromLocal(next);
+            act(
+              () => acceptEscalationOffer({ data: { id: d.id, ...(at ? { nextUpdateBy: at } : {}) } }),
+              "You own this now.",
+            ).then((r) => r && onChanged());
+          }}
+        >
+          Accept
+        </Button>
+        <ConfirmDialog
+          title="Decline this offer?"
+          confirmLabel="Decline"
+          error={error}
+          disabled={pending || !reason.trim()}
+          trigger={(o) => (
+            <Button size="sm" variant="secondary" onClick={o} disabled={pending}>
+              Decline…
+            </Button>
+          )}
+          onConfirm={async () => {
+            const r = await act(
+              () => declineEscalationOffer({ data: { id: d.id, reason } }),
+              "Declined. Whoever offered it was told.",
+            );
+            if (r) onChanged();
+            return r;
+          }}
+        >
+          <Field label="Why? (so it can go to someone else)">
+            {(id) => (
+              <textarea
+                id={id}
+                rows={2}
+                className={inputClass}
+                value={reason}
+                maxLength={300}
+                onChange={(e) => setReason(e.target.value)}
+              />
+            )}
+          </Field>
+        </ConfirmDialog>
+      </div>
+    </section>
+  );
+}
+
+/** Decisions 80 and 82: the owner says what it's waiting on and when the family will next hear. */
+function ProgressForm({ d, onChanged }: { d: EscalationD; onChanged: () => void }) {
+  const [on, setOn] = useState<"" | "family" | "other">(d.waitingOn ?? "");
+  const [label, setLabel] = useState(d.waitingOnLabel ?? "");
+  const [next, setNext] = useState(d.nextUpdateBy ? localInput(new Date(d.nextUpdateBy)) : "");
+  const { act, pending, error } = useAction();
+  return (
+    <section aria-labelledby="esc-progress" className="space-y-2 rounded border p-3">
+      <h3 id="esc-progress" className="text-[0.8125rem] font-semibold">
+        Where it stands (the family sees this)
+      </h3>
+      <Field label="It's">
+        {(id) => (
+          <select
+            id={id}
+            className={inputClass}
+            value={on}
+            onChange={(e) => setOn(e.target.value as "" | "family" | "other")}
+          >
+            <option value="">With me</option>
+            <option value="family">Waiting on the family</option>
+            <option value="other">Waiting on someone else</option>
+          </select>
+        )}
+      </Field>
+      {on === "other" && (
+        <Field
+          label="Who, by kind (optional)"
+          hint="The family sees this. Name the kind of party only, never a clinical reason."
+        >
+          {(id, d) => (
+            <input
+              id={id}
+              aria-describedby={d}
+              className={inputClass}
+              value={label}
+              maxLength={60}
+              placeholder="the pharmacy"
+              onChange={(e) => setLabel(e.target.value)}
+            />
+          )}
+        </Field>
+      )}
+      <NextUpdateField value={next} onChange={setNext} />
+      <ErrorText error={error} />
+      <Button
+        size="sm"
+        variant="secondary"
+        disabled={pending}
+        onClick={() =>
+          act(
+            () =>
+              setRequestProgress({
+                data: {
+                  id: d.id,
+                  waitingOn: on || null,
+                  ...(on === "other" && label.trim() ? { waitingOnLabel: label } : {}),
+                  nextUpdateBy: fromLocal(next) ?? null,
+                },
+              }),
+            "Saved. The family sees where it stands.",
+          ).then((r) => r && onChanged())
+        }
+      >
+        Save where it stands
+      </Button>
+    </section>
   );
 }
 

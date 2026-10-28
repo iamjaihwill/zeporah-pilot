@@ -870,6 +870,20 @@ export const escalations = pgTable(
     resolution: text("resolution"),
     /** A family request's own ID from the person's device (see messages.submissionId). */
     submissionId: text("submission_id"),
+    /**
+     * The request lifecycle (decisions 79–83), alongside status rather than replacing it. Waiting
+     * names only the kind of party (decision 80); a withdrawn request is resolved with
+     * closedReason "withdrawn"; a pending offer leaves the owner in place until it's accepted.
+     */
+    waitingOn: text("waiting_on").$type<"family" | "other">(),
+    waitingOnLabel: text("waiting_on_label"),
+    nextUpdateBy: ts("next_update_by"),
+    closedReason: text("closed_reason").$type<"resolved" | "withdrawn">(),
+    reopenedAt: ts("reopened_at"),
+    reopenReason: text("reopen_reason"),
+    offeredToActorId: text("offered_to_actor_id"),
+    offeredByActorId: text("offered_by_actor_id"),
+    offeredAt: ts("offered_at"),
   },
   (t) => [
     uniqueIndex("escalations_one_per_submission")

@@ -447,3 +447,19 @@ export const removeContact = createServerFn({ method: "POST" })
     const { run, contacts } = await server();
     return run((db, ctx) => contacts.removeContact(db, ctx, data));
   });
+
+/* ------------------------------------------------------------------ request lifecycle (decisions 79–83) */
+
+export const withdrawRequest = createServerFn({ method: "POST" })
+  .validator(id)
+  .handler(async ({ data }) => {
+    const { run, requests } = await server();
+    return run((db, ctx) => requests.withdrawRequest(db, ctx, data));
+  });
+
+export const reopenRequest = createServerFn({ method: "POST" })
+  .validator(id.extend({ reason: z.string().max(300) }))
+  .handler(async ({ data }) => {
+    const { run, requests } = await server();
+    return run((db, ctx) => requests.reopenRequest(db, ctx, data));
+  });

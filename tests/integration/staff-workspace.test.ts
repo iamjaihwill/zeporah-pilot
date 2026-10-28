@@ -24,17 +24,28 @@ describe("global search is scoped like every staff list", () => {
   });
 
   it("returns nothing from Willow Creek to Jordan (Cedar Valley), whatever the query", async () => {
-    for (const q of ["Okafor", "Rivera", "Brightwater", "Willow", "Authority conflict", "Maya", "pk-", "hh-"]) {
+    for (const q of [
+      "Okafor",
+      "Rivera",
+      "Brightwater",
+      "Willow",
+      "Authority conflict",
+      "Maya",
+      "pk-",
+      "hh-",
+    ]) {
       const hits = await shell.staffSearch(t.db, await jordan(), q);
       for (const h of hits) {
         expect(h.link).not.toMatch(/hh-|pk-okafor|pk-bennett|pk-patel|pk-nguyen|pk-hart|pk-lindqvist/);
-        expect(`${h.title} ${h.detail}`).not.toMatch(/Okafor|Rivera|Bennett|Patel|Nguyen|Hart|Lindqvist|Willow/);
+        expect(`${h.title} ${h.detail}`).not.toMatch(
+          /Okafor|Rivera|Bennett|Patel|Nguyen|Hart|Lindqvist|Willow/,
+        );
       }
     }
     // Jordan still finds Cedar Valley's own household.
-    expect((await shell.staffSearch(t.db, await jordan(), "Moss")).some((h) => h.title === "The Moss household")).toBe(
-      true,
-    );
+    expect(
+      (await shell.staffSearch(t.db, await jordan(), "Moss")).some((h) => h.title === "The Moss household"),
+    ).toBe(true);
   });
 
   it("limits a care guide to assigned households", async () => {
@@ -45,7 +56,10 @@ describe("global search is scoped like every staff list", () => {
   });
 
   it("never matches what a family wrote in an escalation", async () => {
-    const [e] = await t.db.select().from(s.escalations).where(eq(s.escalations.sourceType, "support_request"));
+    const [e] = await t.db
+      .select()
+      .from(s.escalations)
+      .where(eq(s.escalations.sourceType, "support_request"));
     if (!e) return;
     const word = e.summary.split(/\s+/).find((w) => w.length > 6 && /^[a-z]+$/i.test(w));
     if (!word) return;
@@ -67,9 +81,16 @@ describe("bulk take and assign keep the per-item checks", () => {
   it("operations can assign several at once; each is recorded", async () => {
     const ids = (await unowned()).slice(0, 2);
     expect(ids.length).toBe(2);
-    const res = await staff.bulkEscalations(t.db, await t.as("st-dana"), { ids, action: "assign", toActorId: "st-maya" });
+    const res = await staff.bulkEscalations(t.db, await t.as("st-dana"), {
+      ids,
+      action: "assign",
+      toActorId: "st-maya",
+    });
     expect(res.every((r) => r.ok)).toBe(true);
-    const audit = await t.db.select().from(s.auditEvents).where(eq(s.auditEvents.action, "escalation.owner_assigned"));
+    const audit = await t.db
+      .select()
+      .from(s.auditEvents)
+      .where(eq(s.auditEvents.action, "escalation.offered"));
     expect(audit.filter((a) => ids.includes(a.subjectId!))).toHaveLength(2);
   });
 
@@ -84,7 +105,11 @@ describe("bulk take and assign keep the per-item checks", () => {
     const ids = await unowned();
     const take = await staff.bulkEscalations(t.db, await jordan(), { ids, action: "take" });
     expect(take.every((r) => !r.ok)).toBe(true);
-    const give = await staff.bulkEscalations(t.db, await jordan(), { ids, action: "assign", toActorId: "cst-jordan" });
+    const give = await staff.bulkEscalations(t.db, await jordan(), {
+      ids,
+      action: "assign",
+      toActorId: "cst-jordan",
+    });
     expect(give.every((r) => !r.ok)).toBe(true);
     const owned = await t.db.select().from(s.escalations).where(eq(s.escalations.ownerActorId, "cst-jordan"));
     expect(owned).toHaveLength(0);
@@ -111,12 +136,21 @@ describe("resolving an escalation (interaction review item 16)", () => {
   it("needs ownership first", async () => {
     const e = await anOpen();
     await expect(
-      staff.updateEscalation(t.db, await t.as("st-dana"), { id: e.id, action: "resolve", resolution: "Done" }),
+      staff.updateEscalation(t.db, await t.as("st-dana"), {
+        id: e.id,
+        action: "resolve",
+        resolution: "Done",
+      }),
     ).rejects.toThrow(/Take ownership first/);
   });
   it("unowned: taking ownership and resolving in one confirmed step records both", async () => {
     const e = await anOpen();
-    await staff.updateEscalation(t.db, await t.as("st-maya"), { id: e.id, action: "resolve", resolution: "Sorted", takeOver: true });
+    await staff.updateEscalation(t.db, await t.as("st-maya"), {
+      id: e.id,
+      action: "resolve",
+      resolution: "Sorted",
+      takeOver: true,
+    });
     const evs = await t.db.select().from(s.auditEvents).where(eq(s.auditEvents.subjectId, e.id));
     const actions = evs.map((x) => x.action);
     expect(actions).toContain("escalation.owned");
@@ -128,7 +162,11 @@ describe("resolving an escalation (interaction review item 16)", () => {
     const e = await anOpen();
     await staff.updateEscalation(t.db, await t.as("st-maya"), { id: e.id, action: "take" });
     await expect(
-      staff.updateEscalation(t.db, await t.as("st-dana"), { id: e.id, action: "resolve", resolution: "Done" }),
+      staff.updateEscalation(t.db, await t.as("st-dana"), {
+        id: e.id,
+        action: "resolve",
+        resolution: "Done",
+      }),
     ).rejects.toThrow(/Maya Chen owns this/);
     await staff.updateEscalation(t.db, await t.as("st-dana"), {
       id: e.id,
@@ -136,11 +174,17 @@ describe("resolving an escalation (interaction review item 16)", () => {
       resolution: "Done",
       takeOver: true,
     });
-    const [ev] = await t.db.select().from(s.auditEvents).where(eq(s.auditEvents.action, "escalation.taken_over"));
+    const [ev] = await t.db
+      .select()
+      .from(s.auditEvents)
+      .where(eq(s.auditEvents.action, "escalation.taken_over"));
     expect(ev!.context).toMatchObject({ previousOwner: "st-maya" });
   });
   it("'Let the family know' sends the previewed message to the household thread", async () => {
-    const [e] = await t.db.select().from(s.escalations).where(eq(s.escalations.sourceType, "support_request"));
+    const [e] = await t.db
+      .select()
+      .from(s.escalations)
+      .where(eq(s.escalations.sourceType, "support_request"));
     expect(e).toBeTruthy();
     // The household's care guide: messaging the household is their permission, not operations'.
     const ctx = await t.as("st-maya");
@@ -162,7 +206,10 @@ describe("resolving an escalation (interaction review item 16)", () => {
       takeOver: true,
       familyMessage: "We've followed up on your request.",
     });
-    const msgs = await t.db.select().from(s.messages).where(eq(s.messages.body, "We've followed up on your request."));
+    const msgs = await t.db
+      .select()
+      .from(s.messages)
+      .where(eq(s.messages.body, "We've followed up on your request."));
     expect(msgs).toHaveLength(1);
     expect(msgs[0]!.householdId).toBe(e!.householdId);
   });
@@ -179,7 +226,10 @@ describe("density and saved views are each person's own", () => {
       name: "Rivera unowned",
       search: { who: "unassigned", household: "hh-rivera", sel: "escalation:es-1", evil: "x" },
     });
-    expect(views.at(-1)).toEqual({ name: "Rivera unowned", search: { who: "unassigned", household: "hh-rivera" } });
+    expect(views.at(-1)).toEqual({
+      name: "Rivera unowned",
+      search: { who: "unassigned", household: "hh-rivera" },
+    });
     expect((await shell.staffShell(t.db, await t.as("st-maya"))).savedViews).toEqual([]);
   });
 });
@@ -201,7 +251,11 @@ describe("queue rows", () => {
     const q = await staff.coordinationQueue(t.db, await t.as("st-dana"));
     const r = q.find((x) => x.kind === "escalation")!;
     await expect(
-      detail.queueDetail(t.db, await jordan(), { kind: r.kind, subjectId: r.subjectId, householdId: r.householdId }),
+      detail.queueDetail(t.db, await jordan(), {
+        kind: r.kind,
+        subjectId: r.subjectId,
+        householdId: r.householdId,
+      }),
     ).rejects.toThrow();
     const ok = await detail.queueDetail(t.db, await t.as("st-dana"), {
       kind: r.kind,

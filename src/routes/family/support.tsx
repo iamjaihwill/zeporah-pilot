@@ -2,7 +2,13 @@ import { SUPPORT_CATEGORIES } from "@/domain/model";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { z } from "zod";
 import { useState } from "react";
-import { getSupport, requestHumanSupport, saveSupportPreferences } from "@/functions/family";
+import {
+  getSupport,
+  reopenRequest,
+  requestHumanSupport,
+  saveSupportPreferences,
+  withdrawRequest,
+} from "@/functions/family";
 import { isDenied, unwrap, UNCONFIRMED_SEND, useAction, useSubmission } from "@/lib/client";
 import { supportConfirmation } from "@/domain/claims";
 import {
@@ -10,6 +16,7 @@ import {
   Button,
   Card,
   Check,
+  ConfirmDialog,
   DeniedView,
   EmergencyNotice,
   ErrorText,
@@ -32,12 +39,112 @@ export const Route = createFileRoute("/family/support")({
 
 const CATEGORIES = SUPPORT_CATEGORIES;
 
-/** Family-facing request status (founder decision 26's wording for a new request). */
-const REQUEST_STATUS: Record<string, string> = {
-  open: "Sent to your care team",
-  acknowledged: "A care-team member took it",
-  resolved: "Resolved",
+type FamilyRequest = {
+  id: string;
+  status: string;
+  at: Date;
+  topic: string | null;
+  label: string;
+  explanation: string;
+  nextUpdateBy: Date | null;
+  reopenedAt: Date | null;
+  canWithdraw: boolean;
+  canReopen: boolean;
+  reopenUntil: Date | null;
 };
+
+/**
+ * One of "Your requests" in the shared lifecycle words (decisions 80–82), with withdraw while it's
+ * open and reopen for 7 days after it's resolved (decision 81).
+ */
+function RequestItem({ r }: { r: FamilyRequest }) {
+  const [reason, setReason] = useState("");
+  const withdraw = useAction();
+  const reopen = useAction();
+  return (
+    <li className="py-3" data-testid="request-item">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span>
+          <span className="font-medium">{r.topic ?? "Support request"}</span>
+          <span className="block text-ink-soft">
+            Sent <Stamp at={r.at} />
+            {r.reopenedAt && (
+              <>
+                {" "}
+                · reopened <Stamp at={r.reopenedAt} />
+              </>
+            )}
+          </span>
+        </span>
+        <StateBadge state={r.status} label={r.label} wrap />
+      </div>
+      <p className="mt-1">{r.explanation}</p>
+      {r.nextUpdateBy && (
+        <p className="mt-1 text-ink-soft">
+          You'll hear about where it stands by <Stamp at={r.nextUpdateBy} />. This is about the request, not
+          about care: for anything urgent, call the 24-hour line.
+        </p>
+      )}
+      <div className="mt-2 flex flex-wrap gap-2">
+        {r.canWithdraw && (
+          <ConfirmDialog
+            trigger={(open) => (
+              <Button variant="quiet" size="sm" onClick={open}>
+                Withdraw…
+              </Button>
+            )}
+            title="Withdraw this request?"
+            confirmLabel="Withdraw it"
+            error={withdraw.error}
+            onConfirm={() =>
+              withdraw.act(() => withdrawRequest({ data: { id: r.id } }), "Your request was withdrawn.")
+            }
+          >
+            Your care team stops working on it, and whoever has it is told. You can send a new request any
+            time.
+          </ConfirmDialog>
+        )}
+        {r.canReopen && (
+          <ConfirmDialog
+            trigger={(open) => (
+              <Button variant="quiet" size="sm" onClick={open}>
+                Reopen…
+              </Button>
+            )}
+            title="Reopen this request?"
+            confirmLabel="Reopen it"
+            error={reopen.error}
+            onConfirm={() =>
+              reopen.act(
+                () => reopenRequest({ data: { id: r.id, reason } }),
+                "Your request was reopened. It went back to the person who resolved it.",
+              )
+            }
+          >
+            <p>It goes back to the person who resolved it.</p>
+            <Field label="What still needs attention?">
+              {(id) => (
+                <textarea
+                  id={id}
+                  rows={3}
+                  maxLength={300}
+                  className={inputClass}
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                />
+              )}
+            </Field>
+            {r.reopenUntil && (
+              <p className="mt-1 text-sm text-ink-soft">
+                You can reopen it until <Stamp at={r.reopenUntil} />.
+              </p>
+            )}
+          </ConfirmDialog>
+        )}
+      </div>
+    </li>
+  );
+}
 
 function Support() {
   const s = Route.useLoaderData();
@@ -167,7 +274,7 @@ function AskAPerson({
   confirmation,
   about,
 }: {
-  requests: { id: string; status: string; at: Date; topic: string | null }[];
+  requests: FamilyRequest[];
   confirmation: string;
   about: { id: string; title: string } | null;
 }) {
@@ -315,15 +422,7 @@ function AskAPerson({
           ) : (
             <ul className="mt-2 divide-y text-sm" data-testid="your-requests">
               {requests.map((r) => (
-                <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
-                  <span>
-                    <span className="font-medium">{r.topic ?? "Support request"}</span>
-                    <span className="block text-ink-soft">
-                      Sent <Stamp at={r.at} />
-                    </span>
-                  </span>
-                  <StateBadge state={r.status} label={REQUEST_STATUS[r.status] ?? r.status} />
-                </li>
+                <RequestItem key={r.id} r={r} />
               ))}
             </ul>
           )}

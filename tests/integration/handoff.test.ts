@@ -4,6 +4,7 @@ import { freshDb } from "./helpers";
 import * as assignments from "@/server/services/assignments";
 import * as family from "@/server/services/family";
 import * as staff from "@/server/services/staff";
+import * as requests from "@/server/services/requests";
 import * as team from "@/server/services/team";
 import * as s from "@/server/db/schema";
 import { verifyAuditChain } from "@/server/audit";
@@ -145,12 +146,16 @@ describe("giving an escalation to a named owner", () => {
     ).toBe(true);
   });
 
-  it("sets the owner, audits it and notifies them; resolved ones can't be given", async () => {
+  it("offers it (decision 83): the owner is set only when they accept; resolved ones can't be given", async () => {
     const id = await released();
     const dana = await t.as("st-dana");
     await staff.giveEscalation(t.db, dana, { id, actorId: "st-priya" });
-    expect(await hartEscalation()).toMatchObject({ ownerActorId: "st-priya", status: "acknowledged" });
-    expect((await events("escalation.owner_assigned")).map((e) => e.subjectId)).toEqual([id]);
+    expect(await hartEscalation()).toMatchObject({
+      ownerActorId: null,
+      status: "open",
+      offeredToActorId: "st-priya",
+    });
+    expect((await events("escalation.offered")).map((e) => e.subjectId)).toEqual([id]);
     const notes = await t.db
       .select()
       .from(s.notifications)
@@ -158,6 +163,12 @@ describe("giving an escalation to a named owner", () => {
     expect(notes.some((n) => n.kind === "handoff")).toBe(true);
     await expect(staff.giveEscalation(t.db, dana, { id, actorId: "st-priya" })).rejects.toMatchObject({
       code: "INVALID",
+    });
+    await requests.acceptEscalationOffer(t.db, await t.as("st-priya"), { id });
+    expect(await hartEscalation()).toMatchObject({
+      ownerActorId: "st-priya",
+      status: "acknowledged",
+      offeredToActorId: null,
     });
     await staff.updateEscalation(t.db, await t.as("st-priya"), {
       id,

@@ -16,8 +16,10 @@ import { preparedDrafts, usedPreparedDraft } from "./prepared";
 import { createOnce, messageBySubmission } from "./send-once";
 import { activationStatus } from "./enrollment";
 import { ESCALATION_STATUS_LABELS } from "@/domain/labels";
+import { staffRequestState } from "@/domain/request-lifecycle";
 import { bereavementWorkload, createPlanInTx, staffPlan } from "./bereavement";
 import { careGuideMayComplete, markFamilyTaskDone } from "./tasks";
+import { checkNextUpdate } from "./requests";
 import {
   AccessError,
   loadContext,
@@ -164,6 +166,8 @@ export async function coordinationQueue(db: DB, ctx: ActorContext): Promise<Queu
     basis?: QueueRow["basis"];
     /** Escalations: their kind decides the category (decision 58). */
     escalationKind?: string;
+    /** A family request's own waiting state (decision 80), when no exception claim says otherwise. */
+    waiting?: { on: "family" | "partner"; note: string | null };
     source?: QueueRow["source"];
     dueBy?: Date | null;
     /** A fixed row key (`category:subjectType:subjectId`) for rule-derived exceptions. */
@@ -369,10 +373,16 @@ export async function coordinationQueue(db: DB, ctx: ActorContext): Promise<Queu
   const escNames = await actorNames(
     db,
     T,
-    esc.map((e) => e.ownerActorId),
+    esc.flatMap((e) => [e.ownerActorId, e.offeredToActorId]),
   );
   for (const e of esc) {
     const taken = e.status === "acknowledged";
+    // The request lifecycle (decisions 80–83): an offer waiting for an answer, what it's waiting on,
+    // and whether the family's next update is overdue.
+    const offeredTo = e.offeredToActorId ? (escNames.get(e.offeredToActorId) ?? "someone") : null;
+    const offeredToMe = e.offeredToActorId === ctx.actorId;
+    const overdue = taken && !!e.nextUpdateBy && e.nextUpdateBy.getTime() < now.getTime();
+    const waiting = staffRequestState(e);
     items.push({
       kind: "escalation",
       householdId: e.householdId,
@@ -381,19 +391,36 @@ export async function coordinationQueue(db: DB, ctx: ActorContext): Promise<Queu
       owner: e.ownerActorId ? (escNames.get(e.ownerActorId) ?? null) : null,
       ownerIds: e.ownerActorId ? [e.ownerActorId] : [],
       takeEscalationId: !taken && can(ctx.staffRoles, "staff.escalation.manage") ? e.id : null,
-      state: ESCALATION_STATUS_LABELS[e.status] ?? e.status,
+      state: overdue
+        ? "Update overdue"
+        : offeredTo
+          ? `Offered to ${offeredTo}, not accepted yet`
+          : (waiting ?? ESCALATION_STATUS_LABELS[e.status] ?? e.status),
       status: { domain: "escalation", value: e.status },
       subjectId: e.id,
       deepLink: `/staff/exceptions?view=all&sel=escalation:${e.id}`,
+      ...(e.waitingOn
+        ? { waiting: { on: e.waitingOn === "family" ? "family" : "partner", note: e.waitingOnLabel } }
+        : {}),
       action:
         !taken && can(ctx.staffRoles, "staff.escalation.manage")
           ? { type: "take", label: "Take ownership" }
           : null,
       assignable: true,
-      next: taken ? (ESCALATION_NEXT[e.kind] ?? "Resolve it with a note") : "Take ownership",
+      next: offeredToMe
+        ? "Accept or decline the offer"
+        : overdue
+          ? "Update the family, then set the next update"
+          : taken
+            ? e.sourceType === "support_request" && !e.nextUpdateBy
+              ? "Say when the family will next hear"
+              : (ESCALATION_NEXT[e.kind] ?? "Resolve it with a note")
+            : "Take ownership",
       escalationKind: e.kind,
-      why:
-        e.kind === "packet_clarification"
+      ...(e.nextUpdateBy && taken ? { dueBy: e.nextUpdateBy } : {}),
+      why: overdue
+        ? "Its owner said the family would hear by now (decision 82)."
+        : e.kind === "packet_clarification"
           ? "A packet's named recipient asked the care team a question."
           : e.sourceType === "support_request"
             ? "Someone in the household asked for a person to follow up."
@@ -406,8 +433,8 @@ export async function coordinationQueue(db: DB, ctx: ActorContext): Promise<Queu
             : "rule",
       // Waiting counts from the escalation's last change of state (raised, taken, released).
       since: e.stateChangedAt ?? e.createdAt,
-      priority: taken ? "normal" : "high",
-      priorityReason: taken ? "Owned, not resolved yet" : "Needs an owner",
+      priority: taken && !overdue ? "normal" : "high",
+      priorityReason: overdue ? "Update overdue" : taken ? "Owned, not resolved yet" : "Needs an owner",
       link: "/staff/exceptions?view=all&kind=escalation",
       subject: {
         ids: e.sourceId && ESCALATION_SOURCE[e.kind] === e.sourceType ? [e.id, e.sourceId] : [e.id],
@@ -930,6 +957,35 @@ export async function coordinationQueue(db: DB, ctx: ActorContext): Promise<Queu
         subject: { ids: [h.id] },
       });
     }
+    // An escalation offered and not accepted in time (decision 83): stalled, like a handoff.
+    for (const e of esc) {
+      if (!e.offeredToActorId || !e.offeredAt) continue;
+      const acceptBy = new Date(e.offeredAt.getTime() + ex.handoffAcceptHours * HOUR);
+      if (acceptBy.getTime() >= now.getTime()) continue;
+      const to = escNames.get(e.offeredToActorId) ?? "the person offered it";
+      items.push({
+        kind: "handoff",
+        key: `stalled_handoff:escalation:${e.id}`,
+        householdId: e.householdId,
+        household: name(e.householdId),
+        summary: `Escalation offered to ${to}`,
+        owner: e.ownerActorId ? (escNames.get(e.ownerActorId) ?? null) : null,
+        ownerIds: e.ownerActorId ? [e.ownerActorId] : [],
+        state: "Not accepted yet",
+        status: { domain: "escalation", value: e.status },
+        subjectId: e.id,
+        deepLink: `/staff/exceptions?view=all&sel=escalation:${e.id}`,
+        next: `Offer it to someone else, or ask ${to} to accept`,
+        why: `Not accepted within ${ex.handoffAcceptHours} hours (hospice setting).`,
+        source: "rule",
+        dueBy: acceptBy,
+        since: acceptBy,
+        priority: "normal",
+        priorityReason: "A household's escalation is stuck between owners",
+        link: "/staff/exceptions?view=all&kind=escalation",
+        subject: { ids: [e.id] },
+      });
+    }
     const absences = await db
       .select()
       .from(s.staffAbsences)
@@ -1113,7 +1169,7 @@ export async function coordinationQueue(db: DB, ctx: ActorContext): Promise<Queu
     [...claims.values()].map((c) => c.ownerActorId),
   );
   const rows: QueueRow[] = [];
-  items.forEach(({ subject: _subject, sinceFromLastAction, escalationKind, key, ...i }, k) => {
+  items.forEach(({ subject: _subject, sinceFromLastAction, escalationKind, key, waiting, ...i }, k) => {
     const e = lasts[k];
     // "Waiting" counts from the last change of state where one is recorded (section 3).
     const since = sinceFromLastAction && e && e.createdAt > i.since ? e.createdAt : i.since;
@@ -1149,15 +1205,17 @@ export async function coordinationQueue(db: DB, ctx: ActorContext): Promise<Queu
       dueBy = new Date(i.since.getTime() + thresholds.messageHighAfterHours * HOUR);
     const owner = claim?.ownerActorId ? (claimNames.get(claim.ownerActorId) ?? "Someone") : i.owner;
     const ownerIds = claim?.ownerActorId ? [claim.ownerActorId] : (i.ownerIds ?? []);
-    const waitingOn = claim?.state === "waiting" ? (claim.waitingOn ?? null) : null;
+    const waitingOn = claim?.state === "waiting" ? (claim.waitingOn ?? null) : (waiting?.on ?? null);
+    const waitingNote = claim?.state === "waiting" ? (claim.waitingNote ?? null) : (waiting?.note ?? null);
     rows.push({
       ...i,
       ...urgency,
       next,
       owner,
-      state: waitingOn
-        ? `Waiting on ${waitingOn === "partner" ? "a partner" : waitingOn === "family" ? "the family" : "staff"}${claim?.waitingNote ? `: ${claim.waitingNote}` : ""}`
-        : i.state,
+      state:
+        waitingOn && !waiting
+          ? `Waiting on ${waitingOn === "partner" ? "a partner" : waitingOn === "family" ? "the family" : "staff"}${waitingNote ? `: ${waitingNote}` : ""}`
+          : i.state,
       since,
       id,
       dueAt: i.dueAt ?? null,
@@ -1185,7 +1243,7 @@ export async function coordinationQueue(db: DB, ctx: ActorContext): Promise<Queu
       claimable,
       claimed: !!claim?.ownerActorId,
       waitingOn,
-      waitingNote: waitingOn ? (claim?.waitingNote ?? null) : null,
+      waitingNote: waitingOn ? waitingNote : null,
       basis: i.basis ?? null,
     });
   });
@@ -2006,7 +2064,11 @@ export async function escalationOwnerCandidates(conn: DB, ctx: ActorContext) {
   return out;
 }
 
-/** Operations gives an open escalation to a named person who can see the household and act on it. */
+/**
+ * Operations offers an escalation to a named person who can see the household and act on it
+ * (decision 83, like handoffs): the current owner keeps it until that person accepts, and an offer
+ * not accepted in time is a stalled exception. Accept and decline are in requests.ts.
+ */
 export async function giveEscalation(db: DB, ctx: ActorContext, input: { id: string; actorId: string }) {
   requireStaffPermission(ctx, "staff.assignment.manage");
   const [e] = await db
@@ -2020,10 +2082,12 @@ export async function giveEscalation(db: DB, ctx: ActorContext, input: { id: str
   if (!to || !to.sees(e.householdId))
     throw new AccessError("INVALID", "Choose someone who can see this household and work on escalations.");
   if (e.ownerActorId === to.actorId) throw new AccessError("INVALID", `${to.name} already owns this.`);
+  if (e.offeredToActorId === to.actorId)
+    throw new AccessError("INVALID", `It's already offered to ${to.name}.`);
   await db.transaction(async (tx) => {
     const done = await tx
       .update(s.escalations)
-      .set({ ownerActorId: to.actorId, status: "acknowledged" })
+      .set({ offeredToActorId: to.actorId, offeredByActorId: ctx.actorId, offeredAt: new Date() })
       .where(
         and(
           eq(s.escalations.tenantId, ctx.tenantId),
@@ -2037,20 +2101,20 @@ export async function giveEscalation(db: DB, ctx: ActorContext, input: { id: str
       tenantId: ctx.tenantId,
       householdId: scope.householdId,
       actorId: ctx.actorId,
-      action: "escalation.owner_assigned",
+      action: "escalation.offered",
       subjectType: "escalation",
       subjectId: e.id,
-      summary: `${ctx.displayName} gave this escalation to ${to.name}.`,
+      summary: `${ctx.displayName} offered this escalation to ${to.name}.`,
       visibility: "staff",
-      context: { from: e.ownerActorId, to: to.actorId },
+      context: { owner: e.ownerActorId, to: to.actorId, replaces: e.offeredToActorId },
     });
     await notify(tx, {
       tenantId: ctx.tenantId,
       recipients: [to.actorId],
       householdId: scope.householdId,
       kind: "handoff",
-      title: "An escalation was given to you",
-      link: "/staff/exceptions?view=all&kind=escalation",
+      title: "An escalation was offered to you",
+      link: `/staff/exceptions?view=all&sel=escalation:${e.id}`,
       except: ctx.actorId,
     });
   });
@@ -2068,6 +2132,8 @@ export async function updateEscalation(
     takeOver?: boolean | undefined;
     /** "Let the family know": a short message to the household thread, shown in a preview first. */
     familyMessage?: string | undefined;
+    /** Taking a family request: when they'll next hear (decision 82). */
+    nextUpdateBy?: Date | string | undefined;
   },
 ) {
   requireStaff(ctx);
@@ -2098,12 +2164,22 @@ export async function updateEscalation(
     throw new AccessError("CONFLICT", `${owner} owns this. Take it over to resolve it.`);
   }
   const familyMessage = input.action === "resolve" ? input.familyMessage?.trim().slice(0, 600) : undefined;
+  const nextUpdateBy =
+    input.action === "take" && input.nextUpdateBy ? checkNextUpdate(input.nextUpdateBy) : undefined;
   if (familyMessage) await staffScope(db, ctx, e.householdId, "staff.thread.send");
   await db.transaction(async (tx) => {
     if (input.action === "take")
       await tx
         .update(s.escalations)
-        .set({ status: "acknowledged", ownerActorId: ctx.actorId })
+        .set({
+          status: "acknowledged",
+          ownerActorId: ctx.actorId,
+          // Taking it settles any pending offer (decision 83).
+          offeredToActorId: null,
+          offeredByActorId: null,
+          offeredAt: null,
+          ...(nextUpdateBy ? { nextUpdateBy } : {}),
+        })
         .where(
           and(
             eq(s.escalations.tenantId, ctx.tenantId),
@@ -2151,6 +2227,13 @@ export async function updateEscalation(
           resolvedByActorId: ctx.actorId,
           resolution: input.resolution!.trim(),
           ownerActorId: ctx.actorId,
+          closedReason: "resolved",
+          waitingOn: null,
+          waitingOnLabel: null,
+          nextUpdateBy: null,
+          offeredToActorId: null,
+          offeredByActorId: null,
+          offeredAt: null,
         })
         .where(
           and(

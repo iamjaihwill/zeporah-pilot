@@ -5,6 +5,12 @@ Every change that alters behaviour is recorded here in the pull request that mak
 
 ## Unreleased
 
+- Request lifecycle (decisions 79–83): a family's support request shows where it stands in shared
+  words (Received, With <first name>, Waiting on you, Waiting on someone else, Resolved, Withdrawn)
+  and when they'll next hear. The sender can withdraw it while it's open, and reopen it with a reason
+  within 7 days of its resolution. The owner sets the next-update time; a missed one is an "Update
+  overdue" exception. Giving an escalation now offers it: the owner keeps it until the new owner
+  accepts, and an unaccepted offer is a stalled exception. Migration `0031_request_lifecycle`.
 - Listed contacts (decisions 74–78): households list their other supporters (doula, private
   caregiver, outside clinician, faith leader and others) on the People page, and the care team sees
   them on the household record. A listing grants nothing; the patient can keep a contact private to

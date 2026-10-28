@@ -84,20 +84,20 @@ gaps, **P3** future breadth.
 
 ### Hospice enterprise
 
-| Capability                         | Status      | Evidence                                                                                          | Priority    |
-| ---------------------------------- | ----------- | ------------------------------------------------------------------------------------------------- | ----------- |
-| Staff provisioning and offboarding | implemented | Staff invitations, deactivation (`team.ts`)                                                       | —           |
-| Household activation               | implemented | Increment 6                                                                                       | —           |
-| Assigned and unassigned work       | implemented | Exceptions, claims, queue                                                                         | —           |
-| Ownership and acceptance           | partial     | Claims and handoffs accept; one lifecycle across requests is undecided (reconciliation §3 item 5) | P1 decision |
-| Coverage and shift handover        | implemented | Decisions 59–62                                                                                   | —           |
-| Aging, blocked, reopened requests  | partial     | Aging via exception thresholds; no "blocked" or "reopened" request states                         | P1          |
-| External provider handoffs         | proposed    | Packet release to a named recipient is one-way                                                    | P2          |
-| Contact routing and downtime       | partial     | 24-hour line, read-only mode; the line isn't verified (PB-22 proposed)                            | P0          |
-| Configuration governance           | implemented | Org settings, audited, operations vs administrators (decision 39)                                 | —           |
-| Training and support tools         | partial     | Staff guide (`staff-guide.ts`), policy scenarios page; no training programme (PB-15)              | P1          |
-| Reporting and workload             | implemented | Reports (decisions 41, 57)                                                                        | —           |
-| Audit and minimum-necessary access | partial     | Writes audited; staff reads aren't (PB-12, D-04); operations see every household (PC-04)          | P0          |
+| Capability                         | Status      | Evidence                                                                                 | Priority |
+| ---------------------------------- | ----------- | ---------------------------------------------------------------------------------------- | -------- |
+| Staff provisioning and offboarding | implemented | Staff invitations, deactivation (`team.ts`)                                              | —        |
+| Household activation               | implemented | Increment 6                                                                              | —        |
+| Assigned and unassigned work       | implemented | Exceptions, claims, queue                                                                | —        |
+| Ownership and acceptance           | implemented | Claims, handoffs and escalation offers accept (decision 83, increment 8)                 | —        |
+| Coverage and shift handover        | implemented | Decisions 59–62                                                                          | —        |
+| Aging, blocked, reopened requests  | implemented | Waiting states, Update overdue, reopen within 7 days (decisions 80–82, increment 8)      | —        |
+| External provider handoffs         | proposed    | Packet release to a named recipient is one-way                                           | P2       |
+| Contact routing and downtime       | partial     | 24-hour line, read-only mode; the line isn't verified (PB-22 proposed)                   | P0       |
+| Configuration governance           | implemented | Org settings, audited, operations vs administrators (decision 39)                        | —        |
+| Training and support tools         | partial     | Staff guide (`staff-guide.ts`), policy scenarios page; no training programme (PB-15)     | P1       |
+| Reporting and workload             | implemented | Reports (decisions 41, 57)                                                               | —        |
+| Audit and minimum-necessary access | partial     | Writes audited; staff reads aren't (PB-12, D-04); operations see every household (PC-04) | P0       |
 
 ### Partner services (context C)
 
@@ -425,8 +425,9 @@ crisis resources (public lines, no monitoring) are all unstaffed by Zeporah.
 
 1. **P0, no decision needed:** staff read-access logging design (D-04 brief), a verified 24-hour line
    (PB-22), manual accessibility review plan (PB-16).
-2. **P1, after the reconciliation's open decisions:** request lifecycle (increment 8), care network
-   (increment 7), offline status (increment 9), household export.
+2. **P1, after the reconciliation's open decisions:** request lifecycle (increment 8, done
+   2026-10-28), care network (increment 7, done 2026-10-28), offline status (increment 9), household
+   export.
 3. **P2:** caregiver logistics (availability, equipment, transport), external provider handoffs.
 4. **P3:** contexts B and C, only after the scope decisions and a selected partner.
 

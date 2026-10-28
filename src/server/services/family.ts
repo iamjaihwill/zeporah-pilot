@@ -49,6 +49,12 @@ import {
 import { can } from "@/domain/permissions";
 import { LIFECYCLE_LABELS } from "@/domain/lifecycle";
 import {
+  familyRequestExplanation,
+  familyRequestLabel,
+  familyRequestState,
+  REOPEN_DAYS,
+} from "@/domain/request-lifecycle";
+import {
   ROLE_EXPLANATIONS,
   ROLE_LABELS,
   SHARE_CATEGORY_LABELS,
@@ -2093,6 +2099,42 @@ export async function askToWithdrawConsent(db: DB, ctx: ActorContext, consentId:
 
 /* ------------------------------------------------------------------ support */
 
+/**
+ * "Your requests" in the shared lifecycle words (decisions 80–82): who has it by first name, what it's
+ * waiting on by kind of party, when they'll next hear, and whether the sender can withdraw or reopen.
+ */
+async function familyRequests(db: DB, ctx: ActorContext, rows: (typeof s.escalations.$inferSelect)[]) {
+  const names = await actorNames(
+    db,
+    ctx.tenantId,
+    rows.map((e) => e.ownerActorId),
+  );
+  const now = Date.now();
+  return rows.map((e) => {
+    const state = familyRequestState(e);
+    const owner = e.ownerActorId ? (names.get(e.ownerActorId) ?? null) : null;
+    const mine = e.raisedByActorId === ctx.actorId;
+    const reopenUntil =
+      state === "resolved" && e.resolvedAt
+        ? new Date(e.resolvedAt.getTime() + REOPEN_DAYS * 86_400_000)
+        : null;
+    return {
+      id: e.id,
+      status: e.status,
+      at: e.createdAt,
+      topic: e.topic,
+      state,
+      label: familyRequestLabel(state, owner, e.waitingOnLabel),
+      explanation: familyRequestExplanation(state, owner),
+      nextUpdateBy: e.status === "acknowledged" ? e.nextUpdateBy : null,
+      reopenedAt: e.reopenedAt,
+      canWithdraw: mine && e.status !== "resolved",
+      canReopen: mine && !!reopenUntil && reopenUntil.getTime() > now,
+      reopenUntil,
+    };
+  });
+}
+
 export async function getSupport(
   db: DB,
   ctx: ActorContext,
@@ -2170,7 +2212,7 @@ export async function getSupport(
     canEditPrefs: scope.maySetUp,
     hotline: await organizationHotline(db, ctx.tenantId, scope.organizationId),
     expectation: await currentMessageExpectation(db, ctx.tenantId, scope.organizationId),
-    requests: mine.map((e) => ({ id: e.id, status: e.status, at: e.createdAt, topic: e.topic })),
+    requests: await familyRequests(db, ctx, mine),
   };
 }
 

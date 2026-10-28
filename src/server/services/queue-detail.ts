@@ -4,7 +4,7 @@
  * permission), and the actions it offers are the existing ones — this adds a place to see them,
  * not a new way around a check.
  */
-import { and, desc, eq, inArray, like } from "drizzle-orm";
+import { and, desc, eq, inArray, like, or } from "drizzle-orm";
 import type { DB } from "../db/client";
 import * as s from "../db/schema";
 import { AccessError, staffScope, type ActorContext } from "../context";
@@ -45,7 +45,7 @@ export async function queueDetail(
         and(
           eq(s.auditEvents.tenantId, T),
           eq(s.auditEvents.subjectId, e.id),
-          like(s.auditEvents.action, "escalation.%"),
+          or(like(s.auditEvents.action, "escalation.%"), like(s.auditEvents.action, "request.%")),
         ),
       )
       .orderBy(desc(s.auditEvents.seq))
@@ -54,6 +54,7 @@ export async function queueDetail(
       e.ownerActorId,
       e.raisedByActorId,
       e.resolvedByActorId,
+      e.offeredToActorId,
       ...events.map((x) => x.actorId),
     ]);
     return {
@@ -71,6 +72,20 @@ export async function queueDetail(
       resolvedBy: e.resolvedByActorId ? (names.get(e.resolvedByActorId) ?? null) : null,
       resolvedAt: e.resolvedAt,
       fromFamily: e.sourceType === "support_request",
+      // The request lifecycle (decisions 80–83).
+      withdrawn: e.closedReason === "withdrawn",
+      waitingOn: e.waitingOn,
+      waitingOnLabel: e.waitingOnLabel,
+      nextUpdateBy: e.nextUpdateBy,
+      reopenedAt: e.reopenedAt,
+      reopenReason: e.reopenReason,
+      offer: e.offeredToActorId
+        ? {
+            to: names.get(e.offeredToActorId) ?? "Someone",
+            at: e.offeredAt,
+            mine: e.offeredToActorId === ctx.actorId,
+          }
+        : null,
       isCorrection: e.kind === "consent_correction",
       canReplyToFamily: can(ctx.staffRoles, "staff.thread.send", scope.lifecycle),
       canAssign: can(ctx.staffRoles, "staff.assignment.manage"),
