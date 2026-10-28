@@ -117,13 +117,13 @@ The existing pilot blockers already cover most of the brief's P0 items, and this
 duplicate them: PB-02 to PB-16. The brief adds these, proposed as new tracker items for the founder
 to accept:
 
-| Proposed | Gap                                                                                   | Why P0                                                 |
-| -------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| PB-18    | Audit append isn't serialized per tenant on a multi-connection database               | A forked chain makes the integrity claim false         |
-| PB-19    | No idempotent submission for messages, support requests and consent actions           | Retries on a poor connection create duplicate requests |
-| PB-20    | No enrollment and activation path (households exist only in the seed)                 | The pilot can't start without one                      |
-| PB-21    | No retention guard that every destructive path must consult, before deletion is built | Prevents a later deletion feature from bypassing holds |
-| PB-22    | Verified clinical contact route (the 24-hour line is free text entered by staff)      | A wrong number on "Get help" is a safety failure       |
+| Proposed | Gap                                                                                   | Why P0                                                                                                                                                                                  |
+| -------- | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| PB-18    | Audit append isn't serialized per tenant on a multi-connection database               | A forked chain makes the integrity claim false                                                                                                                                          |
+| PB-19    | No idempotent submission for messages, support requests and consent actions           | Retries on a poor connection create duplicate requests                                                                                                                                  |
+| PB-20    | No enrollment and activation path (households exist only in the seed)                 | The pilot can't start without one                                                                                                                                                       |
+| PB-21    | No retention guard that every destructive path must consult, before deletion is built | Prevents a later deletion feature from bypassing holds                                                                                                                                  |
+| PB-22    | Verified clinical contact route (the 24-hour line is free text entered by staff)      | A wrong number on "Get help" is a safety failure Brief: [D-15](decision-register/D-15-verified-clinical-line.md); also found a stale per-household copy of the line on the staff record |
 
 ## 5. Proposed schema, API and UI changes (not approved)
 
