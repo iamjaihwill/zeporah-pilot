@@ -41,7 +41,7 @@ export function PreferencesForm({
   email?: EmailOffer;
 }) {
   const [v, setV] = useState(initial);
-  const { act, pending, error } = useAction();
+  const { act, pending, sending, error } = useAction();
   return (
     <form
       className="space-y-6"
@@ -116,7 +116,7 @@ export function PreferencesForm({
       />
       <ErrorText error={error} />
       <Button type="submit" disabled={pending}>
-        {pending ? "Saving…" : submitLabel}
+        {sending ? "Saving…" : submitLabel}
       </Button>
     </form>
   );
@@ -134,7 +134,7 @@ export function CommunicationForm({
   email?: EmailOffer;
 }) {
   const [v, setV] = useState(initial);
-  const { act, pending, error } = useAction();
+  const { act, pending, sending, error } = useAction();
   return (
     <form
       className="space-y-6"
@@ -222,7 +222,7 @@ export function CommunicationForm({
       </Notice>
       <ErrorText error={error} />
       <Button type="submit" disabled={pending}>
-        {pending ? "Saving…" : submitLabel}
+        {sending ? "Saving…" : submitLabel}
       </Button>
     </form>
   );

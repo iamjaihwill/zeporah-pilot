@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import type { Conn } from "../db/client";
 import * as s from "../db/schema";
 import { AccessError, type ActorContext } from "../context";
@@ -58,4 +58,40 @@ export async function messageBySubmission(conn: Conn, ctx: ActorContext, submiss
       ),
     );
   return m;
+}
+
+/** At most this many uncertain sends are checked at once (one device rarely has more than one). */
+export const MAX_CHECKED = 20;
+
+/**
+ * Decision 86: settle sends the device couldn't confirm. For each submission ID, whether this
+ * person's message or support request with that ID arrived, and when. Only the person's own sends
+ * are found, and nothing about their content is returned; an ID that isn't theirs reads as "didn't
+ * arrive". Nothing is sent or resent here.
+ */
+export async function submissionStatus(conn: Conn, ctx: ActorContext, ids: string[]) {
+  const want = [...new Set(ids)].slice(0, MAX_CHECKED);
+  if (!want.length) return [];
+  const messages = await conn
+    .select({ id: s.messages.submissionId, at: s.messages.createdAt })
+    .from(s.messages)
+    .where(
+      and(
+        eq(s.messages.tenantId, ctx.tenantId),
+        eq(s.messages.authorActorId, ctx.actorId),
+        inArray(s.messages.submissionId, want),
+      ),
+    );
+  const requests = await conn
+    .select({ id: s.escalations.submissionId, at: s.escalations.createdAt })
+    .from(s.escalations)
+    .where(
+      and(
+        eq(s.escalations.tenantId, ctx.tenantId),
+        eq(s.escalations.raisedByActorId, ctx.actorId),
+        inArray(s.escalations.submissionId, want),
+      ),
+    );
+  const found = new Map([...messages, ...requests].map((r) => [r.id!, r.at]));
+  return want.map((id) => ({ id, arrived: found.has(id), at: found.get(id) ?? null }));
 }

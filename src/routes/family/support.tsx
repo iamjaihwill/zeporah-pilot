@@ -9,7 +9,7 @@ import {
   saveSupportPreferences,
   withdrawRequest,
 } from "@/functions/family";
-import { isDenied, unwrap, UNCONFIRMED_SEND, useAction, useSubmission } from "@/lib/client";
+import { isDenied, unwrap, unconfirmedSend, useAction, useSubmission } from "@/lib/client";
 import { supportConfirmation } from "@/domain/claims";
 import {
   Stamp,
@@ -308,7 +308,7 @@ function AskAPerson({
       },
       confirmation,
       undefined,
-      UNCONFIRMED_SEND,
+      unconfirmedSend("request", submissionId),
     );
     if (r) {
       submission.done();

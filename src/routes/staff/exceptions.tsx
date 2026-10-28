@@ -12,7 +12,7 @@ import {
   saveQueueView,
   takeException,
 } from "@/functions/staff-shell";
-import { announce, cx, isDenied, stamp, unwrap } from "@/lib/client";
+import { announce, cx, isDenied, pausedOffline, stamp, unwrap } from "@/lib/client";
 import { Button, ConfirmDialog, DeniedView, inputClass } from "@/components/ui";
 import {
   DataTable,
@@ -250,7 +250,7 @@ function Queue() {
   };
 
   const take = async (r: QueueRow) => {
-    if (!r.subjectId || pendingTake) return;
+    if (!r.subjectId || pendingTake || pausedOffline()) return;
     // Optimistic and debounced: the row says "You own this" at once, and can't be taken twice.
     setPendingTake(r.id);
     setLocal((l) => ({
@@ -652,6 +652,7 @@ function Queue() {
                   aria-label={`Delete the saved view ${s.name}`}
                   className="px-1 text-ink-soft hover:text-rose"
                   onClick={async () => {
+                    if (pausedOffline()) return;
                     await deleteQueueView({ data: { name: s.name } });
                     await router.invalidate();
                   }}
@@ -710,6 +711,7 @@ function SaveView({ search }: { search: Search }) {
       className="flex items-end gap-1"
       onSubmit={async (e) => {
         e.preventDefault();
+        if (pausedOffline()) return;
         const { sel: _sel, ...rest } = search;
         const s = Object.fromEntries(Object.entries(rest).filter(([, v]) => v !== undefined)) as Record<
           string,
@@ -757,6 +759,7 @@ function BulkBar({ rows, canAssign, onDone }: { rows: QueueRow[]; canAssign: boo
   const esc = rows.filter((r) => r.assignable && r.subjectId);
   const claimed = rows.filter((r) => r.claimable);
   const run = async (action: "take" | "assign") => {
+    if (pausedOffline()) return;
     setBusy(true);
     const out: { ok: boolean; message?: string }[] = [];
     if (esc.length) {

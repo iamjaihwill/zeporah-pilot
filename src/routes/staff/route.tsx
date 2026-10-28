@@ -4,6 +4,7 @@ import { getUnreadCount } from "@/functions/notifications";
 import { getStaffShell } from "@/functions/staff-shell";
 import { StaffShell, type StaffNavItem } from "@/components/staff/shell";
 import { StatusLabelsContext } from "@/components/staff/status-chip";
+import { ConnectionStatus } from "@/components/offline";
 
 /** The hospice staff workspace (desktop and tablet). Family personas are sent to their own app. */
 export const Route = createFileRoute("/staff")({
@@ -27,13 +28,14 @@ export const Route = createFileRoute("/staff")({
       counts: shell.ok ? shell.data.counts : null,
       savedViews: shell.ok ? shell.data.savedViews : [],
       statusLabels: shell.ok ? shell.data.statusLabels : { task: {}, escalation: {} },
+      hotline: shell.ok ? shell.data.hotline : null,
     };
   },
   component: StaffLayout,
 });
 
 function StaffLayout() {
-  const { me, unread, devTools, density, counts, statusLabels } = Route.useLoaderData();
+  const { me, unread, devTools, density, counts, statusLabels, hotline } = Route.useLoaderData();
   const has = (r: string) => me.roleCodes.includes(r);
   // Administrators (decision 39) manage people, settings and access; they don't work on households.
   const works = me.roleCodes.some((r) => r !== "hospice_admin");
@@ -135,6 +137,7 @@ function StaffLayout() {
       staffOnlySearch={!works}
     >
       <StatusLabelsContext.Provider value={statusLabels}>
+        <ConnectionStatus line={hotline} />
         <Outlet />
       </StatusLabelsContext.Provider>
     </StaffShell>

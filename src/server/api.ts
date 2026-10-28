@@ -6,6 +6,7 @@ export * as accessLog from "./services/access-log";
 export * as contactLine from "./services/contact-line";
 export * as contacts from "./services/contacts";
 export * as requests from "./services/requests";
+export * as sendOnce from "./services/send-once";
 export * as sharing from "./services/sharing";
 export * as notifications from "./services/notifications";
 export * as settings from "./services/settings";

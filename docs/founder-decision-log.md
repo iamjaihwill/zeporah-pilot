@@ -343,6 +343,19 @@ building them.
 | 82  | "Next update by"                  | The owner sets a date when taking a request or marking it waiting; the family sees "Next update by <date>". If it passes with no update, an "Update overdue" exception goes to the owner and operations. It never promises a clinical response. | —                          | Exceptions                                                 |
 | 83  | Handing a request to someone else | Giving a request offers it: the old owner keeps it until the new one accepts, as with handoffs (decisions 59–61); an unaccepted offer becomes a stalled exception.                                                                              | Amends "Give" (immediate)  | [requests.ts](../src/server/services/requests.ts)          |
 
+## Decided 2026-10-28 (founder answers: offline status, increment 9)
+
+The founder answered the offline questions from
+[brief-reconciliation-2026-10-27.md](brief-reconciliation-2026-10-27.md) (increment 9, brief §14)
+and approved building them. Zeporah stays offline-tolerant, not offline-first.
+
+| #   | Decision                            | Approved answer                                                                                                                                                                                                                     | Supersedes / amends | Where                                        |
+| --- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- | -------------------------------------------- |
+| 84  | What works while offline            | Every change is paused: buttons that save or send are unavailable, saying it will work when the connection returns. Typing in a form still works. Nothing is queued or sent later.                                                  | —                   | [client.ts](../src/lib/client.ts)            |
+| 85  | Saying what may be out of date      | One banner: "You're offline", when what's on screen was loaded, and that it may be out of date, always with the hospice's 24-hour line already on the page. It clears when the connection returns, and the page refreshes.          | —                   | [offline.tsx](../src/components/offline.tsx) |
+| 86  | Settling a send we couldn't confirm | The page keeps only the send's ID (in this tab, never the words) and asks the server on reconnect or reload whether it arrived. Never resent on its own. If it didn't arrive after a reload, the person is asked to write it again. | Extends increment 3 | [offline.tsx](../src/components/offline.tsx) |
+| 87  | Who gets it                         | Family and staff.                                                                                                                                                                                                                   | —                   | Both workspaces                              |
+
 ## Earlier approvals still in force
 
 - **v0.1** is approved for internal founder review only. It is not approved for external usability participants, live hospice users, real data or PHI, production identity, EHR/FHIR, email, SMS, cloud, deployment, payments or external recipient delivery, or production security or compliance claims.

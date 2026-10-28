@@ -5,6 +5,10 @@ Every change that alters behaviour is recorded here in the pull request that mak
 
 ## Unreleased
 
+- Offline status (decisions 84–87): while the device is offline, the family and staff workspaces
+  show a banner with when the page was loaded and the hospice's 24-hour line, and every change is
+  paused; nothing is queued. A send whose reply was lost is checked by its submission ID on
+  reconnect or reload and reported as arrived or not, never resent; only the ID is kept in the tab.
 - Request lifecycle (decisions 79–83): a family's support request shows where it stands in shared
   words (Received, With <first name>, Waiting on you, Waiting on someone else, Resolved, Withdrawn)
   and when they'll next hear. The sender can withdraw it while it's open, and reopen it with a reason

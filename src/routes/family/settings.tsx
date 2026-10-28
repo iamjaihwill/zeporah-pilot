@@ -54,7 +54,7 @@ const same = (a: Prefs, b: Prefs) =>
 function SettingsForm({ saved, email }: { saved: Prefs; email: EmailOffer }) {
   const [v, setV] = useState<Prefs>(saved);
   const [base, setBase] = useState<Prefs>(saved);
-  const { act, pending, error } = useAction();
+  const { act, pending, sending, error } = useAction();
   const dirty = !same(v, base);
 
   // Preview text size now; put the saved size back if the page is left without saving.
@@ -226,7 +226,7 @@ function SettingsForm({ saved, email }: { saved: Prefs; email: EmailOffer }) {
       <div className="flex flex-wrap items-center gap-3">
         <ErrorText error={error} />
         <Button type="submit" disabled={pending || !dirty}>
-          {pending ? "Saving…" : "Save settings"}
+          {sending ? "Saving…" : "Save settings"}
         </Button>
         <span className="text-sm text-ink-soft" aria-live="polite" data-testid="settings-state">
           {dirty ? "You have unsaved changes." : "All changes saved."}

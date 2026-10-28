@@ -493,7 +493,7 @@ function Counts({ title, rows }: { title: string; rows: { label: string; n: numb
  * only in the workforce report. Confirmed first (as decision 29f); the server records every export.
  */
 function ExportReport({ report, days }: { report: ReportKey; days: number }) {
-  const { act, pending, error } = useAction();
+  const { act, pending, sending, error } = useAction();
   return (
     <ConfirmDialog
       title="Export this report?"
@@ -502,7 +502,7 @@ function ExportReport({ report, days }: { report: ReportKey; days: number }) {
       disabled={pending}
       trigger={(open) => (
         <Button variant="secondary" size="sm" disabled={pending} onClick={open}>
-          {pending ? "Preparing…" : "Export CSV"}
+          {sending ? "Preparing…" : "Export CSV"}
         </Button>
       )}
       onConfirm={() =>

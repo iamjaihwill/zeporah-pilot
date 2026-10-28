@@ -39,7 +39,7 @@ import {
   dateTime,
   isDenied,
   stamp,
-  UNCONFIRMED_SEND,
+  unconfirmedSend,
   unwrap,
   useAction,
   useSubmission,
@@ -494,7 +494,7 @@ function MessagesTab({ o }: { o: Overview }) {
                     }),
                   "Message sent to the household.",
                   undefined,
-                  UNCONFIRMED_SEND,
+                  unconfirmedSend("message", submissionId),
                 )
               ) {
                 submission.done();

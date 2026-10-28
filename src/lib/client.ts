@@ -3,6 +3,14 @@ import { PILOT_DISPLAY } from "@/domain/display-config";
 import { dateParts } from "@/domain/dates";
 import { newSubmissionId } from "@/domain/submission";
 import { redirect, useRouter } from "@tanstack/react-router";
+import {
+  forgetUncertain,
+  isOffline,
+  OFFLINE_PAUSED,
+  rememberUncertain,
+  useOnline,
+  type UncertainKind,
+} from "@/lib/connection";
 
 type Fail = { ok: false; code: string; message: string; reference?: string };
 export type Res<T> = { ok: true; data: T } | Fail;
@@ -41,12 +49,24 @@ export function onAnnounce(l: Listener) {
 }
 
 /**
+ * Decision 84, for the few changes made without `useAction`: true (and said aloud) when offline,
+ * so the caller stops before sending anything.
+ */
+export function pausedOffline() {
+  if (!isOffline()) return false;
+  announce(OFFLINE_PAUSED, "problem");
+  return true;
+}
+
+/**
  * Run a server action. On success, every loader on the page re-runs (so counts, badges and
  * timelines stay in step everywhere) and the outcome is announced. On refusal, the safe message
  * is returned for display.
  */
 export function useAction() {
   const router = useRouter();
+  // Decision 84: while offline every change is paused, so buttons that use `pending` are unavailable.
+  const online = useOnline();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   async function act<T>(
@@ -58,12 +78,21 @@ export function useAction() {
      * For sends that are safe to retry (useSubmission): what to say when no reply came back. The
      * send may have arrived, so the usual "nothing was changed" would be wrong.
      */
-    unconfirmed?: string,
+    unconfirmed?: string | UnconfirmedSend,
   ): Promise<{ data: T } | undefined> {
+    const track = typeof unconfirmed === "object" ? unconfirmed.track : undefined;
+    // Decision 84: nothing is sent, saved or queued while offline.
+    if (isOffline()) {
+      setError(OFFLINE_PAUSED);
+      announce(OFFLINE_PAUSED, "problem");
+      return undefined;
+    }
     setPending(true);
     setError(null);
     try {
       const r = await call();
+      // Any answer from the server settles the send, whether it was accepted or refused.
+      if (track) forgetUncertain([track.id]);
       if (!r.ok) {
         if (r.code === "NOT_AUTHENTICATED") {
           await router.navigate({ to: "/" });
@@ -98,7 +127,11 @@ export function useAction() {
         );
       return { data: r.data };
     } catch {
-      const msg = unconfirmed ?? "That didn't go through. Please try again — nothing was changed.";
+      // Decision 86: remember only the send's ID, so the page can ask later whether it arrived.
+      if (track) rememberUncertain(track);
+      const msg =
+        (typeof unconfirmed === "object" ? unconfirmed.message : unconfirmed) ??
+        "That didn't go through. Please try again — nothing was changed.";
       setError(msg);
       announce(msg, "problem");
       return undefined;
@@ -106,12 +139,23 @@ export function useAction() {
       setPending(false);
     }
   }
-  return { act, pending, error, setError };
+  // `pending` disables buttons (while sending, and while offline); `sending` is for "Sending…" labels.
+  return { act, pending: pending || !online, sending: pending, error, setError };
 }
 
 /** When a send got no reply: it may have arrived, and sending again is safe. */
 export const UNCONFIRMED_SEND =
   "We couldn't confirm this was sent. Check your connection and send it again: it won't arrive twice.";
+
+export type UnconfirmedSend = { message: string; track: { id: string; kind: UncertainKind } };
+/**
+ * For `act`'s unconfirmed argument on a send with a submission ID: the same wording, and the page
+ * checks whether it arrived when the connection returns or the page is reloaded (decision 86).
+ */
+export const unconfirmedSend = (kind: UncertainKind, submissionId: string): UnconfirmedSend => ({
+  message: UNCONFIRMED_SEND,
+  track: { id: submissionId, kind },
+});
 
 /**
  * One submission ID per send (brief reconciliation increment 3). The same content keeps its ID

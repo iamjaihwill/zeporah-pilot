@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router"
 import { useState } from "react";
 import { z } from "zod";
 import { getVaultItem, reviewVaultItem, undoVaultReview } from "@/functions/family";
-import { announce, isDenied, unwrap, useAction } from "@/lib/client";
+import { announce, isDenied, pausedOffline, unwrap, useAction } from "@/lib/client";
 import {
   Button,
   ButtonLink,
@@ -66,7 +66,7 @@ function Form({
   );
   const [missing, setMissing] = useState(false);
   const [kept, setKept] = useState(item.keptWhere ?? "");
-  const { act, pending, error } = useAction();
+  const { act, pending, sending, error } = useAction();
   const router = useRouter();
   return (
     <>
@@ -94,6 +94,7 @@ function Form({
               // Raised after arriving back, so the note isn't cleared by the navigation (item 4).
               announce("Saved.", "done", {
                 run: async () => {
+                  if (pausedOffline()) return false;
                   const u = await undoVaultReview({ data: { id: item.id } });
                   await router.invalidate();
                   if (!u.ok) announce(u.message, "problem");
@@ -143,7 +144,7 @@ function Form({
             <ErrorText error={error} />
             <div className="flex flex-wrap gap-2">
               <Button type="submit" disabled={pending}>
-                {pending ? "Saving…" : "Save"}
+                {sending ? "Saving…" : "Save"}
               </Button>
               <Button variant="secondary" onClick={back}>
                 {backLabel}

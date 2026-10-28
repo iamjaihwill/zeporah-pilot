@@ -7,7 +7,7 @@ import {
   sendFamilyMessage,
   undoAcknowledgeUpdate,
 } from "@/functions/family";
-import { cx, dateTime, isDenied, unwrap, UNCONFIRMED_SEND, useAction, useSubmission } from "@/lib/client";
+import { cx, dateTime, isDenied, unwrap, unconfirmedSend, useAction, useSubmission } from "@/lib/client";
 import {
   Badge,
   Button,
@@ -37,7 +37,7 @@ function Messages() {
   const { hash } = useLocation();
   const router = useRouter();
   const [draft, setDraft] = useState("");
-  const { act, pending, error } = useAction();
+  const { act, pending, sending, error } = useAction();
   const submission = useSubmission();
   const formRef = useRef<HTMLFormElement>(null);
   // The divider stays where it was on arrival, even as new messages are sent (item 9).
@@ -207,7 +207,7 @@ function Messages() {
                   () => sendFamilyMessage({ data: { body: sent, submissionId } }),
                   "Message sent to your care guide.",
                   undefined,
-                  UNCONFIRMED_SEND,
+                  unconfirmedSend("message", submissionId),
                 )
               ) {
                 submission.done();
@@ -240,7 +240,7 @@ function Messages() {
             </Field>
             <ErrorText error={error} />
             <Button type="submit" className="mt-3" disabled={pending || !draft.trim()}>
-              {pending ? "Sending…" : "Send message"}
+              {sending ? "Sending…" : "Send message"}
             </Button>
           </form>
         ) : t.canView && !t.messagingOn ? (

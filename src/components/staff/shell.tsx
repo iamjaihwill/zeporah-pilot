@@ -4,7 +4,7 @@ import { signOut } from "@/functions/session";
 import { NavIcon } from "./nav-icons";
 import { setDensity, staffSearch } from "@/functions/staff-shell";
 import { getNotifications, markNotificationsRead } from "@/functions/notifications";
-import { cx } from "@/lib/client";
+import { cx, pausedOffline } from "@/lib/client";
 import { Kbd, Popover } from "@/components/staff";
 import { GuideTour } from "./guide";
 import { guideRole, startTour, type GuideRole } from "@/domain/staff-guide";
@@ -331,6 +331,7 @@ export function StaffShell({
                         name="density"
                         checked={shown === d}
                         onChange={async () => {
+                          if (pausedOffline()) return;
                           setShown(d);
                           await setDensity({ data: { density: d } });
                           await router.invalidate();

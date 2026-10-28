@@ -1,7 +1,7 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { addPrivateNote, editPrivateNote, getPatientView, requestHumanSupport } from "@/functions/family";
-import { isDenied, unwrap, UNCONFIRMED_SEND, useAction, useSubmission } from "@/lib/client";
+import { isDenied, unwrap, unconfirmedSend, useAction, useSubmission } from "@/lib/client";
 import {
   Button,
   ButtonLink,
@@ -301,7 +301,7 @@ function FlagConcern() {
                 }),
               "Sent to your care team.",
               undefined,
-              UNCONFIRMED_SEND,
+              unconfirmedSend("request", submissionId),
             );
             if (r) {
               submission.done();

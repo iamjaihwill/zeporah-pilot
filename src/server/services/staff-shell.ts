@@ -14,6 +14,7 @@ import { ESCALATION_WHAT, coordinationQueue, openEscalationCount } from "./staff
 import { endExpiredCover, postCoverNotices } from "./coverage";
 import { recordEndedRecipientAccess } from "./recipient";
 import { orgSettings } from "./org-settings";
+import { organizationHotline } from "./common";
 import { dueTaskCount } from "./staff-tasks";
 import { bereavementDueCount } from "./bereavement";
 import { can } from "@/domain/permissions";
@@ -53,6 +54,8 @@ export async function staffShell(db: DB, ctx: ActorContext) {
     statusLabels: (await orgSettings(db, ctx.tenantId, ctx.organizationId)).statusLabels,
     density: prefs.density,
     savedViews: prefs.savedViews,
+    /** Shown in the offline banner (decision 85): the hospice's 24-hour line. */
+    hotline: ctx.organizationId ? await organizationHotline(db, ctx.tenantId, ctx.organizationId) : null,
     counts: {
       queue: q.length,
       /** Exceptions that are yours or have no owner (decision 58). */

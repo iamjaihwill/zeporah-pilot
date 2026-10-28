@@ -5,6 +5,7 @@ import { whoAmI } from "@/functions/session";
 import { isDenied, unwrap } from "@/lib/client";
 import { AppShell, type NavItem } from "@/components/shell";
 import { ButtonLink, DeniedView } from "@/components/ui";
+import { ConnectionStatus } from "@/components/offline";
 
 /**
  * The household app's layout. Its loader re-runs after every action and navigation, so the unread
@@ -103,6 +104,7 @@ function FamilyLayout() {
         </>
       }
     >
+      <ConnectionStatus line={home.hotline} />
       <Outlet />
     </AppShell>
   );

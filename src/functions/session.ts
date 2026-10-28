@@ -6,6 +6,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { and, eq, inArray } from "drizzle-orm";
+import { submissionId } from "@/domain/submission";
 
 /** Whether this server offers the development-only shortcuts. */
 export const getAuthOptions = createServerFn({ method: "GET" }).handler(async () => {
@@ -269,4 +270,15 @@ export const completePasswordReset = createServerFn({ method: "POST" })
       if (e instanceof AccessError) return { ok: false, message: e.message };
       return { ok: false, message: "That didn't go through. Please try again — nothing was changed." };
     }
+  });
+
+/**
+ * Decision 86: whether sends this device couldn't confirm arrived, by their submission IDs. Only
+ * the signed-in person's own messages and requests are found; nothing is sent or resent.
+ */
+export const checkSubmissions = createServerFn({ method: "GET" })
+  .validator(z.object({ ids: z.array(submissionId).min(1).max(20) }))
+  .handler(async ({ data }) => {
+    const { run, sendOnce } = await import("@/server/api");
+    return run((db, ctx) => sendOnce.submissionStatus(db, ctx, data.ids));
   });

@@ -147,13 +147,21 @@ the family Support page shows each request's state, owner's first name and next 
 Withdraw… and Reopen…; the staff exception detail has "Where it stands" and "Offer to…" in place of
 "Assign to…".
 
+**Decision record updated and freeze lifted on 2026-10-28** for increment 9 only, with the
+founder's explicit approval: decisions 84–87 (offline status) were added to
+`founder-decision-log.md` and built ([evidence](readiness/evidence/offline-status-2026-10-28.md)):
+an offline banner, changes paused while offline, and unconfirmed sends settled by submission ID. No
+migration. The manifest entries for the frozen files it touches were refreshed. **What a demo now
+shows differently:** nothing while online; offline, the banner appears above every page in both
+workspaces and buttons that save or send are unavailable.
+
 ## What's frozen
 
 - **The build:** 403 files covering the application code (including migrations through
   `0023_cover_notice` and seed fixtures), the tests, the configuration, the decision log and
   register, the presentation documents and the 22 run-through screenshots. Each file's SHA-256
   is in [demo-baseline-2026-10-22.sha256](demo-baseline-2026-10-22.sha256), and the manifest's
-  own SHA-256 is `be0ef4f4c71d261bc99c68b46c19d363a57c31967255df03cfc55ce9919d1c15`. To check
+  own SHA-256 is `61fc1ce31fb5aac8bc225ad2d8f6fc33c7023485f197799acafabe41ebc8d349`. To check
   for drift, run `shasum -a 256 -c docs/demo-baseline-2026-10-22.sha256 --quiet`.
 - **The presentation baseline:** [enterprise-demo-map.md](enterprise-demo-map.md) (the script,
   "Presenting it in about 15 minutes", with beat 8's note on decision 62 and an optional 30 s in

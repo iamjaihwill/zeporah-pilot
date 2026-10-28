@@ -598,7 +598,7 @@ function ExportButton({
   };
   tooLong: boolean;
 }) {
-  const { act, pending, error } = useAction();
+  const { act, pending, sending, error } = useAction();
   return (
     <div className="flex flex-col items-end gap-1">
       {/* Decision 29f: say what the file is and how to handle it before it's made. */}
@@ -609,7 +609,7 @@ function ExportButton({
         disabled={pending}
         trigger={(open) => (
           <Button variant="secondary" size="sm" disabled={pending || tooLong} onClick={open}>
-            {pending ? "Preparing…" : "Export CSV"}
+            {sending ? "Preparing…" : "Export CSV"}
           </Button>
         )}
         onConfirm={() =>

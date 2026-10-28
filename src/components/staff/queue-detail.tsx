@@ -19,7 +19,7 @@ import {
   setRequestProgress,
   updateEscalation,
 } from "@/functions/staff";
-import { dateOnly, stamp, UNCONFIRMED_SEND, useAction, useSubmission } from "@/lib/client";
+import { dateOnly, stamp, unconfirmedSend, useAction, useSubmission } from "@/lib/client";
 import { Button, ConfirmDialog, ErrorText, Field, inputClass } from "@/components/ui";
 import { StatusChip } from "./status-chip";
 import { Skeleton } from "./page";
@@ -666,7 +666,7 @@ function MessageDetail({ d, onChanged }: { d: Extract<Detail, { kind: "message" 
               () => sendStaffMessage({ data: { householdId: d.householdId, body, submissionId } }),
               "Reply sent to the household.",
               undefined,
-              UNCONFIRMED_SEND,
+              unconfirmedSend("message", submissionId),
             );
             if (r) {
               submission.done();

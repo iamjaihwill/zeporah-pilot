@@ -426,8 +426,8 @@ crisis resources (public lines, no monitoring) are all unstaffed by Zeporah.
 1. **P0, no decision needed:** staff read-access logging design (D-04 brief), a verified 24-hour line
    (PB-22), manual accessibility review plan (PB-16).
 2. **P1, after the reconciliation's open decisions:** request lifecycle (increment 8, done
-   2026-10-28), care network (increment 7, done 2026-10-28), offline status (increment 9), household
-   export.
+   2026-10-28), care network (increment 7, done 2026-10-28), offline status (increment 9, done
+   2026-10-28), household export.
 3. **P2:** caregiver logistics (availability, equipment, transport), external provider handoffs.
 4. **P3:** contexts B and C, only after the scope decisions and a selected partner.
 
