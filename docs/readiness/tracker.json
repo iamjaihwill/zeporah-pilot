@@ -254,7 +254,8 @@
       "evidenceRequired": "Inventory; test results; audit review procedure",
       "closureCriteria": "Every staff read of household information is logged and reviewable",
       "evidence": [],
-      "approvals": []
+      "approvals": [],
+      "note": "2026-10-27: decision brief written (docs/decision-register/D-04-staff-read-logging.md), awaiting the founder. Nothing built."
     },
     {
       "id": "PB-13",
