@@ -1,4 +1,5 @@
 import { GettingStarted } from "@/components/staff/enrollment";
+import { ContactsCard, type Contact } from "@/components/contacts";
 import { StaffPending } from "@/components/staff/pending";
 import { BackFromHousehold, useOpensHouseholds } from "@/components/staff/back-from-household";
 import { Link, createFileRoute, getRouteApi } from "@tanstack/react-router";
@@ -27,6 +28,10 @@ import {
   revokeConsentOnRequest,
   sendStaffMessage,
   submitEvidence,
+  getHouseholdContacts,
+  addHouseholdContact,
+  updateHouseholdContact,
+  removeHouseholdContact,
 } from "@/functions/staff";
 import {
   cx,
@@ -117,13 +122,19 @@ export const Route = createFileRoute("/staff/households/$householdId")({
   loaderDeps: ({ search }) => ({ tab: search.tab ?? "overview" }),
   loader: async ({ params, deps }) => {
     const overview = unwrap(await getHouseholdOverview({ data: { householdId: params.householdId } }));
-    if (isDenied(overview) || (deps.tab !== "sharing" && deps.tab !== "packets"))
-      return { overview, authority: null, consents: null };
+    if (isDenied(overview)) return { overview, authority: null, consents: null, contacts: null };
+    // Decision 74: the household's listed contacts, on the overview.
+    if (!deps.tab || deps.tab === "overview") {
+      const contacts = unwrap(await getHouseholdContacts({ data: { householdId: params.householdId } }));
+      return { overview, authority: null, consents: null, contacts: isDenied(contacts) ? null : contacts };
+    }
+    if (deps.tab !== "sharing" && deps.tab !== "packets")
+      return { overview, authority: null, consents: null, contacts: null };
     const [authority, consents] = await Promise.all([
       getAuthority({ data: { householdId: params.householdId } }),
       getConsents({ data: { householdId: params.householdId } }),
     ]);
-    return { overview, authority: unwrap(authority), consents: unwrap(consents) };
+    return { overview, authority: unwrap(authority), consents: unwrap(consents), contacts: null };
   },
   component: Household,
   // Staff rework, section 7: a skeleton instead of a blank page while it loads.
@@ -133,7 +144,7 @@ export const Route = createFileRoute("/staff/households/$householdId")({
 type Overview = Extract<Awaited<ReturnType<typeof getHouseholdOverview>>, { ok: true }>["data"];
 
 function Household() {
-  const { overview: o, authority, consents } = Route.useLoaderData();
+  const { overview: o, authority, consents, contacts } = Route.useLoaderData();
   const { tab = "overview" } = Route.useSearch();
   // Tablets: the tab row scrolls; a fade shows there are more tabs. (Before any early return.)
   const tabsRef = useScrollFade<HTMLElement>();
@@ -242,7 +253,7 @@ function Household() {
           </ul>
         </nav>
       </div>
-      {tab === "overview" && <OverviewTab o={o} />}
+      {tab === "overview" && <OverviewTab o={o} contacts={contacts} />}
       {tab === "messages" && <MessagesTab o={o} />}
       {tab === "updates" && <UpdatesTab o={o} />}
       {tab === "notes" && <NotesTab o={o} />}
@@ -374,7 +385,13 @@ function CareTeamCard({ o }: { o: Overview }) {
  * Coordination Record v2 (decision 58): the unified timeline beside a fixed context column. Below
  * 1024px the column stacks under the timeline, with open items first.
  */
-function OverviewTab({ o }: { o: Overview }) {
+function OverviewTab({
+  o,
+  contacts,
+}: {
+  o: Overview;
+  contacts: { canAdd: boolean; canAddPrivate: boolean; contacts: Contact[] } | null;
+}) {
   const { me } = staffLayout.useLoaderData();
   return (
     <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_18.75rem] xl:grid-cols-[minmax(0,1fr)_21.25rem]">
@@ -387,6 +404,17 @@ function OverviewTab({ o }: { o: Overview }) {
       </div>
       <aside aria-label="Household context" className="min-w-0">
         <ContextColumn o={o} careTeam={<CareTeamCard o={o} />} />
+        {contacts && (
+          <div className="mt-4">
+            <ContactsCard
+              data={contacts}
+              audience="staff"
+              add={(v) => addHouseholdContact({ data: { householdId: o.household.id, ...v } })}
+              update={(id, v) => updateHouseholdContact({ data: { householdId: o.household.id, id, ...v } })}
+              remove={(id) => removeHouseholdContact({ data: { householdId: o.household.id, id } })}
+            />
+          </div>
+        )}
         {!o.activation.activated && (
           <GettingStarted
             householdId={o.household.id}

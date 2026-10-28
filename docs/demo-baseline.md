@@ -129,13 +129,21 @@ line" card in place of the line field; System status has a "24-hour line" row; t
 D-12) was added to `founder-decision-log.md`, and its manifest entry was refreshed. Every code, test,
 seed and configuration file still matches.
 
+**Decision record updated and freeze lifted on 2026-10-28** for increment 7 only, with the
+founder's explicit approval: decisions 74–78 (the care network) were added to
+`founder-decision-log.md` and built ([evidence](readiness/evidence/listed-contacts-2026-10-28.md)):
+listed contacts, patient-private contacts and invitations from a contact (migration
+`0030_household_contacts`). The manifest entries for the frozen files it touches were refreshed.
+**What a demo now shows differently:** the family People page has "Other people who help"; the
+staff household overview has "Listed contacts".
+
 ## What's frozen
 
 - **The build:** 403 files covering the application code (including migrations through
   `0023_cover_notice` and seed fixtures), the tests, the configuration, the decision log and
   register, the presentation documents and the 22 run-through screenshots. Each file's SHA-256
   is in [demo-baseline-2026-10-22.sha256](demo-baseline-2026-10-22.sha256), and the manifest's
-  own SHA-256 is `4ec412aa748540a4188a2b4268bd6ff9bc07bac61321d02ea7e71fbb4cca25d0`. To check
+  own SHA-256 is `ab98a291a36a32f658ea11514fa2e9ebd93818ab0bc5a2b2d068a58f0115203d`. To check
   for drift, run `shasum -a 256 -c docs/demo-baseline-2026-10-22.sha256 --quiet`.
 - **The presentation baseline:** [enterprise-demo-map.md](enterprise-demo-map.md) (the script,
   "Presenting it in about 15 minutes", with beat 8's note on decision 62 and an optional 30 s in

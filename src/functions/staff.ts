@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { AUTHORITY_TYPES, SHARE_CATEGORIES } from "@/domain/model";
 import { submissionId } from "@/domain/submission";
+import { CONTACT_RELATIONSHIPS } from "@/domain/contacts";
 import { IDENTITY_LINK_BASES } from "@/domain/authority-identity";
 
 const server = () => import("@/server/api");
@@ -821,3 +822,51 @@ export const getAdminOverview = createServerFn({ method: "GET" }).handler(async 
   const { run, team } = await server();
   return run((db, ctx) => team.adminOverview(db, ctx));
 });
+
+/* ------------------------------------------------------------------ listed contacts (decisions 74–78) */
+
+const staffContactFields = hid.extend({
+  name: z.string().max(200),
+  relationship: z.enum(CONTACT_RELATIONSHIPS),
+  organization: z.string().max(200).optional(),
+  phone: z.string().max(40).optional(),
+  email: z.string().max(254).optional(),
+  note: z.string().max(400).optional(),
+  patientPrivate: z.boolean().optional(),
+});
+
+export const getHouseholdContacts = createServerFn({ method: "GET" })
+  .validator(hid)
+  .handler(async ({ data }) => {
+    const { run, contacts, accessLog } = await server();
+    return run((db, ctx) =>
+      accessLog.loggedRead(
+        db,
+        ctx,
+        "contacts",
+        () => contacts.listContacts(db, ctx, data.householdId),
+        () => data.householdId,
+      ),
+    );
+  });
+
+export const addHouseholdContact = createServerFn({ method: "POST" })
+  .validator(staffContactFields)
+  .handler(async ({ data }) => {
+    const { run, contacts } = await server();
+    return run((db, ctx) => contacts.addContact(db, ctx, data));
+  });
+
+export const updateHouseholdContact = createServerFn({ method: "POST" })
+  .validator(staffContactFields.extend({ id: z.string().min(1).max(100) }))
+  .handler(async ({ data }) => {
+    const { run, contacts } = await server();
+    return run((db, ctx) => contacts.updateContact(db, ctx, data));
+  });
+
+export const removeHouseholdContact = createServerFn({ method: "POST" })
+  .validator(hid.extend({ id: z.string().min(1).max(100) }))
+  .handler(async ({ data }) => {
+    const { run, contacts } = await server();
+    return run((db, ctx) => contacts.removeContact(db, ctx, data));
+  });

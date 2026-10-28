@@ -5,7 +5,7 @@ import { newSubmissionId } from "@/domain/submission";
 import { redirect, useRouter } from "@tanstack/react-router";
 
 type Fail = { ok: false; code: string; message: string; reference?: string };
-type Res<T> = { ok: true; data: T } | Fail;
+export type Res<T> = { ok: true; data: T } | Fail;
 
 /** A loader-safe refusal: rendered as a calm message instead of crashing the page. */
 export type Denied = { denied: true; code: string; message: string; reference?: string };

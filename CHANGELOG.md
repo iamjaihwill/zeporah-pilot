@@ -5,6 +5,11 @@ Every change that alters behaviour is recorded here in the pull request that mak
 
 ## Unreleased
 
+- Listed contacts (decisions 74–78): households list their other supporters (doula, private
+  caregiver, outside clinician, faith leader and others) on the People page, and the care team sees
+  them on the household record. A listing grants nothing; the patient can keep a contact private to
+  themself and the care team; a coordinator can start an invitation from a contact. Migration
+  `0030_household_contacts`.
 - The 24-hour line (decision 72): an administrator proposes a change and someone else confirms it by
   calling it before families see it; re-confirmed every 90 days and flagged on System status; an
   optional backup line; a US phone-number check; the staff record shows the live line instead of a

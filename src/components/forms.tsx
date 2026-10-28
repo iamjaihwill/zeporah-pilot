@@ -229,10 +229,11 @@ export function CommunicationForm({
 }
 
 /** Invite one trusted person, with an access preview before it's recorded. */
-export function InviteForm() {
+/** `initial`: a listed contact being invited (decision 78); the person can still change anything. */
+export function InviteForm({ initial }: { initial?: { name: string; contact: string } | undefined } = {}) {
   const [v, setV] = useState({
-    name: "",
-    contact: "",
+    name: initial?.name ?? "",
+    contact: initial?.contact ?? "",
     role: "family_member" as "family_member" | "proxy" | "collaborator",
     relationship: "",
     scopeNote: "",

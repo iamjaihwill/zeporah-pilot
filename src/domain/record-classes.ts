@@ -39,6 +39,10 @@ export const TABLE_CLASSES: Record<string, Entry> = {
   preferences: { class: "participation" },
   onboarding_steps: { class: "participation" },
   support_preferences: { class: "participation" },
+  household_contacts: {
+    class: "participation",
+    review: "Details of people who aren't users: who may see them, and for how long",
+  },
   care_coordination_records: {
     class: "clinical_record_candidate",
     review: "Visit rhythm, priorities and an EHR pointer: may be part of the hospice's record",

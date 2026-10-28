@@ -31,6 +31,7 @@ export const RECORD_VIEWS = {
   consent_history: "Consent history",
   queue_detail: "Exception detail",
   prepared_drafts: "Prepared drafts",
+  contacts: "Listed contacts",
 } as const;
 
 /** Views that list many households. */

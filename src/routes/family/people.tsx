@@ -6,6 +6,10 @@ import {
   getPeople,
   reissueInvitation,
   removeMember,
+  getContacts,
+  addContact,
+  updateContact,
+  removeContact,
 } from "@/functions/family";
 import { dateOnly, isDenied, unwrap, useAction } from "@/lib/client";
 import {
@@ -22,6 +26,7 @@ import {
   inputClass,
 } from "@/components/ui";
 import { InviteForm, IssuedLink } from "@/components/forms";
+import { ContactsCard } from "@/components/contacts";
 import { HOUSEHOLD_ROLES, ROLE_EXPLANATIONS, ROLE_LABELS } from "@/domain/model";
 
 /** One short line per role here; the full definitions are in "What each role means". */
@@ -33,12 +38,16 @@ const ROLE_SHORT: Record<string, string> = {
 };
 
 export const Route = createFileRoute("/family/people")({
-  loader: async () => unwrap(await getPeople()),
+  loader: async () => {
+    const [people, contacts] = await Promise.all([getPeople(), getContacts()]);
+    return { people: unwrap(people), contacts: unwrap(contacts) };
+  },
   component: People,
 });
 
 function People() {
-  const p = Route.useLoaderData();
+  const { people: p, contacts } = Route.useLoaderData();
+  const [inviting, setInviting] = useState<{ name: string; contact: string; key: number } | null>(null);
   if (isDenied(p)) return <DeniedView d={p} />;
   return (
     <>
@@ -84,7 +93,28 @@ function People() {
               </p>
             </Card>
           )}
-          {p.canInvite && <InviteForm />}
+          {!isDenied(contacts) && (
+            <ContactsCard
+              data={contacts}
+              audience="family"
+              add={(v) => addContact({ data: v })}
+              update={(id, v) => updateContact({ data: { id, ...v } })}
+              remove={(id) => removeContact({ data: { id } })}
+              onInvite={
+                p.canInvite
+                  ? (c) => {
+                      setInviting({ name: c.name, contact: c.email, key: Date.now() });
+                      document.getElementById("invite-someone")?.scrollIntoView({ block: "start" });
+                    }
+                  : undefined
+              }
+            />
+          )}
+          {p.canInvite && (
+            <div id="invite-someone">
+              <InviteForm key={inviting?.key ?? 0} initial={inviting ?? undefined} />
+            </div>
+          )}
         </div>
         <aside className="space-y-6">
           <Card tone="quiet" title="Your care team">

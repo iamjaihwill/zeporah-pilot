@@ -17,6 +17,8 @@ export const PERMISSIONS = [
   "thread.send",
   "people.view",
   "people.invite",
+  // Decision 75: listing the household's other supporters (a listing grants nothing).
+  "contacts.manage",
   "onboarding.complete",
   "vault.view",
   "vault.review",
@@ -55,6 +57,7 @@ export const PERMISSIONS = [
   "access_log.view",
   // Decision 72: calling and confirming the 24-hour line.
   "contact_line.confirm",
+  "staff.contacts.manage",
   "staff.lifecycle.manage",
   /** Change a staff member's role, reactivate them, or invite into a role other than care guide (decisions 38–39). */
   "staff.role.manage",
@@ -79,6 +82,7 @@ const HOUSEHOLD_MATRIX: Record<HouseholdRole, readonly Permission[]> = {
     "thread.send",
     "people.view",
     "people.invite",
+    "contacts.manage",
     "vault.view",
     "vault.review",
     "consent.view",
@@ -95,6 +99,7 @@ const HOUSEHOLD_MATRIX: Record<HouseholdRole, readonly Permission[]> = {
     "thread.send",
     "people.view",
     "people.invite",
+    "contacts.manage",
     "onboarding.complete",
     "vault.view",
     "vault.review",
@@ -148,6 +153,7 @@ const STAFF_MATRIX: Record<StaffRole, readonly Permission[]> = {
     "staff.task.bulk_assign",
     "partner_event.log",
     "household.invite_first",
+    "staff.contacts.manage",
   ],
   hospice_ops: [
     "staff.household.view",
@@ -171,6 +177,7 @@ const STAFF_MATRIX: Record<StaffRole, readonly Permission[]> = {
     "household.enroll",
     "household.invite_first",
     "contact_line.confirm",
+    "staff.contacts.manage",
   ],
   privileged_reviewer: [
     "staff.household.view",

@@ -1373,3 +1373,37 @@ export const contactLineChanges = pgTable(
     }),
   ],
 );
+
+/**
+ * Listed contacts (founder decisions 74–78): supporters around a household who aren't Zeporah
+ * users. A row grants nothing. Removing one marks it removed; rows aren't deleted.
+ */
+export const householdContacts = pgTable(
+  "household_contacts",
+  {
+    id: id(),
+    tenantId: tenantId(),
+    householdId: text("household_id").notNull(),
+    name: text("name").notNull(),
+    relationship: text("relationship").notNull(),
+    organization: text("organization").notNull().default(""),
+    phone: text("phone").notNull().default(""),
+    email: text("email").notNull().default(""),
+    /** How they help, in the household's words. No health details. */
+    note: text("note").notNull().default(""),
+    /** Decision 76: seen only by the patient and the care team; only the patient changes it. */
+    patientPrivate: boolean("patient_private").notNull().default(false),
+    addedByActorId: text("added_by_actor_id").notNull(),
+    createdAt: createdAt(),
+    updatedAt: ts("updated_at"),
+    removedAt: ts("removed_at"),
+    removedByActorId: text("removed_by_actor_id"),
+  },
+  (t) => [
+    index("household_contacts_household_idx").on(t.tenantId, t.householdId),
+    foreignKey({
+      columns: [t.tenantId, t.householdId],
+      foreignColumns: [households.tenantId, households.id],
+    }),
+  ],
+);

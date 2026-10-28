@@ -6,6 +6,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { CORRECTION_CATEGORIES } from "@/domain/consent";
 import { submissionId } from "@/domain/submission";
+import { CONTACT_RELATIONSHIPS } from "@/domain/contacts";
 
 const server = () => import("@/server/api");
 const id = z.object({ id: z.string().min(1) });
@@ -407,4 +408,42 @@ export const editPrivateNote = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { run, patient } = await server();
     return run((db, ctx) => patient.editPrivateNote(db, ctx, data));
+  });
+
+/* ------------------------------------------------------------------ listed contacts (decisions 74–78) */
+
+const contactFields = z.object({
+  name: z.string().max(200),
+  relationship: z.enum(CONTACT_RELATIONSHIPS),
+  organization: z.string().max(200).optional(),
+  phone: z.string().max(40).optional(),
+  email: z.string().max(254).optional(),
+  note: z.string().max(400).optional(),
+  patientPrivate: z.boolean().optional(),
+});
+
+export const getContacts = createServerFn({ method: "GET" }).handler(async () => {
+  const { run, contacts } = await server();
+  return run((db, ctx) => contacts.listContacts(db, ctx));
+});
+
+export const addContact = createServerFn({ method: "POST" })
+  .validator(contactFields)
+  .handler(async ({ data }) => {
+    const { run, contacts } = await server();
+    return run((db, ctx) => contacts.addContact(db, ctx, data));
+  });
+
+export const updateContact = createServerFn({ method: "POST" })
+  .validator(contactFields.extend({ id: z.string().min(1).max(100) }))
+  .handler(async ({ data }) => {
+    const { run, contacts } = await server();
+    return run((db, ctx) => contacts.updateContact(db, ctx, data));
+  });
+
+export const removeContact = createServerFn({ method: "POST" })
+  .validator(id)
+  .handler(async ({ data }) => {
+    const { run, contacts } = await server();
+    return run((db, ctx) => contacts.removeContact(db, ctx, data));
   });
