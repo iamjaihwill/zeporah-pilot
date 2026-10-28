@@ -115,7 +115,7 @@
       "class": "pilot_blocker",
       "workstream": "W2",
       "targetStage": 1,
-      "status": "open",
+      "status": "in_progress",
       "owner": "Engineering lead",
       "approvers": ["Privacy and security officer"],
       "dependsOn": ["PB-01"],
@@ -124,8 +124,15 @@
       "verification": "Negative tests: cross-site POSTs refused for every write path",
       "evidenceRequired": "Test results",
       "closureCriteria": "No state change succeeds from a foreign origin, by test",
-      "evidence": [],
-      "approvals": []
+      "evidence": [
+        {
+          "type": "test",
+          "ref": "docs/readiness/evidence/csrf-origin-check-2026-10-27.md (origin and fetch-metadata check in src/start.ts; unit tests and a replay against the development server: passed)",
+          "date": "2026-10-27"
+        }
+      ],
+      "approvals": [],
+      "note": "Origin and fetch-metadata check built for every request (src/domain/same-origin.ts, src/start.ts). Still needed: an automated end-to-end test across every POST server function, the check repeated on staging behind the load balancer (PB-02), and the privacy and security officer's approval."
     },
     {
       "id": "PB-07",

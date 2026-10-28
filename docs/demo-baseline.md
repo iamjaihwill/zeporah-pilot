@@ -51,6 +51,14 @@ refreshed. No rule, screen or copy changed. Unit and integration tests passed (5
 end-to-end suites, including the pixel baselines, weren't run (the test browser isn't installed
 on this computer).
 
+**Freeze lifted and re-frozen on 2026-10-27** for increment 1 of the brief reconciliation
+([brief-reconciliation-2026-10-27.md](brief-reconciliation-2026-10-27.md)) only, with the founder's
+explicit approval: a same-origin check that refuses a change sent from another site (PB-06;
+[evidence](readiness/evidence/csrf-origin-check-2026-10-27.md)). It lives in files outside the
+manifest (`src/start.ts`, `src/domain/same-origin.ts`, `tests/unit/same-origin.test.ts`), so no
+manifest entry changed; it's recorded because the demo build's behaviour changed. Pages and
+same-origin changes behave as before.
+
 ## What's frozen
 
 - **The build:** 403 files covering the application code (including migrations through

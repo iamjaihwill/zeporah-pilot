@@ -5,6 +5,8 @@ Every change that alters behaviour is recorded here in the pull request that mak
 
 ## Unreleased
 
+- Security (PB-06): a change sent from another site is refused with 403. `Origin` must name this
+  server or a configured address; without it, `Sec-Fetch-Site` must be same-origin.
 - Synthetic data: Rehanna Wells, a first-time patient in a household enrolled the same day, with
   Sofia Reyes as care guide. Featured on the demo launcher.
 - Security: zod 4.6.6 (from 3.25.76) for GHSA-mrhx-c7xc-m3w5, and the four sharing-category lists
