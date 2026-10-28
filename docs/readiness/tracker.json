@@ -340,7 +340,8 @@
       "evidenceRequired": "Anonymized findings; fixes verified",
       "closureCriteria": "No open critical accessibility finding on a critical workflow",
       "evidence": [],
-      "approvals": []
+      "approvals": [],
+      "note": "2026-10-28: decision brief written (docs/decision-register/D-12-accessibility-commitment.md), awaiting the founder. Counsel to confirm whether the HHS Section 504 rule's WCAG 2.1 AA requirement reaches Zeporah through the hospice. Manual review still partial (2026-10-12); nothing built since has had one."
     },
     {
       "id": "PB-17",
