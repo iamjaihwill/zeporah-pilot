@@ -47,7 +47,7 @@ Unit and integration suites: 599 of 601, run at 8:22 AM Eastern. The two failure
 `direction-refinements` tests about an absence that starts at 8 AM, and they fail on unchanged
 `main` too. Until 9 AM the demo-week fixture takes yesterday at 9 AM as "now", so between 8 and 9 AM
 that absence has already begun. This is a fixture timing issue, not part of this increment; both
-tests passed in the previous increment's run, which was outside that hour. End-to-end
+tests passed in the previous increment's run, which was outside that hour. _Fixed later on 2026-10-28: the fixture now starts that leave an hour ahead when its time has passed (see [demo-baseline.md](../../demo-baseline.md))._ End-to-end
 suites: not run (the test browser isn't installed on this computer).
 
 **In the browser** (development server, synthetic data): Daniel sent a paperwork request ("Received",

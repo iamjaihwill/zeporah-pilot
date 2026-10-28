@@ -27,7 +27,7 @@ Zeporah stays offline-tolerant, not offline-first. Fallback channels, an outbox 
 Unit and integration suites: 608 of 610, run at 8:39 AM Eastern. The two failures are the
 `direction-refinements` fixture-timing tests recorded in
 [request-lifecycle-2026-10-28.md](request-lifecycle-2026-10-28.md), which fail on unchanged `main`
-between 8 and 9 AM. End-to-end suites: not run (the test browser isn't installed on this computer).
+between 8 and 9 AM. _Fixed later on 2026-10-28: the fixture now starts that leave an hour ahead when its time has passed (see [demo-baseline.md](../../demo-baseline.md))._ End-to-end suites: not run (the test browser isn't installed on this computer).
 
 **In the browser** (development server, synthetic data; the pane can't cut its own network, so the
 browser's offline state was set from the page's console):

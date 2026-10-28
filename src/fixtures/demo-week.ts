@@ -59,6 +59,11 @@ export function applyDemoWeek(f: Fixtures, now: Date, snapshot: Exclude<SeedSnap
   const at = (day: number, hour: number, minute = 0) =>
     new Date(nine.getTime() + ((day - today) * 24 + hour - 9) * 3_600_000 + minute * 60_000);
   const end = snapshot === "demo_endweek";
+  // Maya's leave starts "tomorrow at 8 AM" (Day 5). Seeded before 9 AM, the story's "now" is
+  // yesterday at 9, so between 8 and 9 AM that start has already passed in real time; midweek it
+  // then starts an hour from now, so it's still ahead. At week's end it has started either way.
+  const awayFrom =
+    !end && at(5, 8).getTime() <= now.getTime() ? new Date(now.getTime() + 3_600_000) : at(5, 8);
   const ev = (when: Date, e: Row) => f.history.push({ at: when, e: { tenantId: W, householdId: HH, ...e } });
   const find = (rows: Row[], pred: (r: Row) => boolean, what: string) => {
     const r = rows.find(pred);
@@ -103,7 +108,7 @@ export function applyDemoWeek(f: Fixtures, now: Date, snapshot: Exclude<SeedSnap
     id: "ab-demo-maya",
     tenantId: W,
     actorId: "st-maya",
-    startsAt: at(5, 8),
+    startsAt: awayFrom,
     endsAt: at(6, 18),
     reason: "Annual leave (synthetic)",
     createdByActorId: "st-dana",
@@ -301,7 +306,7 @@ export function applyDemoWeek(f: Fixtures, now: Date, snapshot: Exclude<SeedSnap
     kind: "cover",
     note: "",
     state,
-    startsAt: at(5, 8),
+    startsAt: awayFrom,
     endsAt: at(6, 18),
     acceptBy: at(5, 9, 5),
     offeredByActorId: "st-dana",
@@ -405,7 +410,7 @@ export function applyDemoWeek(f: Fixtures, now: Date, snapshot: Exclude<SeedSnap
     endedAt: at(6, 18),
     endReason: "Cover ended at its scheduled time.",
     coverForActorId: "st-maya",
-    startsAt: at(5, 8),
+    startsAt: awayFrom,
     grantReason: "Covering while Maya Chen is away (synthetic).",
   });
   ev(at(4, 14), {

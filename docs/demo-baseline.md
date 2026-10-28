@@ -155,13 +155,22 @@ migration. The manifest entries for the frozen files it touches were refreshed. 
 shows differently:** nothing while online; offline, the banner appears above every page in both
 workspaces and buttons that save or send are unavailable.
 
+**Freeze lifted on 2026-10-28** for `src/fixtures/demo-week.ts` only, with the founder's explicit
+approval, to fix a timing fault: seeded between 8 and 9 AM Eastern, the midweek story's "tomorrow
+at 8 AM" leave for Maya had already started (the story's "now" is yesterday at 9 until 9 AM), so two
+`direction-refinements` tests failed and a demo reset in that hour showed her away. Midweek, the
+leave now starts at Day 5, 8 AM, or an hour after seeding if that has passed; the end-of-week story
+is unchanged. Checked by seeding at ten times from 12:30 AM to 11:59 PM. The manifest entry was
+refreshed. **What a demo now shows differently:** only when reset between 8 and 9 AM, where Maya's
+leave starts an hour later than 8 AM.
+
 ## What's frozen
 
 - **The build:** 403 files covering the application code (including migrations through
   `0023_cover_notice` and seed fixtures), the tests, the configuration, the decision log and
   register, the presentation documents and the 22 run-through screenshots. Each file's SHA-256
   is in [demo-baseline-2026-10-22.sha256](demo-baseline-2026-10-22.sha256), and the manifest's
-  own SHA-256 is `61fc1ce31fb5aac8bc225ad2d8f6fc33c7023485f197799acafabe41ebc8d349`. To check
+  own SHA-256 is `d0d9f0508098fc582f5fe4ed45470154255c8a9f3f7c2da0209d21eeb7741d09`. To check
   for drift, run `shasum -a 256 -c docs/demo-baseline-2026-10-22.sha256 --quiet`.
 - **The presentation baseline:** [enterprise-demo-map.md](enterprise-demo-map.md) (the script,
   "Presenting it in about 15 minutes", with beat 8's note on decision 62 and an optional 30 s in
