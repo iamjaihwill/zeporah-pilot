@@ -33,6 +33,34 @@ export const getHouseholdOverview = createServerFn({ method: "GET" })
     return run((db, ctx) => staff.householdOverview(db, ctx, data.householdId));
   });
 
+/** Enrollment (decisions 66 and 70): the count, the cap and the care guides to choose from. */
+export const getEnrollment = createServerFn({ method: "GET" }).handler(async () => {
+  const { run, enrollment } = await server();
+  return run((db, ctx) => enrollment.enrollmentView(db, ctx));
+});
+
+export const enrollHousehold = createServerFn({ method: "POST" })
+  .validator(z.object({ patientName: z.string().max(200), careGuideActorId: z.string().min(1).max(100) }))
+  .handler(async ({ data }) => {
+    const { run, enrollment } = await server();
+    return run((db, ctx) => enrollment.enrollHousehold(db, ctx, data));
+  });
+
+/** Decisions 67 and 68: the patient or one coordinator, after confirming who they are. */
+export const inviteFirstMember = createServerFn({ method: "POST" })
+  .validator(
+    hid.extend({
+      role: z.enum(["patient", "coordinator"]),
+      name: z.string().max(200),
+      email: z.string().max(254),
+      identityConfirmation: z.string().max(600),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const { run, enrollment } = await server();
+    return run((db, ctx) => enrollment.inviteFirstMember(db, ctx, data));
+  });
+
 /** "Who can see what" for one household (decision 58), computed from the access rules. */
 export const getHouseholdAccessMap = createServerFn({ method: "GET" })
   .validator(hid)
@@ -659,6 +687,7 @@ export const updateSettingsGroup = createServerFn({ method: "POST" })
         "notifications",
         "reports",
         "statusLabels",
+        "enrollment",
         "access",
         "retention",
       ]),

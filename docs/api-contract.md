@@ -151,3 +151,5 @@ type ReleaseDecision = {
 ```
 
 **Submission IDs** (2026-10-27): the three sends above take a `submissionId` the device makes once per send and keeps until the server confirms it. The same ID from the same person returns the first copy (`replayed: true`) without a second audit event or notification; different content under it is refused (`CONFLICT`). Each returns `{ id, sentAt, replayed }`. See [readiness/evidence/send-once-2026-10-27.md](readiness/evidence/send-once-2026-10-27.md).
+
+**Enrollment** (decisions 66–70, 2026-10-27): `getEnrollment` (GET, `household.enroll`: count, cap and care guides), `enrollHousehold` (POST `{ patientName, careGuideActorId }`, `household.enroll`; refused at the cap), `inviteFirstMember` (POST `{ householdId, role: "patient" | "coordinator", name, email, identityConfirmation }`, `household.invite_first`; returns the one-time link once). `getHouseholdOverview` now includes `activation`.

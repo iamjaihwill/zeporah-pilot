@@ -91,6 +91,11 @@ export type FamilyScope = {
   householdName: string;
   patientName: string;
   organizationId: string;
+  /**
+   * May complete household setup: coordinators, and the patient while the household has no
+   * active coordinator (decision 69). Use this, not the role matrix, for `onboarding.complete`.
+   */
+  maySetUp: boolean;
 };
 
 /**
@@ -111,7 +116,12 @@ export async function familyScope(
     .where(and(eq(households.tenantId, ctx.tenantId), eq(households.id, first.householdId)));
   if (!h) throw new AccessError("OUT_OF_SCOPE", "This household isn't available.");
   const lifecycle = h.lifecycleState as LifecycleState;
-  if (!can(first.roles, permission, lifecycle))
+  const maySetUp =
+    can(first.roles, "onboarding.complete", lifecycle) ||
+    (first.roles.includes("patient") &&
+      can(["coordinator"], "onboarding.complete", lifecycle) &&
+      !(await hasActiveCoordinator(conn, ctx.tenantId, h.id)));
+  if (permission === "onboarding.complete" ? !maySetUp : !can(first.roles, permission, lifecycle))
     throw new AccessError(
       "NOT_PERMITTED",
       "Your role in this household doesn't include this. The household coordinator can help.",
@@ -123,7 +133,23 @@ export async function familyScope(
     householdName: h.displayName,
     patientName: h.patientName,
     organizationId: h.organizationId,
+    maySetUp,
   };
+}
+
+async function hasActiveCoordinator(conn: Conn, tenantId: string, householdId: string) {
+  const [c] = await conn
+    .select({ id: memberships.id })
+    .from(memberships)
+    .where(
+      and(
+        eq(memberships.tenantId, tenantId),
+        eq(memberships.householdId, householdId),
+        eq(memberships.roleCode, "coordinator"),
+        eq(memberships.status, "active"),
+      ),
+    );
+  return !!c;
 }
 
 /** Non-throwing version for showing or hiding actions. */

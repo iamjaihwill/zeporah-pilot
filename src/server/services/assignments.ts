@@ -29,7 +29,7 @@ import { ROLE_LABELS, type LifecycleState, type StaffRole } from "@/domain/model
 export const ASSIGNMENT_END_REASON_MAX = 500;
 
 /** Active care guides in the caller's own organization and tenant. */
-async function organizationCareGuides(conn: Conn, ctx: ActorContext) {
+export async function organizationCareGuides(conn: Conn, ctx: ActorContext) {
   if (!ctx.organizationId) return [];
   const guides = await conn
     .select({ actorId: s.actors.id, name: s.actors.displayName })
@@ -181,7 +181,7 @@ async function changeableScope(conn: Conn, ctx: ActorContext, householdId: strin
   return scope;
 }
 
-async function eligibleGuide(conn: Conn, ctx: ActorContext, actorId: string) {
+export async function eligibleGuide(conn: Conn, ctx: ActorContext, actorId: string) {
   const guide = (await organizationCareGuides(conn, ctx)).find((g) => g.actorId === actorId);
   if (!guide) throw new AccessError("INVALID", "Choose a care guide from this hospice.");
   return guide;
@@ -223,7 +223,7 @@ async function loadAssignment(conn: Conn, ctx: ActorContext, membershipId: strin
   return { membershipId: m.memberships.id, actorId: m.actors.id, name: m.actors.displayName, scope };
 }
 
-async function insertAssignment(
+export async function insertAssignment(
   tx: Conn,
   ctx: ActorContext,
   scope: StaffScope,

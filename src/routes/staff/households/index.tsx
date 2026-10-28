@@ -1,4 +1,5 @@
 import { StaffPending } from "@/components/staff/pending";
+import { EnrollHousehold } from "@/components/staff/enrollment";
 import { DataTable, StaffPageHeader, type Column } from "@/components/staff";
 import { Link, createFileRoute, getRouteApi, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
@@ -171,6 +172,10 @@ function Households() {
   return (
     <>
       <StaffPageHeader title="Households" />
+      {/* Decision 66: operations and administrators enroll; administrators then see the name only. */}
+      {(me.roleCodes.includes("hospice_ops") || me.roleCodes.includes("hospice_admin")) && (
+        <EnrollHousehold opensRecords={me.roleCodes.includes("hospice_ops")} />
+      )}
       <form
         role="search"
         className="mb-2 flex flex-wrap items-end gap-2 [&_select]:!min-h-8 [&_select]:!py-0.5"

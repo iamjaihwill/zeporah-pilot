@@ -307,8 +307,15 @@
       "verification": "Escalation drill; cap test (the 26th household is refused)",
       "evidenceRequired": "Training completion; drill record; test results",
       "closureCriteria": "Staff trained, support staffed, cap enforced",
-      "evidence": [],
-      "approvals": []
+      "evidence": [
+        {
+          "type": "test",
+          "ref": "docs/readiness/evidence/enrollment-2026-10-27.md (enrollment refused at the pilot cap, decision 70)",
+          "date": "2026-10-27"
+        }
+      ],
+      "approvals": [],
+      "note": "2026-10-27: the pilot cap is enforced at enrollment (decision 70, answering D-10). Support, onboarding, training, escalation and change management are still open."
     },
     {
       "id": "PB-16",

@@ -16,12 +16,12 @@ The structure is ready for magic links: sessions record a `method`, and invitati
 
 ## Invitations
 
-|                 | Staff                                                                                                                      | Family                                                                  |
-| --------------- | -------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| Who can invite  | People whose role includes `staff.invite` (hospice operations only), from **Hospice settings → Invite a care-team member** | Household coordinators (`people.invite`), from **People** or onboarding |
-| Boundary joined | The inviter's own organization                                                                                             | The inviter's own household                                             |
-| Roles offered   | Care guide, hospice operations, authority/consent reviewer                                                                 | Family member, proxy                                                    |
-| Table           | `staff_invitations`                                                                                                        | `invitations`                                                           |
+|                 | Staff                                                                                                                      | Family                                                                                                                                                                                            |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Who can invite  | People whose role includes `staff.invite` (hospice operations only), from **Hospice settings → Invite a care-team member** | Household coordinators (`people.invite`), from **People** or onboarding; operations or the household's care guide for the patient and one coordinator (decisions 67–68), from **Getting started** |
+| Boundary joined | The inviter's own organization                                                                                             | The inviter's own household                                                                                                                                                                       |
+| Roles offered   | Care guide, hospice operations, authority/consent reviewer                                                                 | Family member, proxy (by coordinators); patient, coordinator (by staff, with how identity was confirmed)                                                                                          |
+| Table           | `staff_invitations`                                                                                                        | `invitations`                                                                                                                                                                                     |
 
 The rules are the same for both kinds:
 

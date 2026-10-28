@@ -48,6 +48,9 @@ export const PERMISSIONS = [
   "org.settings.manage",
   "staff.invite",
   "staff.assignment.manage",
+  // Decisions 66 and 67: enrolling a household, and inviting its patient or coordinator.
+  "household.enroll",
+  "household.invite_first",
   "staff.lifecycle.manage",
   /** Change a staff member's role, reactivate them, or invite into a role other than care guide (decisions 38–39). */
   "staff.role.manage",
@@ -140,6 +143,7 @@ const STAFF_MATRIX: Record<StaffRole, readonly Permission[]> = {
     "audit.view",
     "staff.task.bulk_assign",
     "partner_event.log",
+    "household.invite_first",
   ],
   hospice_ops: [
     "staff.household.view",
@@ -160,6 +164,8 @@ const STAFF_MATRIX: Record<StaffRole, readonly Permission[]> = {
     "staff.assignment.manage",
     "staff.lifecycle.manage",
     "partner_event.log",
+    "household.enroll",
+    "household.invite_first",
   ],
   privileged_reviewer: [
     "staff.household.view",
@@ -186,6 +192,8 @@ const STAFF_MATRIX: Record<StaffRole, readonly Permission[]> = {
     "staff.assignment.manage",
     "staff.lifecycle.manage",
     "staff.role.manage",
+    // Decision 66: enrolls, and then sees the household's name only (coverage).
+    "household.enroll",
   ],
 };
 

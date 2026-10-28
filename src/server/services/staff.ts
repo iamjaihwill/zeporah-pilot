@@ -14,6 +14,7 @@ import { recordContext, timelineEvents } from "./record";
 import { commandCenter } from "./command-center";
 import { preparedDrafts, usedPreparedDraft } from "./prepared";
 import { createOnce, messageBySubmission } from "./send-once";
+import { activationStatus } from "./enrollment";
 import { ESCALATION_STATUS_LABELS } from "@/domain/labels";
 import { bereavementWorkload, createPlanInTx, staffPlan } from "./bereavement";
 import { careGuideMayComplete, markFamilyTaskDone } from "./tasks";
@@ -1543,6 +1544,8 @@ export async function householdOverview(db: DB, ctx: ActorContext, householdId: 
     bereavementPlan: await staffPlan(db, ctx, H),
     record: record ?? null,
     onboarding: on.steps,
+    /** Getting started (decisions 66–70): a tracked checklist, never a gate. */
+    activation: await activationStatus(db, T, H, h!.organizationId),
     tasks: tasks.map((t) => ({
       ...t,
       assignee: n(t.assigneeActorId),

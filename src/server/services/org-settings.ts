@@ -81,6 +81,7 @@ function SCHEMAS_() {
         task: Object.fromEntries(Object.entries(v.task).filter(([, x]) => x)),
         escalation: Object.fromEntries(Object.entries(v.escalation).filter(([, x]) => x)),
       })) as unknown as z.ZodType<OrgSettings["statusLabels"]>,
+    enrollment: z.object({ cap: z.number().int().min(1).max(500) }),
     access: z.object({
       taskHelperMaxDays: z.number().int().min(1).max(365),
       collaborationMaxDays: z.number().int().min(1).max(365),

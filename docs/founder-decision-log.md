@@ -275,6 +275,20 @@ this record. When you lift the freeze for it:
 - Any later automatic content, such as status cards, "Since you last looked" or "Getting ready for
   a conversation", is built to this rule from the start and cites decision 63.
 
+## Decided 2026-10-27 (founder answers: enrollment and activation)
+
+The founder answered the five enrollment questions in
+[brief-reconciliation-2026-10-27.md](brief-reconciliation-2026-10-27.md) (increment 6) and
+approved building them. Enrollment in Zeporah stays separate from hospice admission.
+
+| #   | Decision                        | Approved answer                                                                                                                                                                                                                                                             | Supersedes / amends                                   | Where                                                                        |
+| --- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------- |
+| 66  | Who enrolls a household         | Hospice operations and administrators. Enrolling creates a minimal case (the patient's name) and names the care guide who owns activation. An administrator who enrolls sees the household's name only, as for coverage; administrators still don't open household records. | Extends decision 48a's exception to decision 39       | `enrollHousehold` in [enrollment.ts](../src/server/services/enrollment.ts)   |
+| 67  | How the first account is issued | A staff invitation: a one-time link passed by hand (no email in Stage 1). Before issuing it, staff confirm the person's identity and role and record how. The person sets their own password; it can be done side by side at a visit. Staff never handle a password.        | Within PC-02 and decision 35                          | `inviteFirstMember` in [enrollment.ts](../src/server/services/enrollment.ts) |
+| 68  | Which roles staff may invite    | The patient and one household coordinator. Coordinators invite family and helpers as before. A role organizes access; it never grants legal authority.                                                                                                                      | Amends migration `0018`'s household-invitation roles  | Migration `0027_enrollment`                                                  |
+| 69  | Who completes setup             | The patient, when the household has no active coordinator. Once a coordinator joins, setup is theirs.                                                                                                                                                                       | Amends `onboarding.complete` (coordinators only)      | `maySetUp` in [enrollment.ts](../src/server/services/enrollment.ts)          |
+| 70  | Pilot cap                       | Enrollment is refused past the hospice's cap (25 by default) with a plain message. Closed and bereaved households don't count. Only an administrator can change the cap; the change is audited.                                                                             | Supersedes decision 16 ("not enforced"); answers D-10 | `enrollment.cap` in [org-settings.ts](../src/domain/org-settings.ts)         |
+
 ## Earlier approvals still in force
 
 - **v0.1** is approved for internal founder review only. It is not approved for external usability participants, live hospice users, real data or PHI, production identity, EHR/FHIR, email, SMS, cloud, deployment, payments or external recipient delivery, or production security or compliance claims.

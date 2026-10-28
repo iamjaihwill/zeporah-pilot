@@ -165,7 +165,7 @@ export async function familyHome(db: DB, ctx: ActorContext) {
     vault: can(scope.roles, "vault.view", scope.lifecycle),
     thread: can(scope.roles, "thread.view", scope.lifecycle),
     consent: can(scope.roles, "consent.view", scope.lifecycle),
-    onboarding: can(scope.roles, "onboarding.complete", scope.lifecycle),
+    onboarding: scope.maySetUp,
     invite: can(scope.roles, "people.invite", scope.lifecycle),
   };
   const [record] = await db
@@ -500,7 +500,7 @@ export async function getOnboarding(db: DB, ctx: ActorContext) {
     ? await visibleVaultItems(db, ctx, scope)
     : [];
   return {
-    canComplete: can(scope.roles, "onboarding.complete", scope.lifecycle),
+    canComplete: scope.maySetUp,
     steps: state.steps.map((x) => ({ ...x, label: STEP_LABELS[x.step] })),
     complete: state.complete,
     next: state.next,
@@ -559,8 +559,7 @@ export async function savePreferences(db: DB, ctx: ActorContext, input: Preferen
       summary: `${firstName(ctx.displayName)} updated their preferences.`,
       visibility: "family",
     });
-    if (can(scope.roles, "onboarding.complete", scope.lifecycle))
-      await completeStep(tx, ctx, scope, "preferences");
+    if (scope.maySetUp) await completeStep(tx, ctx, scope, "preferences");
   });
 }
 
@@ -793,8 +792,7 @@ export async function saveCommunication(db: DB, ctx: ActorContext, input: Commun
       summary: `${firstName(ctx.displayName)} chose how to hear about updates.`,
       visibility: "family",
     });
-    if (can(scope.roles, "onboarding.complete", scope.lifecycle))
-      await completeStep(tx, ctx, scope, "communication");
+    if (scope.maySetUp) await completeStep(tx, ctx, scope, "communication");
   });
 }
 
@@ -1190,7 +1188,7 @@ export async function getThread(db: DB, ctx: ActorContext) {
     expectation: await currentMessageExpectation(db, T, scope.organizationId),
     canSend: can(scope.roles, "thread.send", scope.lifecycle) && on.has("communication"),
     messagingOn: on.has("communication"),
-    canCompleteSetup: can(scope.roles, "onboarding.complete", scope.lifecycle),
+    canCompleteSetup: scope.maySetUp,
     careGuide: cover?.name ?? guides[0]?.name ?? null,
     // Decision 62: while cover runs, Home and Messages name the covering guide, until its end.
     careGuideUntil: cover?.until ?? null,
@@ -2173,7 +2171,7 @@ export async function getSupport(
     aboutUpdate: about ?? null,
     prefs: prefs ?? null,
     canRequest: can(scope.roles, "support.request", scope.lifecycle),
-    canEditPrefs: can(scope.roles, "onboarding.complete", scope.lifecycle),
+    canEditPrefs: scope.maySetUp,
     afterHoursRoute: record?.afterHoursRoute ?? null,
     hotline: await organizationHotline(db, ctx.tenantId, scope.organizationId),
     expectation: await currentMessageExpectation(db, ctx.tenantId, scope.organizationId),

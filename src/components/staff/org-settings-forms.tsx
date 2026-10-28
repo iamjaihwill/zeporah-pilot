@@ -734,6 +734,37 @@ export function AdminSettings({
   return (
     <div className="space-y-4">
       <GroupCard
+        group="enrollment"
+        change={changes?.enrollment}
+        summary={(v) => `Enrollment stops at ${v.cap} households in the pilot.`}
+        value={values.enrollment}
+        canEdit={canEdit}
+        description="The most households this hospice can have in the pilot (decision 70). Closed and bereaved households don't count. Enrollment is refused at the limit."
+        readOnly={(v) => (
+          <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1">
+            <dt className="text-ink-soft">Pilot limit</dt>
+            <dd>{v.cap} households</dd>
+          </dl>
+        )}
+      >
+        {(v, set) => (
+          <Field label="Pilot limit (households)">
+            {(id) => (
+              <input
+                id={id}
+                type="number"
+                min={1}
+                max={500}
+                className={`${inputClass} w-24`}
+                value={v.cap}
+                onChange={(e) => set({ ...v, cap: Number(e.target.value) })}
+              />
+            )}
+          </Field>
+        )}
+      </GroupCard>
+
+      <GroupCard
         group="access"
         change={changes?.access}
         summary={(v) =>

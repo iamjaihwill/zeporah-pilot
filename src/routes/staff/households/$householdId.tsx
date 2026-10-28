@@ -1,6 +1,7 @@
+import { GettingStarted } from "@/components/staff/enrollment";
 import { StaffPending } from "@/components/staff/pending";
 import { BackFromHousehold, useOpensHouseholds } from "@/components/staff/back-from-household";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, getRouteApi } from "@tanstack/react-router";
 import { REPLY_TIME_UNSET } from "@/components/expectation";
 import { Fragment, useState, type ReactNode } from "react";
 import { z } from "zod";
@@ -108,6 +109,8 @@ const TAB_LABELS: Record<Tab, string> = {
   lifecycle: "Lifecycle",
   timeline: "Audit",
 };
+
+const staffLayout = getRouteApi("/staff");
 
 export const Route = createFileRoute("/staff/households/$householdId")({
   validateSearch: z.object({ tab: z.enum(TABS).optional() }),
@@ -372,6 +375,7 @@ function CareTeamCard({ o }: { o: Overview }) {
  * 1024px the column stacks under the timeline, with open items first.
  */
 function OverviewTab({ o }: { o: Overview }) {
+  const { me } = staffLayout.useLoaderData();
   return (
     <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_18.75rem] xl:grid-cols-[minmax(0,1fr)_21.25rem]">
       <div className="min-w-0 space-y-6">
@@ -383,6 +387,13 @@ function OverviewTab({ o }: { o: Overview }) {
       </div>
       <aside aria-label="Household context" className="min-w-0">
         <ContextColumn o={o} careTeam={<CareTeamCard o={o} />} />
+        {!o.activation.activated && (
+          <GettingStarted
+            householdId={o.household.id}
+            activation={o.activation}
+            canInvite={me.roleCodes.some((r) => r === "hospice_ops" || r === "care_guide")}
+          />
+        )}
         {o.onboarding.some((x) => !x.done) && (
           <Card title="Household setup" className="mt-4">
             <ul className="space-y-1 text-sm">

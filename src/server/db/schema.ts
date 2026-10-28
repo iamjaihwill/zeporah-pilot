@@ -98,6 +98,10 @@ export const households = pgTable(
     lifecycleState: text("lifecycle_state").notNull().default("enrolled"),
     enrolledAt: nowCol("enrolled_at"),
     lifecycleChangedAt: ts("lifecycle_changed_at"),
+    /** Who enrolled it in Zeporah (decision 66). Null for households from before enrollment existed. */
+    enrolledByActorId: text("enrolled_by_actor_id"),
+    /** The care guide who owns getting the household started (decision 66). */
+    activationOwnerActorId: text("activation_owner_actor_id"),
   },
   (t) => [
     unique("households_tenant_id").on(t.tenantId, t.id),
@@ -188,6 +192,11 @@ export const invitations = pgTable(
     createdAt: createdAt(),
     expiresAt: ts("expires_at").notNull(),
     respondedAt: ts("responded_at"),
+    /**
+     * A staff invitation to the patient or coordinator (decision 67): how staff confirmed who the
+     * person is and their role, in their words. Null for invitations from household members.
+     */
+    identityConfirmation: text("identity_confirmation"),
   },
   (t) => [
     foreignKey({

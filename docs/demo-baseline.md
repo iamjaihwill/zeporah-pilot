@@ -98,13 +98,23 @@ The manifest entries for the 8 frozen files it touches were refreshed: `src/serv
 `scripts/db-seed-previous.ts` and `tests/integration/schema-upgrade.test.ts`. With no hold in place,
 as in the demo, nothing on screen behaves differently.
 
+**Decision record updated and freeze lifted on 2026-10-27** for increment 6 only, with the founder's
+explicit approval: decisions 66–70 (enrollment and activation) were added to
+`founder-decision-log.md`, and built ([evidence](readiness/evidence/enrollment-2026-10-27.md)):
+enrollment by operations and administrators, staff invitations for the patient and one
+coordinator, patient setup with no coordinator, the enforced pilot cap, and a Getting started
+checklist (migration `0027_enrollment`). The manifest entries for the 19 frozen files it touches were
+refreshed. **What a demo now shows differently:** Households offers "Enroll a household" to Dana and
+Lena; household overviews that aren't fully started show a Getting started card; Hospice settings
+has an Enrollment card; and Rehanna (alone in the Wells household) can now start setup.
+
 ## What's frozen
 
 - **The build:** 403 files covering the application code (including migrations through
   `0023_cover_notice` and seed fixtures), the tests, the configuration, the decision log and
   register, the presentation documents and the 22 run-through screenshots. Each file's SHA-256
   is in [demo-baseline-2026-10-22.sha256](demo-baseline-2026-10-22.sha256), and the manifest's
-  own SHA-256 is `39ddd6b841f6c948cf61e50677a289da696d9a4acf6cf2101af5879734b7dd91`. To check
+  own SHA-256 is `a7b276104b7d490ab1726e78db5f9788d80a365984943b3c7081bc93bed81c61`. To check
   for drift, run `shasum -a 256 -c docs/demo-baseline-2026-10-22.sha256 --quiet`.
 - **The presentation baseline:** [enterprise-demo-map.md](enterprise-demo-map.md) (the script,
   "Presenting it in about 15 minutes", with beat 8's note on decision 62 and an optional 30 s in

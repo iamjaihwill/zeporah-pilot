@@ -84,6 +84,7 @@ export const AUDIT_LABELS: Record<string, string> = {
   "escalation.owner_transferred": "Escalation handed over",
   "escalation.raised": "Escalation raised",
   "escalation.resolved": "Escalation resolved",
+  "household.enrolled": "Household enrolled",
   "household.member_removed": "Household member removed",
   "household.member_role_changed": "Household member's role changed",
   "invitation.accepted": "Invitation accepted",

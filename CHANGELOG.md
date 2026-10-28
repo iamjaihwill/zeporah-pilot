@@ -5,6 +5,10 @@ Every change that alters behaviour is recorded here in the pull request that mak
 
 ## Unreleased
 
+- Enrollment (decisions 66–70): operations and administrators enroll a household; operations or its
+  care guide invite the patient and one coordinator after confirming who they are; a patient with
+  no coordinator can complete setup; enrollment stops at the pilot cap (25 by default, set by
+  administrators); a Getting started checklist tracks activation. Migration `0027_enrollment`.
 - Retention: proposed record classes for every table, retention holds (migration
   `0026_retention_holds`) and a removal guard. Disposal is always refused; undoing an
   acknowledgement, reopening a task or changing a draft packet is refused while a hold covers it.

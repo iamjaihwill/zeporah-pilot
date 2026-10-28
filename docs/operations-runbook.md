@@ -63,4 +63,4 @@ To reset to the synthetic seed instead, stop the server and run `bun run db:rese
 - **Accounts by invitation only.** There's no self sign-up.
 - **Read-only mode** (above).
 - **Production refuses to start without a named environment**, and the development gate never works in production.
-- The pilot's intended size (one hospice, 10–25 households) is shown on the operations dashboard. It isn't enforced, because households are created only by the synthetic seed.
+- The pilot's size is enforced at enrollment (decision 70): enrollment is refused once a hospice has as many households in the pilot as its cap, 25 by default. Closed and bereaved households don't count. Only an administrator changes the cap, in Hospice settings → Enrollment; the change is audited.

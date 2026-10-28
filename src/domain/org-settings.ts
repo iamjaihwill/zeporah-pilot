@@ -68,6 +68,8 @@ export type OrgSettings = {
     task: Partial<Record<"open" | "done" | "closed", string>>;
     escalation: Partial<Record<"open" | "acknowledged" | "resolved", string>>;
   };
+  /** Decision 70: enrollment stops at the cap. Closed and bereaved households don't count. */
+  enrollment: { cap: number };
   access: {
     /** Longest a task-only helper's access can last (decision 42). */
     taskHelperMaxDays: number;
@@ -99,6 +101,7 @@ export const DEFAULT_ORG_SETTINGS: OrgSettings = {
   notifications: { cadence: "as_it_happens", quietStart: "21:00", quietEnd: "08:00" },
   reports: { defaultReport: "overview", defaultDays: 30 },
   statusLabels: { task: {}, escalation: {} },
+  enrollment: { cap: 25 },
   access: { taskHelperMaxDays: 90, collaborationMaxDays: 365 },
   retention: { closedHouseholdsMonths: null, messagesMonths: null },
 };
@@ -113,7 +116,7 @@ export const OPERATIONS_GROUPS = [
   "reports",
   "statusLabels",
 ] as const;
-export const ADMIN_GROUPS = ["access", "retention"] as const;
+export const ADMIN_GROUPS = ["enrollment", "access", "retention"] as const;
 
 export const GROUP_LABELS: Record<SettingsGroup, string> = {
   queue: "Queue thresholds",
@@ -123,6 +126,7 @@ export const GROUP_LABELS: Record<SettingsGroup, string> = {
   notifications: "Notification defaults",
   reports: "Report views",
   statusLabels: "Workflow status wording",
+  enrollment: "Enrollment",
   access: "Access limits",
   retention: "Retention rules",
 };
@@ -141,6 +145,7 @@ export function withDefaults(stored: Partial<OrgSettings> | null | undefined): O
       task: { ...s.statusLabels?.task },
       escalation: { ...s.statusLabels?.escalation },
     },
+    enrollment: { ...DEFAULT_ORG_SETTINGS.enrollment, ...s.enrollment },
     access: { ...DEFAULT_ORG_SETTINGS.access, ...s.access },
     retention: { ...DEFAULT_ORG_SETTINGS.retention, ...s.retention },
   };

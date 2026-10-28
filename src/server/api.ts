@@ -1,6 +1,7 @@
 /** Server-only entry point loaded lazily by src/functions/*, so none of this reaches the browser bundle. */
 export * as family from "./services/family";
 export * as staff from "./services/staff";
+export * as enrollment from "./services/enrollment";
 export * as sharing from "./services/sharing";
 export * as notifications from "./services/notifications";
 export * as settings from "./services/settings";
