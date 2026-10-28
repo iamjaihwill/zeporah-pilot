@@ -8,6 +8,30 @@ For an internal reviewer checking the synthetic Zeporah prototype with a keyboar
 
 **This is not** a user study, a clinical validation, a certification against WCAG or any other standard, or a production accessibility audit. Automated axe checks already run on these screens; this covers what they can't. Use only synthetic personas and data. Findings feed a later fix increment; nothing is fixed during the review.
 
+## Commitment and Stage 1 threshold (decision 73)
+
+- **Standard:** WCAG 2.2 Level AA, for the family app and the staff workspace.
+- **Critical workflows:** sign-in and invitation acceptance (Slice A, Slice K); household setup,
+  including a patient alone (Slice L); "Get help" and the emergency notice (matrix rows and Slice N);
+  messages and support requests, including the send states (matrix rows and Slice M); tasks;
+  consent confirmation and correction (matrix rows); for staff, the exception queue, the household
+  record, enrollment and the first invitation (Slice K), consent activation, and the 24-hour line card
+  (Slice N).
+- **Before Stage 1, on every critical workflow:**
+  1. this protocol completed by **two** internal reviewers, each with their own log;
+  2. 5–8 sessions with people who use assistive technology and with family caregivers, using
+     synthetic data and the critical workflows only, with informed consent;
+  3. a desk review by an independent accessibility specialist;
+
+  then fixes, and a re-run, until no Blocker or High finding remains on a critical workflow.
+
+- **What Zeporah may say:** no conformance or compliance claim. After all three, only a dated
+  statement of what was reviewed and how, with known gaps listed. Never "accessible", "ADA compliant"
+  or "WCAG compliant" as a blanket claim. A full third-party audit with a conformance report is a
+  Stage 2 option.
+- **Pending review:** counsel confirms whether the HHS Section 504 rule (WCAG 2.1 AA for recipients'
+  web content and apps) applies to Zeporah through the hospice.
+
 ## Setup
 
 **Synthetic only.** Every person and record in Zeporah is made up. Do not type real names, health details or contact information into any field, even as test text. Use the clearly synthetic test strings given below.
@@ -66,7 +90,7 @@ Severity is what applies if the check fails (see [Severity definitions](#severit
 
 ## Slices not yet reviewed
 
-**Next session order.** (1) Resume the original matrix where the 2026-10-12 session stopped: Family Sharing and the correction dialog, then the rest of the "Not tested" list in [that log](accessibility-sessions/2026-10-12-manual-safari-voiceover.md). (2) Slice A. (3) Slice B. (4) Slice C. (5) Slice D. (6) Slice E. (7) Slice F. (8) Slice G. (9) Slice H. (10) Slice I. (11) Slice J. Record each slice in a new dated log from the [template](manual-accessibility-observation-log-template.md). Slices A and B need an invited account: as Dana, invite a care guide with a synthetic address ending `@example.invalid` and open the one-time link in a Safari private window. Choose a password used nowhere else.
+**Next session order.** (1) Resume the original matrix where the 2026-10-12 session stopped: Family Sharing and the correction dialog, then the rest of the "Not tested" list in [that log](accessibility-sessions/2026-10-12-manual-safari-voiceover.md). (2) Slice A. (3) Slice B. (4) Slice C. (5) Slice D. (6) Slice E. (7) Slice F. (8) Slice G. (9) Slice H. (10) Slice I. (11) Slice J. (12) Slices K to O (built after 2026-10-12; critical workflows first: K, L, M, N). Record each slice in a new dated log from the [template](manual-accessibility-observation-log-template.md). Slices A and B need an invited account: as Dana, invite a care guide with a synthetic address ending `@example.invalid` and open the one-time link in a Safari private window. Choose a password used nowhere else.
 
 **Note on start-page checks.** The original Start page row (persona buttons) still applies when the gate is on. With the gate off, the start page has only the email sign-in form — review that under Slice A.
 
@@ -164,6 +188,47 @@ These were added after the partial manual session of 2026-10-12. **No human has 
 | Deactivate dialog  | **Deactivate…**                             | The dialog checklist; Escape returns focus to **Deactivate…**                                           | The impact list, then "Their role ends, their sessions end, and they can't sign in again" is read; the result is announced | 200%               | Blocker              |
 | Own account        | Dana opens her own page                     | No manage controls are reachable                                                                        | "You can't change your own role or account" is read                                                                        | —                  | Medium               |
 
+**K. Enrollment, Getting started and the first invitation (decisions 66–70)**
+
+| Screen/workflow       | How to reach it                                                         | Keyboard check                                                                                                                   | VoiceOver expectation                                                                          | Zoom/responsive                                               | Severity if it fails |
+| --------------------- | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------- | -------------------- |
+| Enroll a household    | Dana: **Households** → **Enroll a household**                           | The button opens the form; Tab reaches the name, the care-guide select, **Enroll** and **Close**; Enter submits                  | The pilot count ("7 of 25 households in the pilot") is read; each field has its label and hint | No sideways scroll at 375 px and 320 px; the two fields stack | High                 |
+| Pilot full            | Lena: set **Enrollment** to the current count, then Dana opens the form | No form controls remain                                                                                                          | "The pilot is full" is read with the explanation                                               | Readable at 200%                                              | Medium               |
+| Getting started card  | The new household's overview                                            | Tab reaches **Invite the patient or coordinator**                                                                                | Each checklist item is read with "Done" or "Not yet" in words, not just a mark                 | The card reflows at 200%                                      | High                 |
+| First invitation form | **Invite the patient or coordinator**                                   | Tab order: role, name, email, how identity was confirmed, **Create invitation**, **Cancel**; Escape isn't required (inline form) | Labels and hints read, including "A role organizes access; it isn't legal authority"           | No sideways scroll at 375 px                                  | High                 |
+| One-time link         | After creating the invitation                                           | Focus isn't lost to the top of the page                                                                                          | The notice title and its instructions are read; the link is read as text                       | The long link wraps, no sideways scroll                       | High                 |
+
+**L. First-time patient setup (decision 69)**
+
+| Screen/workflow     | How to reach it         | Keyboard check                                      | VoiceOver expectation                                                               | Zoom/responsive | Severity if it fails              |
+| ------------------- | ----------------------- | --------------------------------------------------- | ----------------------------------------------------------------------------------- | --------------- | --------------------------------- |
+| Patient alone, home | Rehanna (demo launcher) | **Start setup** is reachable early in the Tab order | The setup card says what each step turns on; nothing says a coordinator is doing it | 375 px and 200% | Blocker if setup can't be reached |
+| Each setup step     | **Start setup**         | Each step completes by keyboard                     | Each step's result is announced once                                                | 375 px          | High                              |
+
+**M. Send states (increment 3)**
+
+| Screen/workflow    | How to reach it                                     | Keyboard check                                          | VoiceOver expectation                                                | Zoom/responsive | Severity if it fails |
+| ------------------ | --------------------------------------------------- | ------------------------------------------------------- | -------------------------------------------------------------------- | --------------- | -------------------- |
+| Message sent       | Daniel: **Messages**, send `Synthetic test message` | Ctrl/Cmd+Enter sends; focus stays in the composer       | "Message sent to your care guide." is announced once                 | 375 px          | High                 |
+| Send not confirmed | Turn off Wi-Fi, send, turn Wi-Fi back on            | The text stays in the box; **Send message** sends again | "We couldn't confirm this was sent…" is announced as a problem, once | 375 px          | High                 |
+| Support request    | Daniel: **Support**, send `Synthetic test request`  | As above                                                | The confirmation names the 24-hour line                              | 375 px          | High                 |
+
+**N. The 24-hour line (decision 72)**
+
+| Screen/workflow   | How to reach it                               | Keyboard check                                                                          | VoiceOver expectation                                                                   | Zoom/responsive | Severity if it fails             |
+| ----------------- | --------------------------------------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | --------------- | -------------------------------- |
+| Line card         | Lena: **Hospice settings** → organization     | Tab reaches **Propose a new line** and the confirm form                                 | "Families see", "Last confirmed" and any "Due" notice are read in order                 | 200%            | Medium                           |
+| Propose           | **Propose a new line**, type `(555) 555-0142` | Tab: line, backup, **Propose**, **Cancel**                                              | A format error is read next to the field                                                | 375 px          | High                             |
+| Confirm           | Dana, same card                               | The checkbox and note are reachable; the button stays unavailable until both are filled | The checkbox label is read in full; "Waiting for confirmation…" is read before the form | 375 px          | High                             |
+| Emergency notice  | Daniel's home                                 | —                                                                                       | The line, and any "if you can't get through" backup, are read as part of the notice     | 320 px          | Blocker if the number isn't read |
+| System status row | Dana: **System status**                       | The row's link is reachable                                                             | "24-hour line" with "Confirmed <date>" or "Due" in words                                | 200%            | Medium                           |
+
+**O. Who opened records (decision 71)**
+
+| Screen/workflow | How to reach it                                  | Keyboard check                                     | VoiceOver expectation                                                               | Zoom/responsive                            | Severity if it fails |
+| --------------- | ------------------------------------------------ | -------------------------------------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------ | -------------------- |
+| The log         | Priya: **Audit review** → **Who opened records** | Filters reachable; the checkbox toggles with Space | The table caption and headers are read; "Not assigned or covering" is read as words | The table scrolls in its own box at 375 px | Medium               |
+
 ## Dialog checklist
 
 Apply to each dialog: correction request, staff dismiss, consent withdrawal (family and staff), turn off wording, propose and cancel bereavement, confirm transition, and — if visited — review and link authority.
@@ -237,6 +302,12 @@ Blocker for founder review?   Yes / No
 **Before a future synthetic walkthrough with others:** no open Blocker or High. Medium findings have an agreed plan. The whole matrix has been re-run after fixes, and 200% zoom and the 320 px narrow-viewport reflow check pass on every screen in the matrix.
 
 **Before any future user or pilot accessibility discussion:** no open Blocker or High; Medium findings are fixed or explicitly accepted; this review has been repeated with a second reviewer; the optional iPhone VoiceOver check below has been done; browser zoom at 400% has been tested directly; and it is explicitly acknowledged that this internal review does not replace testing with disabled users or a formal audit — both remain production-gate items.
+
+**Before Stage 1 (decision 73):** everything above for "any future user or pilot accessibility
+discussion", plus, on every critical workflow: two internal reviewers' completed logs, 5–8 sessions
+with assistive-technology users and family caregivers, and an independent specialist's desk review,
+with no Blocker or High finding left open. Only then may Zeporah make the dated statement described in
+[Commitment and Stage 1 threshold](#commitment-and-stage-1-threshold-decision-73).
 
 ## Optional iPhone VoiceOver spot check
 

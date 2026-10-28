@@ -1,6 +1,6 @@
 # D-12 · Accessibility commitment and validation threshold
 
-**Status:** written 2026-10-28, awaiting the founder's decision. Blocks PB-16 (W10). Related: PC-01
+**Status:** decided by the founder on 2026-10-28 as written (decision 73). Blocks PB-16 (W10). Related: PC-01
 (English only), PB-15 (support and training).
 
 ## Decision to make

@@ -2,6 +2,8 @@
 
 Accessibility is a first-class requirement. This is the **baseline** built into the prototype; it is not a formal assessment (see [production-readiness-gates.md](production-readiness-gates.md)).
 
+**Commitment (decision 73):** WCAG 2.2 Level AA. The Stage 1 threshold, the critical workflows and what Zeporah may say are in [manual-accessibility-review-protocol.md](manual-accessibility-review-protocol.md#commitment-and-stage-1-threshold-decision-73). No conformance claim is made.
+
 ## What's in place
 
 | Area                 | How                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |

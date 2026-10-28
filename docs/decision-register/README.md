@@ -19,7 +19,7 @@ production readiness.
 | D-09 | Minimum necessary for operations and reviewers                         | W4 · PC-04                 | When W4 starts                                                       | Not yet written             |
 | D-10 | Pilot-cap enforcement behaviour (decision 16)                          | W8 · PB-15                 | When W8 starts                                                       | Not yet written             |
 | D-11 | Support model and service expectations                                 | W8 · PB-15                 | When W8 starts                                                       | Not yet written             |
-| D-12 | Accessibility commitment and validation threshold                      | W10 · PB-16                | [D-12-accessibility-commitment.md](D-12-accessibility-commitment.md) | Written, awaiting decision  |
+| D-12 | Accessibility commitment and validation threshold                      | W10 · PB-16                | [D-12-accessibility-commitment.md](D-12-accessibility-commitment.md) | Decided → #73               |
 | D-13 | Release governance and production-change approval                      | W1 · PB-01                 | With D-01's build-out                                                | Not yet written             |
 | D-14 | Permanent separation of demo, pilot and production                     | W3 · PB-02                 | With D-02's build-out                                                | Not yet written             |
 | D-15 | A verified 24-hour clinical line                                       | PB-22 (proposed)           | [D-15-verified-clinical-line.md](D-15-verified-clinical-line.md)     | Decided → #72               |

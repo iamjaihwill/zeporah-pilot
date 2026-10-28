@@ -125,13 +125,17 @@ files it touches were refreshed. **What a demo now shows differently:** Hospice 
 line" card in place of the line field; System status has a "24-hour line" row; the staff record's
 "After hours" line reads the live number.
 
+**Decision record updated on 2026-10-28 (no product change):** decision 73 (accessibility commitment,
+D-12) was added to `founder-decision-log.md`, and its manifest entry was refreshed. Every code, test,
+seed and configuration file still matches.
+
 ## What's frozen
 
 - **The build:** 403 files covering the application code (including migrations through
   `0023_cover_notice` and seed fixtures), the tests, the configuration, the decision log and
   register, the presentation documents and the 22 run-through screenshots. Each file's SHA-256
   is in [demo-baseline-2026-10-22.sha256](demo-baseline-2026-10-22.sha256), and the manifest's
-  own SHA-256 is `0a03de5801327663e0c1697bc50039fc8e1d6464a51332bcbc36cb03a6520fa9`. To check
+  own SHA-256 is `4ec412aa748540a4188a2b4268bd6ff9bc07bac61321d02ea7e71fbb4cca25d0`. To check
   for drift, run `shasum -a 256 -c docs/demo-baseline-2026-10-22.sha256 --quiet`.
 - **The presentation baseline:** [enterprise-demo-map.md](enterprise-demo-map.md) (the script,
   "Presenting it in about 15 minutes", with beat 8's note on decision 62 and an optional 30 s in

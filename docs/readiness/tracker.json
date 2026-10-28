@@ -341,7 +341,7 @@
       "closureCriteria": "No open critical accessibility finding on a critical workflow",
       "evidence": [],
       "approvals": [],
-      "note": "2026-10-28: decision brief written (docs/decision-register/D-12-accessibility-commitment.md), awaiting the founder. Counsel to confirm whether the HHS Section 504 rule's WCAG 2.1 AA requirement reaches Zeporah through the hospice. Manual review still partial (2026-10-12); nothing built since has had one."
+      "note": "Decision 73 (2026-10-28): WCAG 2.2 AA; before Stage 1, two internal reviewers on the critical workflows, 5-8 sessions with assistive-technology users and caregivers, and an independent specialist's desk review, until no Blocker or High remains; no conformance claim. Protocol updated with the critical workflows and slices K-O. Nothing run yet beyond the partial 2026-10-12 session. Counsel to confirm the HHS Section 504 question."
     },
     {
       "id": "PB-17",
