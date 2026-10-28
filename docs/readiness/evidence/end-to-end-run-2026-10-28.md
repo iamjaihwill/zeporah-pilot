@@ -25,10 +25,11 @@ a manual review (D-12).
 that had none: `family-contacts.spec.ts` (listed contacts, desktop and phone; the staff household
 view on desktop), `enrollment.spec.ts`, `access-log.spec.ts` and `offline.spec.ts` (with the test
 browser's network really cut, and a send whose reply is dropped on the way back). With them the
-end-to-end suite is **199 passed, 2 skipped** (the new skip is the staff contacts test on phone).
+end-to-end suite is **201 passed, 2 skipped** (the new skip is the staff contacts test on phone), including `request-lifecycle.spec.ts` below.
 `offline.spec.ts` keeps its own console guard: it allows only the connection errors it causes on
-purpose and React's report of the one the root page catches; anything else fails. No frozen file
-changed. The request lifecycle's family screens are still covered only through the offer test.
+purpose and React's report of the one the root page catches; anything else fails. No frozen file changed.
+
+`request-lifecycle.spec.ts` follows a family request on screen: Received, Maya taking it and marking it waiting on "the benefits office" with a next update, Daniel seeing those words and Maya's first name, resolving and reopening it (back to Maya), and withdrawing one, after which it leaves the care team's queue.
 
 ## What failed, and what was done
 
