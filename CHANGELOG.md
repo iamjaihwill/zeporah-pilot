@@ -5,6 +5,8 @@ Every change that alters behaviour is recorded here in the pull request that mak
 
 ## Unreleased
 
+- Security (PB-05): every response carries a content security policy and the nosniff, referrer,
+  frame, permissions and cross-origin headers; HSTS over https.
 - Messages and support requests send once: a retry after a lost reply returns the first copy
   (migration `0025_submission_ids`). When no reply comes back, the composers say the send couldn't
   be confirmed and that sending again is safe, instead of "nothing was changed".

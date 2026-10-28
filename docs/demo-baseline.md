@@ -82,13 +82,19 @@ files it touches were refreshed: `src/server/db/schema.ts`,
 `scripts/db-seed-previous.ts` and `tests/integration/schema-upgrade.test.ts`. The only wording that
 changed is that one failure message on those five composers.
 
+**Freeze lifted and re-frozen on 2026-10-27** for increment 4 of the brief reconciliation only,
+with the founder's explicit approval: the security-header baseline on every response (PB-05;
+[evidence](readiness/evidence/security-headers-2026-10-27.md)). The only frozen file it touches is
+`vite.config.ts` (security headers on static files in the development server); its manifest entry
+was refreshed. No screen or wording changed.
+
 ## What's frozen
 
 - **The build:** 403 files covering the application code (including migrations through
   `0023_cover_notice` and seed fixtures), the tests, the configuration, the decision log and
   register, the presentation documents and the 22 run-through screenshots. Each file's SHA-256
   is in [demo-baseline-2026-10-22.sha256](demo-baseline-2026-10-22.sha256), and the manifest's
-  own SHA-256 is `0b2ca17d1b875533547ee92e37299eb7bc16724025a721fd741d419430ad6f67`. To check
+  own SHA-256 is `ac5582c2803ff7e592882a175b427ebc41040367eddaf2bd4f7ec875d8dfc290`. To check
   for drift, run `shasum -a 256 -c docs/demo-baseline-2026-10-22.sha256 --quiet`.
 - **The presentation baseline:** [enterprise-demo-map.md](enterprise-demo-map.md) (the script,
   "Presenting it in about 15 minutes", with beat 8's note on decision 62 and an optional 30 s in

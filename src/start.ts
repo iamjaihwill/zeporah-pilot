@@ -1,10 +1,33 @@
 import { createMiddleware, createStart } from "@tanstack/react-start";
 import { redirectFor } from "@/domain/addresses";
 import { crossSiteRefusal } from "@/domain/same-origin";
+import { securityHeaders } from "@/domain/security-headers";
 
 /** The address the request arrived on. Behind the load balancer it comes as X-Forwarded-Host. */
 const hostOf = (request: Request) =>
   request.headers.get("x-forwarded-host")?.split(",")[0]?.trim() || new URL(request.url).host;
+
+/**
+ * Puts the security-header baseline (domain/security-headers.ts, PB-05) on every response, including
+ * refusals and redirects from the checks below. HSTS only when the request arrived over https
+ * (behind the load balancer, X-Forwarded-Proto says so).
+ */
+const headers = createMiddleware().server(async ({ request, next }) => {
+  const result = await next();
+  const proto =
+    request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim() || new URL(request.url).protocol;
+  const add = securityHeaders({ https: proto.replace(/:$/, "") === "https" });
+  try {
+    for (const [k, v] of Object.entries(add)) result.response.headers.set(k, v);
+    return result;
+  } catch {
+    // Some responses come with headers that can't be changed: copy them into a new one.
+    const h = new Headers(result.response.headers);
+    for (const [k, v] of Object.entries(add)) h.set(k, v);
+    const { status, statusText, body } = result.response;
+    return { ...result, response: new Response(body, { status, statusText, headers: h }) };
+  }
+});
 
 /**
  * Refuses a change sent from another site (domain/same-origin.ts, PB-06). Every request passes
@@ -42,4 +65,6 @@ const addressRedirect = createMiddleware().server(async ({ request, next }) => {
   return next();
 });
 
-export const startInstance = createStart(() => ({ requestMiddleware: [sameOrigin, addressRedirect] }));
+export const startInstance = createStart(() => ({
+  requestMiddleware: [headers, sameOrigin, addressRedirect],
+}));

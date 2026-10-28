@@ -97,7 +97,7 @@
       "class": "pilot_blocker",
       "workstream": "W2",
       "targetStage": 1,
-      "status": "open",
+      "status": "in_progress",
       "owner": "Engineering lead",
       "approvers": ["Privacy and security officer"],
       "dependsOn": ["PB-02"],
@@ -106,8 +106,15 @@
       "verification": "Automated header tests on every route type; a scan of staging",
       "evidenceRequired": "Test results; scan report",
       "closureCriteria": "Every response carries the policy, and tests fail if one is missing",
-      "evidence": [],
-      "approvals": []
+      "evidence": [
+        {
+          "type": "test",
+          "ref": "docs/readiness/evidence/security-headers-2026-10-27.md (header baseline on every response type; 21 pages with no policy violations: passed)",
+          "date": "2026-10-27"
+        }
+      ],
+      "approvals": [],
+      "note": "Header baseline built (src/domain/security-headers.ts, src/start.ts). Still needed: a nonce-based script policy in place of 'unsafe-inline', headers on static files at the edge (PB-02), a scan of staging, and automated header tests on every route type in the end-to-end suite."
     },
     {
       "id": "PB-06",
