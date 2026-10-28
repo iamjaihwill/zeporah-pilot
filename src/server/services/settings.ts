@@ -10,7 +10,7 @@ import * as s from "../db/schema";
 import { appendAudit } from "../audit";
 import { AccessError, requireStaffPermission, type ActorContext } from "../context";
 import { can } from "@/domain/permissions";
-import { actorNames } from "./common";
+import { actorNames, organizationHotline } from "./common";
 
 export type MessageExpectationInput = {
   enabled: boolean;
@@ -67,12 +67,12 @@ export async function getMessageSettings(db: DB, ctx: ActorContext) {
     rows.map((r) => r.changedByActorId),
   );
   const [o] = await db
-    .select({ name: s.organizations.name, line: s.organizations.afterHoursLine })
+    .select({ name: s.organizations.name })
     .from(s.organizations)
     .where(and(eq(s.organizations.tenantId, ctx.tenantId), eq(s.organizations.id, org)));
   return {
     organization: o?.name ?? "",
-    hotline: o?.line ?? null,
+    hotline: await organizationHotline(db, ctx.tenantId, org),
     current: await currentMessageExpectation(db, ctx.tenantId, org),
     history: rows.map((r) => ({
       version: r.version,
@@ -251,19 +251,14 @@ export async function codeDefaults() {
   ];
 }
 
-export async function setHospiceDetails(
-  db: DB,
-  ctx: ActorContext,
-  input: { afterHoursLine: string; emailSenderName: string },
-) {
+/**
+ * The email sender name. The 24-hour line isn't changed here: a new line is proposed and confirmed
+ * by a second person (decision 72, services/contact-line.ts).
+ */
+export async function setHospiceDetails(db: DB, ctx: ActorContext, input: { emailSenderName: string }) {
   requireStaffPermission(ctx, "org.admin.settings");
   const org = orgOf(ctx);
-  const next = {
-    afterHoursLine: input.afterHoursLine.trim().slice(0, 80),
-    emailSenderName: input.emailSenderName.trim().slice(0, 60),
-  };
-  if (!next.afterHoursLine)
-    throw new AccessError("INVALID", "Families need a 24-hour line. Enter the number.");
+  const next = { emailSenderName: input.emailSenderName.trim().slice(0, 60) };
   const before = await getHospiceDetails(db, ctx);
   const changed = (Object.keys(next) as (keyof typeof next)[]).filter((k) => next[k] !== before[k]);
   if (!changed.length) return;
@@ -278,7 +273,7 @@ export async function setHospiceDetails(
       action: "settings.hospice_details_changed",
       subjectType: "organization",
       subjectId: org,
-      summary: `Hospice details were changed: ${changed.map((k) => (k === "afterHoursLine" ? "24-hour line" : "email sender name")).join(", ")}.`,
+      summary: "Hospice details were changed: email sender name.",
       visibility: "staff",
       context: {
         before: Object.fromEntries(changed.map((k) => [k, before[k]])),

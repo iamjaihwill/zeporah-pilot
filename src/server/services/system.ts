@@ -12,6 +12,7 @@ import { auditChainFindings } from "../audit";
 import { requireStaffPermission, type ActorContext } from "../context";
 import { environment } from "../environment";
 import { integrationStatus } from "../integrations/registry";
+import { lineStatus } from "./contact-line";
 
 const ROOT = process.cwd();
 
@@ -68,6 +69,18 @@ export async function systemStatus(db: DB, ctx: ActorContext, now = new Date()) 
       migrationsAvailable: available,
     },
     // Findings, not a pass mark: a clean check still can't see events removed from the end (SB-04).
+    // Decision 72: whether the 24-hour line families see has been called and confirmed recently.
+    contactLine: ctx.organizationId
+      ? await (async () => {
+          const l = await lineStatus(db, ctx.tenantId, ctx.organizationId!, now);
+          return {
+            confirmedAt: l.lastConfirmed?.at ?? null,
+            dueAt: l.dueAt,
+            due: l.due,
+            pendingChange: !!l.pending,
+          };
+        })()
+      : null,
     audit: {
       ok: chain.findings.length === 0,
       events: chain.events,

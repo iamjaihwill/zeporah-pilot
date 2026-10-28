@@ -3,7 +3,7 @@ import { StaffPageHeader } from "@/components/staff";
 import { Link, createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { getSystemStatus } from "@/functions/staff";
-import { announce, cx, isDenied, stamp, unwrap } from "@/lib/client";
+import { announce, cx, dateOnly, isDenied, stamp, unwrap } from "@/lib/client";
 import { Button, Card, DeniedView, Notice, Stamp } from "@/components/ui";
 
 /**
@@ -62,6 +62,10 @@ function Status() {
   const problems = [
     !upToDate && "the database schema isn't up to date",
     !d.audit.ok && "the audit chain didn't verify",
+    d.contactLine?.due &&
+      (d.contactLine.confirmedAt
+        ? "the 24-hour line is due to be called and confirmed"
+        : "the 24-hour line has never been confirmed"),
     d.environment.readOnly && "read-only mode is on",
   ].filter((x): x is string => !!x);
   const recheck = async () => {
@@ -169,6 +173,20 @@ function Status() {
                   ? `Up to date (${d.database.migrationsApplied} migrations)`
                   : `${d.database.migrationsApplied} of ${d.database.migrationsAvailable} migrations applied`}
             </Row>
+            {d.contactLine && (
+              <Row
+                label="24-hour line"
+                hint="Called and confirmed by a person at least every 90 days (decision 72)."
+                tone={d.contactLine.due ? "attention" : "ok"}
+              >
+                <Link to="/staff/settings" className="text-harbor underline-offset-2 hover:underline">
+                  {d.contactLine.confirmedAt
+                    ? `${d.contactLine.due ? "Due: last confirmed" : "Confirmed"} ${dateOnly(d.contactLine.confirmedAt)}`
+                    : "Never confirmed"}
+                  {d.contactLine.pendingChange ? " · a new line is waiting for confirmation" : ""}
+                </Link>
+              </Row>
+            )}
             <Row
               label="Audit chain"
               hint="Finds changed, removed or forked events. Can't yet find events removed from the very end."

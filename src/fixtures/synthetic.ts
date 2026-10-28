@@ -2342,6 +2342,34 @@ export function buildFixtures(now: Date) {
   history.sort((a, b) => a.at.getTime() - b.at.getTime());
   return {
     tenants,
+    /** Decision 72: each hospice's line was last called and confirmed by operations (synthetic). */
+    contactLineChanges: [
+      {
+        org: SEED.orgs.willow,
+        tenantId: W,
+        by: "st-dana",
+        days: 10,
+        line: "555-0100 (synthetic 24-hour line)",
+      },
+      {
+        org: SEED.orgs.cedar,
+        tenantId: C,
+        by: "cst-jordan",
+        days: 20,
+        line: "555-0199 (synthetic 24-hour line)",
+      },
+    ].map((x) => ({
+      tenantId: x.tenantId,
+      organizationId: x.org,
+      kind: "reconfirmation",
+      line: x.line,
+      status: "confirmed",
+      proposedByActorId: x.by,
+      proposedAt: d(-x.days),
+      confirmedByActorId: x.by,
+      confirmedAt: d(-x.days),
+      confirmationNote: "Called it; the after-hours nurse line answered (synthetic).",
+    })) as Row[],
     consentCorrectionRequests,
     messageExpectations,
     consentConfirmations,

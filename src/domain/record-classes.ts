@@ -28,6 +28,7 @@ type Entry = { class: RecordClass; review?: string };
 export const TABLE_CLASSES: Record<string, Entry> = {
   tenants: { class: "configuration" },
   organizations: { class: "configuration" },
+  contact_line_changes: { class: "configuration" },
   roles: { class: "configuration" },
   message_expectations: { class: "configuration" },
   actors: { class: "participation" },

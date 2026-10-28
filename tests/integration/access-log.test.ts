@@ -173,6 +173,7 @@ describe("every staff read", () => {
       "getStaffShell",
       "getAssignableOwners",
       "getGuide",
+      "getContactLine",
     ]);
     const unlogged: string[] = [];
     const seen = new Set<string>();

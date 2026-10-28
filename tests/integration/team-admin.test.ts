@@ -160,21 +160,20 @@ describe("administrators manage people and settings, not households", () => {
     expect((await t.as("st-tom")).assignedHouseholdIds).toContain("hh-nguyen");
   });
 
-  it("only administrators change the 24-hour line; operations still own the reply wording", async () => {
+  it("only administrators change hospice details; the 24-hour line goes through confirmation", async () => {
     await expect(
-      settings.setHospiceDetails(t.db, await dana(), { afterHoursLine: "555-0111", emailSenderName: "" }),
+      settings.setHospiceDetails(t.db, await dana(), { emailSenderName: "Willow Creek" }),
     ).rejects.toMatchObject({ code: "NOT_PERMITTED" });
     const seen = await settings.getHospiceDetailsWithDefaults(t.db, await dana());
     expect(seen.canEdit).toBe(false);
-    await settings.setHospiceDetails(t.db, await lena(), {
-      afterHoursLine: "555-0111 (synthetic)",
-      emailSenderName: "",
-    });
+    await settings.setHospiceDetails(t.db, await lena(), { emailSenderName: "Willow Creek (synthetic)" });
     const [ev] = await t.db
       .select()
       .from(s.auditEvents)
       .where(eq(s.auditEvents.action, "settings.hospice_details_changed"));
-    expect(ev?.context).toMatchObject({ after: { afterHoursLine: "555-0111 (synthetic)" } });
+    expect(ev?.context).toMatchObject({ after: { emailSenderName: "Willow Creek (synthetic)" } });
+    // Decision 72: the line itself isn't among the details saved here (tests/integration/contact-line.test.ts).
+    expect(seen.afterHoursLine).toMatch(/555-0100/);
   });
 
   it("Cedar Valley's operations lead can't touch Willow Creek staff", async () => {

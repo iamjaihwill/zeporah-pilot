@@ -1,3 +1,4 @@
+import { lineForFamilies } from "@/domain/contact-line";
 import { and, lte, eq, gt, inArray, isNull, like, or } from "drizzle-orm";
 import type { Conn } from "../db/client";
 import {
@@ -30,12 +31,16 @@ import {
 export type Member = { actorId: string; roles: HouseholdRole[]; name: string };
 
 /** The hospice's own 24-hour line, as recorded for its organization (synthetic in this prototype). */
+/**
+ * The confirmed 24-hour line as families see it, with the backup line when there is one (decision
+ * 72). The one place the line is read for display; nothing keeps a copy.
+ */
 export async function organizationHotline(conn: Conn, tenantId: string, organizationId: string) {
   const [o] = await conn
-    .select({ line: organizations.afterHoursLine })
+    .select({ line: organizations.afterHoursLine, backup: organizations.afterHoursBackupLine })
     .from(organizations)
     .where(and(eq(organizations.tenantId, tenantId), eq(organizations.id, organizationId)));
-  return o?.line ?? null;
+  return o ? lineForFamilies(o.line, o.backup) : null;
 }
 
 /** Active family members of a household (within a tenant). */

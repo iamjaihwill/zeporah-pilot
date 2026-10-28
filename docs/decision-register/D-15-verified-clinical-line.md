@@ -1,6 +1,6 @@
 # D-15 · A verified 24-hour clinical line
 
-**Status:** written 2026-10-27, awaiting the founder's decision. For proposed pilot blocker PB-22
+**Status:** decided by the founder on 2026-10-28 as recommended (decision 72). For proposed pilot blocker PB-22
 ([brief-reconciliation-2026-10-27.md](../brief-reconciliation-2026-10-27.md) §4). Related: decision 19
 (emergency notice on sign-in), decision 24 (reply time), decision 39 (administrators own the line).
 

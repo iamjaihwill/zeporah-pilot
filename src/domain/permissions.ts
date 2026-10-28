@@ -53,6 +53,8 @@ export const PERMISSIONS = [
   "household.invite_first",
   // Decision 71: reviewing who opened household records.
   "access_log.view",
+  // Decision 72: calling and confirming the 24-hour line.
+  "contact_line.confirm",
   "staff.lifecycle.manage",
   /** Change a staff member's role, reactivate them, or invite into a role other than care guide (decisions 38–39). */
   "staff.role.manage",
@@ -168,6 +170,7 @@ const STAFF_MATRIX: Record<StaffRole, readonly Permission[]> = {
     "partner_event.log",
     "household.enroll",
     "household.invite_first",
+    "contact_line.confirm",
   ],
   privileged_reviewer: [
     "staff.household.view",
@@ -198,6 +201,7 @@ const STAFF_MATRIX: Record<StaffRole, readonly Permission[]> = {
     // Decision 66: enrolls, and then sees the household's name only (coverage).
     "household.enroll",
     "access_log.view",
+    "contact_line.confirm",
   ],
 };
 

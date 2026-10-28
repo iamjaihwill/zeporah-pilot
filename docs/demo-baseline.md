@@ -116,13 +116,22 @@ an append-only access log of staff record opens and list views (migration `0028_
 files it touches were refreshed. **What a demo now shows differently:** Audit review links to "Who
 opened records" for Priya and Lena; nothing else on screen changes.
 
+**Decision record updated and freeze lifted on 2026-10-28** for the D-15 build only, with the
+founder's explicit approval: decision 72 (a verified 24-hour line) was added to
+`founder-decision-log.md` and built ([evidence](readiness/evidence/verified-line-2026-10-28.md)):
+two-person changes with a recorded call, 90-day re-confirmation, an optional backup line, a format
+check and one source of truth (migration `0029_contact_line`). The manifest entries for the 20 frozen
+files it touches were refreshed. **What a demo now shows differently:** Hospice settings has a "24-hour
+line" card in place of the line field; System status has a "24-hour line" row; the staff record's
+"After hours" line reads the live number.
+
 ## What's frozen
 
 - **The build:** 403 files covering the application code (including migrations through
   `0023_cover_notice` and seed fixtures), the tests, the configuration, the decision log and
   register, the presentation documents and the 22 run-through screenshots. Each file's SHA-256
   is in [demo-baseline-2026-10-22.sha256](demo-baseline-2026-10-22.sha256), and the manifest's
-  own SHA-256 is `83e8e02442b06c27122d4f04793ff4214e5056ab748eb7732e7cd6aa95dba5c6`. To check
+  own SHA-256 is `0a03de5801327663e0c1697bc50039fc8e1d6464a51332bcbc36cb03a6520fa9`. To check
   for drift, run `shasum -a 256 -c docs/demo-baseline-2026-10-22.sha256 --quiet`.
 - **The presentation baseline:** [enterprise-demo-map.md](enterprise-demo-map.md) (the script,
   "Presenting it in about 15 minutes", with beat 8's note on decision 62 and an optional 30 s in

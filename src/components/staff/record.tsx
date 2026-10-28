@@ -496,7 +496,11 @@ export function ContextColumn({ o, careTeam }: { o: RecordOverview; careTeam: Re
             </div>
             <div>
               <dt className="font-medium">After hours</dt>
-              <dd className="text-ink-soft">{o.record.afterHoursRoute}</dd>
+              <dd className="text-ink-soft">
+                {o.hotline
+                  ? `For anything urgent, the family calls the hospice 24-hour line: ${o.hotline}. Zeporah is not monitored for emergencies.`
+                  : "No 24-hour line is set. An administrator needs to add one in Hospice settings."}
+              </dd>
             </div>
             <div>
               <dt className="font-medium">Clinical record</dt>

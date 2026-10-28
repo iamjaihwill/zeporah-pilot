@@ -76,7 +76,6 @@ export async function enrollHousehold(
   if (patientName.length > 120) throw new AccessError("INVALID", "Keep the name under 120 characters.");
   const guide = await eligibleGuide(db, ctx, input.careGuideActorId);
   const cap = (await orgSettings(db, ctx.tenantId, organizationId)).enrollment.cap;
-  const hotline = await organizationHotline(db, ctx.tenantId, organizationId);
   return db.transaction(async (tx) => {
     // One enrollment at a time per hospice, so two can't both take the last place under the cap.
     await tx.execute(
@@ -108,9 +107,8 @@ export async function enrollHousehold(
       householdId: H,
       careGuideActorId: guide.actorId,
       visitRhythm: "",
-      afterHoursRoute: hotline
-        ? `For anything urgent, call the hospice 24-hour line: ${hotline}. Zeporah is not monitored for emergencies.`
-        : "For anything urgent, call the hospice. Zeporah is not monitored for emergencies.",
+      // Decision 72: the line is read live from the hospice, never copied here.
+      afterHoursRoute: "",
     });
     await tx.insert(s.vaultItems).values(
       STARTER_VAULT.map(([title, category, description, sensitivity]) => ({

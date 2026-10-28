@@ -43,6 +43,42 @@ export const getHouseholdOverview = createServerFn({ method: "GET" })
     );
   });
 
+/** Decision 72: the 24-hour line, its confirmation and any waiting change. */
+export const getContactLine = createServerFn({ method: "GET" }).handler(async () => {
+  const { run, contactLine } = await server();
+  return run((db, ctx) => contactLine.myLineStatus(db, ctx));
+});
+
+export const proposeContactLine = createServerFn({ method: "POST" })
+  .validator(z.object({ line: z.string().max(80), backupLine: z.string().max(80).optional() }))
+  .handler(async ({ data }) => {
+    const { run, contactLine } = await server();
+    return run((db, ctx) => contactLine.proposeLine(db, ctx, data));
+  });
+
+export const confirmContactLine = createServerFn({ method: "POST" })
+  .validator(
+    z.object({ changeId: z.string().min(1).max(100), reached: z.boolean(), note: z.string().max(200) }),
+  )
+  .handler(async ({ data }) => {
+    const { run, contactLine } = await server();
+    return run((db, ctx) => contactLine.confirmLine(db, ctx, data));
+  });
+
+export const withdrawContactLine = createServerFn({ method: "POST" })
+  .validator(z.object({ changeId: z.string().min(1).max(100) }))
+  .handler(async ({ data }) => {
+    const { run, contactLine } = await server();
+    return run((db, ctx) => contactLine.withdrawLine(db, ctx, data));
+  });
+
+export const reconfirmContactLine = createServerFn({ method: "POST" })
+  .validator(z.object({ reached: z.boolean(), note: z.string().max(200) }))
+  .handler(async ({ data }) => {
+    const { run, contactLine } = await server();
+    return run((db, ctx) => contactLine.reconfirmLine(db, ctx, data));
+  });
+
 /** Decision 71: who opened household records. Privileged reviewers and administrators. */
 export const getAccessLog = createServerFn({ method: "GET" })
   .validator(
@@ -446,7 +482,7 @@ export const getHospiceDetails = createServerFn({ method: "GET" }).handler(async
 });
 
 export const setHospiceDetails = createServerFn({ method: "POST" })
-  .validator(z.object({ afterHoursLine: z.string().max(80), emailSenderName: z.string().max(60) }))
+  .validator(z.object({ emailSenderName: z.string().max(60) }))
   .handler(async ({ data }) => {
     const { run, settings } = await server();
     return run((db, ctx) => settings.setHospiceDetails(db, ctx, data));

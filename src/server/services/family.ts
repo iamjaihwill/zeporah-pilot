@@ -351,11 +351,7 @@ export async function familyHome(db: DB, ctx: ActorContext) {
     careGuide: cover?.name ?? guides[0]?.name ?? null,
     // Decision 62: while cover runs, Home and Messages name the covering guide, until its end.
     careGuideUntil: cover?.until ?? null,
-    careRecord:
-      record && !record.archivedAt
-        ? { visitRhythm: record.visitRhythm, afterHoursRoute: record.afterHoursRoute }
-        : null,
-    afterHoursRoute: record?.afterHoursRoute ?? null,
+    careRecord: record && !record.archivedAt ? { visitRhythm: record.visitRhythm } : null,
     hotline: await organizationHotline(db, ctx.tenantId, scope.organizationId),
     myTasks: myTasks.map((t) => ({
       id: t.id,
@@ -2172,7 +2168,6 @@ export async function getSupport(
     prefs: prefs ?? null,
     canRequest: can(scope.roles, "support.request", scope.lifecycle),
     canEditPrefs: scope.maySetUp,
-    afterHoursRoute: record?.afterHoursRoute ?? null,
     hotline: await organizationHotline(db, ctx.tenantId, scope.organizationId),
     expectation: await currentMessageExpectation(db, ctx.tenantId, scope.organizationId),
     requests: mine.map((e) => ({ id: e.id, status: e.status, at: e.createdAt, topic: e.topic })),

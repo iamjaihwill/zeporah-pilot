@@ -47,6 +47,7 @@ export async function seed(db: DB, now = new Date(), snapshot: SeedSnapshot = "s
     await put(s.messageExpectations, f.messageExpectations);
     await put(s.households, f.households);
     await put(s.memberships, f.memberships);
+    await put(s.contactLineChanges, f.contactLineChanges);
     await put(s.preferences, f.preferences);
     await put(s.onboardingSteps, f.onboardingSteps);
     await put(s.supportPreferences, f.supportPreferences);

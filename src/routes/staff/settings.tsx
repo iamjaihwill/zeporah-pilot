@@ -1,3 +1,4 @@
+import { ContactLineCard } from "@/components/staff/contact-line";
 import { z } from "zod";
 import { StaffPending } from "@/components/staff/pending";
 import { StaffPageHeader, ViewTabs } from "@/components/staff";
@@ -15,6 +16,7 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   getHospiceDetails,
+  getContactLine,
   getOrgSettings,
   getMessageSettings,
   getStaffInvitations,
@@ -76,17 +78,19 @@ export const Route = createFileRoute("/staff/settings")({
     section: z.enum(["messaging", "workflow", "organization", "controls", "invitations"]).optional(),
   }),
   loader: async () => {
-    const [settings, invites, details, org] = await Promise.all([
+    const [settings, invites, details, org, line] = await Promise.all([
       getMessageSettings(),
       getStaffInvitations(),
       getHospiceDetails(),
       getOrgSettings(),
+      getContactLine(),
     ]);
     return {
       settings: unwrap(settings),
       invites: unwrap(invites),
       details: unwrap(details),
       org: unwrap(org),
+      line: unwrap(line),
     };
   },
   component: Settings,
@@ -100,7 +104,7 @@ export const Route = createFileRoute("/staff/settings")({
  * see a fixed sentence that names no time, plus "not for emergencies" and the 24-hour line.
  */
 function Settings() {
-  const { settings: d, invites, details, org } = Route.useLoaderData();
+  const { settings: d, invites, details, org, line } = Route.useLoaderData();
   const { section = "messaging" } = Route.useSearch();
   if (isDenied(d)) return <DeniedView d={d} />;
   const show = (x: Section) => section === x;
@@ -181,6 +185,7 @@ function Settings() {
           </div>
           {show("organization") && !isDenied(details) && (
             <div className="mb-6 grid gap-4 lg:grid-cols-2">
+              {!isDenied(line) && <ContactLineCard status={line} />}
               <HospiceDetails
                 initial={details}
                 canEdit={details.canEdit}
@@ -522,22 +527,19 @@ function ExpectationForm({
   );
 }
 
-/** The 24-hour line and email sender name. Each change is audit-logged with before and after. */
+/** The email sender name, audit-logged with before and after. The 24-hour line has its own card (decision 72). */
 function HospiceDetails({
   initial,
   canEdit,
   change,
 }: {
-  initial: { name: string; afterHoursLine: string; emailSenderName: string };
+  initial: { name: string; emailSenderName: string };
   canEdit: boolean;
   change?: { by: string; at: Date } | undefined;
 }) {
-  const [v, setV] = useState({
-    afterHoursLine: initial.afterHoursLine,
-    emailSenderName: initial.emailSenderName,
-  });
+  const [v, setV] = useState({ emailSenderName: initial.emailSenderName });
   const { act, pending, error } = useAction();
-  const dirty = v.afterHoursLine !== initial.afterHoursLine || v.emailSenderName !== initial.emailSenderName;
+  const dirty = v.emailSenderName !== initial.emailSenderName;
   // People who can't change these read them as text, not as locked boxes.
   if (!canEdit)
     return (
@@ -545,8 +547,6 @@ function HospiceDetails({
         <LastChanged change={change} />
         <p className="mb-3 text-[0.8125rem] text-ink-soft">Only an administrator can change these.</p>
         <dl className="grid grid-cols-[10rem_1fr] gap-x-4 gap-y-1 text-[0.875rem]">
-          <dt className="text-ink-soft">24-hour line</dt>
-          <dd>{initial.afterHoursLine}</dd>
           <dt className="text-ink-soft">Email sender name</dt>
           <dd>{initial.emailSenderName || "Zeporah (the standard)"}</dd>
         </dl>
@@ -562,23 +562,6 @@ function HospiceDetails({
           void act(() => setHospiceDetails({ data: v }), "Hospice details saved.");
         }}
       >
-        <Field
-          label="24-hour line"
-          hint="Families are told to call this for anything urgent. Shown across the family app."
-        >
-          {(id, d) => (
-            <input
-              id={id}
-              aria-describedby={d}
-              required
-              maxLength={80}
-              readOnly={!canEdit}
-              className={inputClass}
-              value={v.afterHoursLine}
-              onChange={(e) => setV({ ...v, afterHoursLine: e.target.value })}
-            />
-          )}
-        </Field>
         <Field label="Email sender name" hint="Shown as the sender of email notices. Empty: “Zeporah”.">
           {(id, d) => (
             <input

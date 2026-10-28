@@ -51,7 +51,10 @@ export const organizations = pgTable(
     tenantId: tenantId().references(() => tenants.id),
     name: text("name").notNull(),
     stateCode: text("state_code").notNull(),
+    /** The confirmed 24-hour line families see (decision 72). Changed only by a confirmed change. */
     afterHoursLine: text("after_hours_line").notNull(),
+    /** An optional confirmed backup, "if you can't get through" (decision 72). */
+    afterHoursBackupLine: text("after_hours_backup_line"),
     /** Shown as the sender of email notices (section 6). Empty: "Zeporah". */
     emailSenderName: text("email_sender_name").notNull().default(""),
     /** Workflow and organization settings (decision 39); see domain/org-settings.ts for defaults. */
@@ -1333,5 +1336,40 @@ export const staffAccessEvents = pgTable(
   (t) => [
     index("staff_access_household_idx").on(t.tenantId, t.householdId, t.occurredAt),
     index("staff_access_recent_idx").on(t.tenantId, t.actorId, t.view, t.occurredAt),
+  ],
+);
+
+/**
+ * Proposed changes to the 24-hour line, and every confirmation call (founder decision 72). A change
+ * goes live only when someone other than its proposer confirms it; a re-confirmation records a call
+ * to the unchanged line. One pending change per hospice (migration 0029).
+ */
+export const contactLineChanges = pgTable(
+  "contact_line_changes",
+  {
+    id: id(),
+    tenantId: tenantId().references(() => tenants.id),
+    organizationId: text("organization_id").notNull(),
+    kind: text("kind").$type<"change" | "reconfirmation">().notNull(),
+    line: text("line").notNull(),
+    backupLine: text("backup_line"),
+    status: text("status").$type<"pending" | "confirmed" | "withdrawn" | "superseded">().notNull(),
+    proposedByActorId: text("proposed_by_actor_id").notNull(),
+    proposedAt: nowCol("proposed_at"),
+    confirmedByActorId: text("confirmed_by_actor_id"),
+    confirmedAt: ts("confirmed_at"),
+    /** What the person who called it heard, in their words (for example "nurse line answered"). */
+    confirmationNote: text("confirmation_note"),
+    closedAt: ts("closed_at"),
+  },
+  (t) => [
+    uniqueIndex("contact_line_one_pending")
+      .on(t.tenantId, t.organizationId)
+      .where(sql`${t.status} = 'pending'`),
+    index("contact_line_org_idx").on(t.tenantId, t.organizationId, t.confirmedAt),
+    foreignKey({
+      columns: [t.tenantId, t.organizationId],
+      foreignColumns: [organizations.tenantId, organizations.id],
+    }),
   ],
 );

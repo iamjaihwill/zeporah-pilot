@@ -5,6 +5,10 @@ Every change that alters behaviour is recorded here in the pull request that mak
 
 ## Unreleased
 
+- The 24-hour line (decision 72): an administrator proposes a change and someone else confirms it by
+  calling it before families see it; re-confirmed every 90 days and flagged on System status; an
+  optional backup line; a US phone-number check; the staff record shows the live line instead of a
+  stored copy. Migration `0029_contact_line`.
 - Staff read-access logging (decision 71, PB-12): opening a household's record or a list view is
   recorded in an append-only access log (migration `0028_access_log`), reviewable by privileged
   reviewers and administrators on "Who opened records". A read that can't be recorded is refused.

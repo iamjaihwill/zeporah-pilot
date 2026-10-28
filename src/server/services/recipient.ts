@@ -12,6 +12,7 @@
  *   never the hospice's household, the patient, the purpose or any packet content.
  * - Everything is audit-logged; the recipient's own access history is shown to them and to staff.
  */
+import { lineForFamilies } from "@/domain/contact-line";
 import { and, desc, eq, gt, inArray, isNull, lte, sql } from "drizzle-orm";
 import type { Conn, DB } from "../db/client";
 import * as s from "../db/schema";
@@ -324,7 +325,11 @@ export async function recipientPacket(db: DB, ctx: ActorContext, packetId: strin
       and(eq(s.packetReleaseReceipts.tenantId, ctx.tenantId), eq(s.packetReleaseReceipts.id, a.receiptId)),
     );
   const [h] = await db
-    .select({ org: s.organizations.name, hotline: s.organizations.afterHoursLine })
+    .select({
+      org: s.organizations.name,
+      line: s.organizations.afterHoursLine,
+      backup: s.organizations.afterHoursBackupLine,
+    })
     .from(s.households)
     .innerJoin(
       s.organizations,
@@ -393,7 +398,7 @@ export async function recipientPacket(db: DB, ctx: ActorContext, packetId: strin
       status === "active" ? await materials(db, ctx.tenantId, p.householdId, receipt?.manifest ?? []) : null,
     manifest: (receipt?.manifest ?? []).map((c) => SHARE_CATEGORY_LABELS[c as ShareCategory]),
     history: history.map((x) => ({ id: x.id, action: x.action, at: x.at })),
-    hotline: h?.hotline ?? null,
+    hotline: h ? lineForFamilies(h.line, h.backup) : null,
   };
 }
 

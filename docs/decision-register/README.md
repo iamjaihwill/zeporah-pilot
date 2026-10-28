@@ -22,4 +22,4 @@ production readiness.
 | D-12 | Accessibility commitment and validation threshold                      | W10 · PB-16                | When W10 starts                                                  | Not yet written             |
 | D-13 | Release governance and production-change approval                      | W1 · PB-01                 | With D-01's build-out                                            | Not yet written             |
 | D-14 | Permanent separation of demo, pilot and production                     | W3 · PB-02                 | With D-02's build-out                                            | Not yet written             |
-| D-15 | A verified 24-hour clinical line                                       | PB-22 (proposed)           | [D-15-verified-clinical-line.md](D-15-verified-clinical-line.md) | Written, awaiting decision  |
+| D-15 | A verified 24-hour clinical line                                       | PB-22 (proposed)           | [D-15-verified-clinical-line.md](D-15-verified-clinical-line.md) | Decided → #72               |
