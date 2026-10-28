@@ -5,6 +5,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { CORRECTION_CATEGORIES } from "@/domain/consent";
+import { submissionId } from "@/domain/submission";
 
 const server = () => import("@/server/api");
 const id = z.object({ id: z.string().min(1) });
@@ -124,10 +125,10 @@ export const getThread = createServerFn({ method: "GET" }).handler(async () => {
 });
 
 export const sendFamilyMessage = createServerFn({ method: "POST" })
-  .validator(z.object({ body: z.string().max(4000) }))
+  .validator(z.object({ body: z.string().max(4000), submissionId }))
   .handler(async ({ data }) => {
     const { run, family } = await server();
-    return run((db, ctx) => family.sendFamilyMessage(db, ctx, data.body));
+    return run((db, ctx) => family.sendFamilyMessage(db, ctx, data.body, data.submissionId));
   });
 
 export const acknowledgeUpdate = createServerFn({ method: "POST" })
@@ -231,6 +232,7 @@ export const requestHumanSupport = createServerFn({ method: "POST" })
       contactTime: z.string().max(100),
       aboutUpdateId: z.string().max(100).optional(),
       sendAgain: z.boolean().optional(),
+      submissionId,
     }),
   )
   .handler(async ({ data }) => {

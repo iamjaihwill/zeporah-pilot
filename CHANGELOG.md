@@ -5,6 +5,9 @@ Every change that alters behaviour is recorded here in the pull request that mak
 
 ## Unreleased
 
+- Messages and support requests send once: a retry after a lost reply returns the first copy
+  (migration `0025_submission_ids`). When no reply comes back, the composers say the send couldn't
+  be confirmed and that sending again is safe, instead of "nothing was changed".
 - Audit: appends to a hospice's chain happen one at a time and the database refuses a fork
   (migration `0024_audit_chain_link`). The chain check reports each finding; System status shows
   "No findings" with its limit instead of "Verified".

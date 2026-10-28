@@ -12,6 +12,7 @@ import type { Conn, DB } from "../db/client";
 import * as s from "../db/schema";
 import { appendAudit } from "../audit";
 import { closeOpenCorrection } from "./corrections";
+import { createOnce, messageBySubmission } from "./send-once";
 import { hashToken, looksLikeEmail, newToken, normalizeEmail } from "../auth/crypto";
 import { INVITATION_DAYS } from "./auth";
 import { currentMessageExpectation } from "./settings";
@@ -1195,7 +1196,12 @@ export async function getThread(db: DB, ctx: ActorContext) {
   };
 }
 
-export async function sendFamilyMessage(db: DB, ctx: ActorContext, body: string) {
+/**
+ * Sends a message to the care guide. With a submission ID, sending again (after a lost reply)
+ * returns the first copy and notifies no one twice. Returns the server's ID and time: the screen
+ * says "sent" only after this.
+ */
+export async function sendFamilyMessage(db: DB, ctx: ActorContext, body: string, submissionId?: string) {
   const scope = await familyScope(db, ctx, "thread.send");
   const text = body.trim();
   if (!text) throw new AccessError("INVALID", "Write a message first.");
@@ -1207,7 +1213,23 @@ export async function sendFamilyMessage(db: DB, ctx: ActorContext, body: string)
       "NOT_PERMITTED",
       "Messaging turns on once communication settings are chosen in setup.",
     );
-  await db.transaction(async (tx) => {
+  const { row, replayed } = await createOnce(
+    submissionId,
+    () => messageBySubmission(db, ctx, submissionId!),
+    (m) => m.body === text && m.householdId === scope.householdId,
+    () => insertFamilyMessage(db, ctx, scope, text, submissionId),
+  );
+  return { id: row.id, sentAt: row.createdAt, replayed };
+}
+
+async function insertFamilyMessage(
+  db: DB,
+  ctx: ActorContext,
+  scope: FamilyScope,
+  text: string,
+  submissionId: string | undefined,
+) {
+  return db.transaction(async (tx) => {
     const [m] = await tx
       .insert(s.messages)
       .values({
@@ -1217,6 +1239,7 @@ export async function sendFamilyMessage(db: DB, ctx: ActorContext, body: string)
         authorActorId: ctx.actorId,
         authorSide: "family",
         body: text,
+        submissionId: submissionId ?? null,
       })
       .returning();
     await appendAudit(tx, {
@@ -1250,6 +1273,7 @@ export async function sendFamilyMessage(db: DB, ctx: ActorContext, body: string)
       title: "There's a new message from your care team",
       link: `/family/messages#entry-${m!.id}`,
     });
+    return m!;
   });
 }
 
@@ -2188,9 +2212,16 @@ async function raiseFamilyRequest(
   db: DB,
   ctx: ActorContext,
   scope: FamilyScope,
-  e: { kind: string; sourceType: string; sourceId: string | null; summary: string; topic?: string | null },
+  e: {
+    kind: string;
+    sourceType: string;
+    sourceId: string | null;
+    summary: string;
+    topic?: string | null;
+    submissionId?: string | null;
+  },
 ) {
-  await db.transaction(async (tx) => {
+  return db.transaction(async (tx) => {
     const [row] = await tx
       .insert(s.escalations)
       .values({ tenantId: ctx.tenantId, householdId: scope.householdId, raisedByActorId: ctx.actorId, ...e })
@@ -2216,6 +2247,7 @@ async function raiseFamilyRequest(
       title: "A household asked for a person to follow up",
       link: "/staff/exceptions?view=all&kind=escalation",
     });
+    return row!;
   });
 }
 
@@ -2239,10 +2271,13 @@ export async function requestHumanSupport(
     aboutUpdateId?: string | undefined;
     /** The person saw the duplicate check and chose to send again. */
     sendAgain?: boolean | undefined;
+    /** The device's ID for this request: a retry after a lost reply isn't sent twice. */
+    submissionId?: string | undefined;
   },
   now = new Date(),
 ) {
   const scope = await familyScope(db, ctx, "support.request");
+  const sid = input.submissionId;
   const body = input.message.trim().slice(0, 1000);
   let about: { id: string; title: string } | null = null;
   if (input.aboutUpdateId) {
@@ -2261,7 +2296,9 @@ export async function requestHumanSupport(
     about = u;
   }
   const topic = about ? ABOUT_UPDATE_TOPIC : input.category.trim().slice(0, 80);
-  if (!input.sendAgain) {
+  // The same send arriving again is the first request, not a duplicate to ask about.
+  const prior = sid ? await requestBySubmission(db, ctx, sid) : undefined;
+  if (!prior && !input.sendAgain) {
     const [recent] = await db
       .select({ id: s.escalations.id })
       .from(s.escalations)
@@ -2279,15 +2316,38 @@ export async function requestHumanSupport(
       .limit(1);
     if (recent) throw new AccessError("CONFLICT", DUPLICATE_MESSAGE);
   }
-  await raiseFamilyRequest(db, ctx, scope, {
-    kind: "family_request",
-    sourceType: "support_request",
-    sourceId: about?.id ?? null,
-    topic,
-    summary: about
-      ? `${firstName(ctx.displayName)} has a question about the update “${about.title}”.${body ? ` They wrote: “${body}”` : ""}${input.contactTime ? ` Best time: ${input.contactTime}.` : ""}`
-      : `${firstName(ctx.displayName)} asked to talk with someone about: ${topic}.${body ? ` They wrote: “${body}”` : ""}${input.contactTime ? ` Best time: ${input.contactTime}.` : ""}`,
-  });
+  const { row, replayed } = await createOnce(
+    sid,
+    () => requestBySubmission(db, ctx, sid!),
+    (e) => e.topic === topic && e.sourceId === (about?.id ?? null) && e.householdId === scope.householdId,
+    () =>
+      raiseFamilyRequest(db, ctx, scope, {
+        kind: "family_request",
+        sourceType: "support_request",
+        sourceId: about?.id ?? null,
+        topic,
+        submissionId: sid ?? null,
+        summary: about
+          ? `${firstName(ctx.displayName)} has a question about the update “${about.title}”.${body ? ` They wrote: “${body}”` : ""}${input.contactTime ? ` Best time: ${input.contactTime}.` : ""}`
+          : `${firstName(ctx.displayName)} asked to talk with someone about: ${topic}.${body ? ` They wrote: “${body}”` : ""}${input.contactTime ? ` Best time: ${input.contactTime}.` : ""}`,
+      }),
+  );
+  return { id: row.id, sentAt: row.createdAt, replayed };
+}
+
+/** The request this person already sent under this submission ID, if any. */
+async function requestBySubmission(conn: Conn, ctx: ActorContext, submissionId: string) {
+  const [e] = await conn
+    .select()
+    .from(s.escalations)
+    .where(
+      and(
+        eq(s.escalations.tenantId, ctx.tenantId),
+        eq(s.escalations.raisedByActorId, ctx.actorId),
+        eq(s.escalations.submissionId, submissionId),
+      ),
+    );
+  return e;
 }
 
 /* ------------------------------------------------------------------ bereavement */

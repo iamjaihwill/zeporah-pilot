@@ -439,9 +439,14 @@ export const messages = pgTable(
     authorActorId: text("author_actor_id").notNull(),
     authorSide: text("author_side").$type<"family" | "staff">().notNull(),
     body: text("body").notNull(),
+    /** The sender's own ID for this send, so a retry after a lost reply doesn't send it twice. */
+    submissionId: text("submission_id"),
     createdAt: createdAt(),
   },
   (t) => [
+    uniqueIndex("messages_one_per_submission")
+      .on(t.tenantId, t.authorActorId, t.submissionId)
+      .where(sql`${t.submissionId} is not null`),
     foreignKey({
       columns: [t.tenantId, t.threadId],
       foreignColumns: [messageThreads.tenantId, messageThreads.id],
@@ -850,8 +855,13 @@ export const escalations = pgTable(
     resolvedAt: ts("resolved_at"),
     resolvedByActorId: text("resolved_by_actor_id"),
     resolution: text("resolution"),
+    /** A family request's own ID from the person's device (see messages.submissionId). */
+    submissionId: text("submission_id"),
   },
   (t) => [
+    uniqueIndex("escalations_one_per_submission")
+      .on(t.tenantId, t.raisedByActorId, t.submissionId)
+      .where(sql`${t.submissionId} is not null`),
     foreignKey({
       columns: [t.tenantId, t.householdId],
       foreignColumns: [households.tenantId, households.id],

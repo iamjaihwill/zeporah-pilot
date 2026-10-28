@@ -11,7 +11,7 @@ import {
   takeException,
 } from "@/functions/staff-shell";
 import { activateConsent, giveEscalation, sendStaffMessage, updateEscalation } from "@/functions/staff";
-import { dateOnly, stamp, useAction } from "@/lib/client";
+import { dateOnly, stamp, UNCONFIRMED_SEND, useAction, useSubmission } from "@/lib/client";
 import { Button, ConfirmDialog, ErrorText, inputClass } from "@/components/ui";
 import { StatusChip } from "./status-chip";
 import { Skeleton } from "./page";
@@ -446,6 +446,7 @@ function ConsentDetail({ d, onChanged }: { d: ConsentD; onChanged: () => void })
 
 function MessageDetail({ d, onChanged }: { d: Extract<Detail, { kind: "message" }>; onChanged: () => void }) {
   const { act, pending, error } = useAction();
+  const submission = useSubmission();
   const [body, setBody] = useState("");
   return (
     <div className="space-y-3">
@@ -466,11 +467,15 @@ function MessageDetail({ d, onChanged }: { d: Extract<Detail, { kind: "message" 
         <form
           onSubmit={async (e) => {
             e.preventDefault();
+            const submissionId = submission.idFor(body);
             const r = await act(
-              () => sendStaffMessage({ data: { householdId: d.householdId, body } }),
+              () => sendStaffMessage({ data: { householdId: d.householdId, body, submissionId } }),
               "Reply sent to the household.",
+              undefined,
+              UNCONFIRMED_SEND,
             );
             if (r) {
+              submission.done();
               setBody("");
               onChanged();
             }

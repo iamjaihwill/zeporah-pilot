@@ -68,13 +68,27 @@ a forked chain (migration `0024_audit_chain_link`), and verification that report
 `tests/integration/schema-upgrade.test.ts` were refreshed. System status now reads "No findings"
 instead of "Verified"; nothing else on screen changed.
 
+**Freeze lifted and re-frozen on 2026-10-27** for increment 3 of the brief reconciliation only,
+with the founder's explicit approval: family and staff messages and family support requests send
+once (migration `0025_submission_ids`), and their composers say a send couldn't be confirmed,
+rather than "nothing was changed", when no reply comes back
+([evidence](readiness/evidence/send-once-2026-10-27.md)). The manifest entries for the 14 frozen
+files it touches were refreshed: `src/server/db/schema.ts`,
+`src/server/db/migrations/meta/_journal.json`, `src/server/services/family.ts`,
+`src/server/services/staff.ts`, `src/functions/family.ts`, `src/functions/staff.ts`,
+`src/lib/client.ts`, the five composers (`src/routes/family/messages.tsx`,
+`src/routes/family/support.tsx`, `src/routes/family/me.tsx`,
+`src/routes/staff/households/$householdId.tsx`, `src/components/staff/queue-detail.tsx`),
+`scripts/db-seed-previous.ts` and `tests/integration/schema-upgrade.test.ts`. The only wording that
+changed is that one failure message on those five composers.
+
 ## What's frozen
 
 - **The build:** 403 files covering the application code (including migrations through
   `0023_cover_notice` and seed fixtures), the tests, the configuration, the decision log and
   register, the presentation documents and the 22 run-through screenshots. Each file's SHA-256
   is in [demo-baseline-2026-10-22.sha256](demo-baseline-2026-10-22.sha256), and the manifest's
-  own SHA-256 is `adaab8016e0c2f9c7ee79a9b07ab6c4884698ee8db46ac4542a3b9378db43514`. To check
+  own SHA-256 is `0b2ca17d1b875533547ee92e37299eb7bc16724025a721fd741d419430ad6f67`. To check
   for drift, run `shasum -a 256 -c docs/demo-baseline-2026-10-22.sha256 --quiet`.
 - **The presentation baseline:** [enterprise-demo-map.md](enterprise-demo-map.md) (the script,
   "Presenting it in about 15 minutes", with beat 8's note on decision 62 and an optional 30 s in

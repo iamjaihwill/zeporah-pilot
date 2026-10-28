@@ -7,7 +7,7 @@ import {
   sendFamilyMessage,
   undoAcknowledgeUpdate,
 } from "@/functions/family";
-import { cx, dateTime, isDenied, unwrap, useAction } from "@/lib/client";
+import { cx, dateTime, isDenied, unwrap, UNCONFIRMED_SEND, useAction, useSubmission } from "@/lib/client";
 import {
   Badge,
   Button,
@@ -38,6 +38,7 @@ function Messages() {
   const router = useRouter();
   const [draft, setDraft] = useState("");
   const { act, pending, error } = useAction();
+  const submission = useSubmission();
   const formRef = useRef<HTMLFormElement>(null);
   // The divider stays where it was on arrival, even as new messages are sent (item 9).
   const [since] = useState(() => (isDenied(t) || !t.lastSeenAt ? null : new Date(t.lastSeenAt).getTime()));
@@ -200,14 +201,19 @@ function Messages() {
               ev.preventDefault();
               if (!draft.trim()) return;
               const sent = draft;
+              const submissionId = submission.idFor(sent);
               if (
                 await act(
-                  () => sendFamilyMessage({ data: { body: sent } }),
+                  () => sendFamilyMessage({ data: { body: sent, submissionId } }),
                   "Message sent to your care guide.",
+                  undefined,
+                  UNCONFIRMED_SEND,
                 )
-              )
+              ) {
+                submission.done();
                 // Clear only what was sent, so anything typed meanwhile is kept.
                 setDraft((d) => (d === sent ? "" : d));
+              }
             }}
           >
             <Field

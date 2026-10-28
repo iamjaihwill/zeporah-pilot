@@ -2,6 +2,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { AUTHORITY_TYPES, SHARE_CATEGORIES } from "@/domain/model";
+import { submissionId } from "@/domain/submission";
 import { IDENTITY_LINK_BASES } from "@/domain/authority-identity";
 
 const server = () => import("@/server/api");
@@ -65,7 +66,7 @@ export const composeUpdate = createServerFn({ method: "POST" })
   });
 
 export const sendStaffMessage = createServerFn({ method: "POST" })
-  .validator(hid.extend({ body: z.string().max(4000), prepared: z.boolean().optional() }))
+  .validator(hid.extend({ body: z.string().max(4000), prepared: z.boolean().optional(), submissionId }))
   .handler(async ({ data }) => {
     const { run, staff } = await server();
     return run((db, ctx) => staff.sendStaffMessage(db, ctx, data));

@@ -1,7 +1,7 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { addPrivateNote, editPrivateNote, getPatientView, requestHumanSupport } from "@/functions/family";
-import { isDenied, unwrap, useAction } from "@/lib/client";
+import { isDenied, unwrap, UNCONFIRMED_SEND, useAction, useSubmission } from "@/lib/client";
 import {
   Button,
   ButtonLink,
@@ -283,6 +283,7 @@ function FlagConcern() {
   const [message, setMessage] = useState("");
   const [sent, setSent] = useState(false);
   const { act, pending, error } = useAction();
+  const submission = useSubmission();
   return (
     <Card title="Ask for help or flag a concern">
       {sent ? (
@@ -292,11 +293,20 @@ function FlagConcern() {
           className="space-y-3"
           onSubmit={async (e) => {
             e.preventDefault();
+            const submissionId = submission.idFor(message);
             const r = await act(
-              () => requestHumanSupport({ data: { category: CONCERN_TOPIC, message, contactTime: "" } }),
+              () =>
+                requestHumanSupport({
+                  data: { category: CONCERN_TOPIC, message, contactTime: "", submissionId },
+                }),
               "Sent to your care team.",
+              undefined,
+              UNCONFIRMED_SEND,
             );
-            if (r) setSent(true);
+            if (r) {
+              submission.done();
+              setSent(true);
+            }
           }}
         >
           <Field

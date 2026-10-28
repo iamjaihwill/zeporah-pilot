@@ -13,6 +13,7 @@ import { careGuideNames, careTeam } from "./assignments";
 import { recordContext, timelineEvents } from "./record";
 import { commandCenter } from "./command-center";
 import { preparedDrafts, usedPreparedDraft } from "./prepared";
+import { createOnce, messageBySubmission } from "./send-once";
 import { ESCALATION_STATUS_LABELS } from "@/domain/labels";
 import { bereavementWorkload, createPlanInTx, staffPlan } from "./bereavement";
 import { careGuideMayComplete, markFamilyTaskDone } from "./tasks";
@@ -1674,14 +1675,38 @@ export async function composeUpdate(
 export async function sendStaffMessage(
   db: DB,
   ctx: ActorContext,
-  input: { householdId: string; body: string; prepared?: boolean | undefined },
+  input: {
+    householdId: string;
+    body: string;
+    prepared?: boolean | undefined;
+    /** The device's ID for this send: a retry after a lost reply isn't sent twice. */
+    submissionId?: string | undefined;
+  },
 ) {
   const scope = await staffScope(db, ctx, input.householdId, "staff.thread.send");
   // Started from a synthetic prepared draft (decision 58): the person is still the actor.
   const prepared = await usedPreparedDraft(db, ctx, scope.householdId, input.prepared);
   const text = input.body.trim();
   if (!text) throw new AccessError("INVALID", "Write a message first.");
-  await db.transaction(async (tx) => {
+  const sid = input.submissionId;
+  const { row, replayed } = await createOnce(
+    sid,
+    () => messageBySubmission(db, ctx, sid!),
+    (m) => m.body === text && m.householdId === scope.householdId,
+    () => insertStaffMessage(db, ctx, scope, text, prepared, sid),
+  );
+  return { id: row.id, sentAt: row.createdAt, replayed };
+}
+
+async function insertStaffMessage(
+  db: DB,
+  ctx: ActorContext,
+  scope: Awaited<ReturnType<typeof staffScope>>,
+  text: string,
+  prepared: boolean,
+  submissionId: string | undefined,
+) {
+  return db.transaction(async (tx) => {
     const [m] = await tx
       .insert(s.messages)
       .values({
@@ -1691,6 +1716,7 @@ export async function sendStaffMessage(
         authorActorId: ctx.actorId,
         authorSide: "staff",
         body: text,
+        submissionId: submissionId ?? null,
       })
       .returning();
     await appendAudit(tx, {
@@ -1716,6 +1742,7 @@ export async function sendStaffMessage(
       link: `/family/messages#entry-${m!.id}`,
     });
     await markLinkRead(tx, ctx.tenantId, ctx.actorId, `/staff/households/${scope.householdId}?tab=messages`);
+    return m!;
   });
 }
 

@@ -3,7 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { z } from "zod";
 import { useState } from "react";
 import { getSupport, requestHumanSupport, saveSupportPreferences } from "@/functions/family";
-import { isDenied, unwrap, useAction } from "@/lib/client";
+import { isDenied, unwrap, UNCONFIRMED_SEND, useAction, useSubmission } from "@/lib/client";
 import { supportConfirmation } from "@/domain/claims";
 import {
   Stamp,
@@ -177,23 +177,34 @@ function AskAPerson({
   // Set when the server says "you sent this a moment ago": the next send is deliberate.
   const [duplicate, setDuplicate] = useState(false);
   const { act, pending, error, setError } = useAction();
+  const submission = useSubmission();
   const send = async (sendAgain: boolean) => {
     const sent = message;
-    const r = await act(async () => {
-      const res = await requestHumanSupport({
-        data: {
-          category,
-          message: sent,
-          contactTime: time,
-          ...(about ? { aboutUpdateId: about.id } : {}),
-          ...(sendAgain ? { sendAgain: true } : {}),
-        },
-      });
-      // The same request a moment ago: ask before sending a second one.
-      if (!res.ok && res.code === "CONFLICT") setDuplicate(true);
-      return res;
-    }, confirmation);
+    // Choosing "send again" is a second request on purpose, so it gets its own ID.
+    if (sendAgain) submission.done();
+    const submissionId = submission.idFor(JSON.stringify([category, sent, time, about?.id ?? null]));
+    const r = await act(
+      async () => {
+        const res = await requestHumanSupport({
+          data: {
+            category,
+            message: sent,
+            contactTime: time,
+            ...(about ? { aboutUpdateId: about.id } : {}),
+            ...(sendAgain ? { sendAgain: true } : {}),
+            submissionId,
+          },
+        });
+        // The same request a moment ago: ask before sending a second one.
+        if (!res.ok && res.code === "CONFLICT") setDuplicate(true);
+        return res;
+      },
+      confirmation,
+      undefined,
+      UNCONFIRMED_SEND,
+    );
     if (r) {
+      submission.done();
       setDuplicate(false);
       setMessage((m) => (m === sent ? "" : m));
       document.getElementById("your-requests")?.focus();

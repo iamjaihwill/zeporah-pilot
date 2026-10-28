@@ -27,7 +27,17 @@ import {
   sendStaffMessage,
   submitEvidence,
 } from "@/functions/staff";
-import { cx, dateOnly, dateTime, isDenied, stamp, unwrap, useAction } from "@/lib/client";
+import {
+  cx,
+  dateOnly,
+  dateTime,
+  isDenied,
+  stamp,
+  UNCONFIRMED_SEND,
+  unwrap,
+  useAction,
+  useSubmission,
+} from "@/lib/client";
 import {
   Stamp,
   Badge,
@@ -397,6 +407,7 @@ function MessagesTab({ o }: { o: Overview }) {
   // Started from the synthetic prepared draft (decision 58): recorded with the message.
   const [usedPrepared, setUsedPrepared] = useState(false);
   const { act, pending, error } = useAction();
+  const submission = useSubmission();
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_20rem]">
       <section aria-labelledby="thread">
@@ -435,16 +446,21 @@ function MessagesTab({ o }: { o: Overview }) {
             onSubmit={async (e) => {
               e.preventDefault();
               const sent = draft;
+              const submissionId = submission.idFor(sent);
               if (
                 await act(
                   () =>
                     sendStaffMessage({
-                      data: { householdId: o.household.id, body: sent, prepared: usedPrepared },
+                      data: { householdId: o.household.id, body: sent, prepared: usedPrepared, submissionId },
                     }),
                   "Message sent to the household.",
+                  undefined,
+                  UNCONFIRMED_SEND,
                 )
-              )
+              ) {
+                submission.done();
                 setDraft((d) => (d === sent ? "" : d));
+              }
             }}
           >
             {o.prepared && !usedPrepared && (

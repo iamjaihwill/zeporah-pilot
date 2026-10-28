@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { PILOT_DISPLAY } from "@/domain/display-config";
 import { dateParts } from "@/domain/dates";
+import { newSubmissionId } from "@/domain/submission";
 import { redirect, useRouter } from "@tanstack/react-router";
 
 type Fail = { ok: false; code: string; message: string; reference?: string };
@@ -53,6 +54,11 @@ export function useAction() {
     success?: string,
     /** For reversible actions: what Undo does (another server call). */
     undo?: (data: T) => () => Promise<Res<unknown>>,
+    /**
+     * For sends that are safe to retry (useSubmission): what to say when no reply came back. The
+     * send may have arrived, so the usual "nothing was changed" would be wrong.
+     */
+    unconfirmed?: string,
   ): Promise<{ data: T } | undefined> {
     setPending(true);
     setError(null);
@@ -92,7 +98,7 @@ export function useAction() {
         );
       return { data: r.data };
     } catch {
-      const msg = "That didn't go through. Please try again — nothing was changed.";
+      const msg = unconfirmed ?? "That didn't go through. Please try again — nothing was changed.";
       setError(msg);
       announce(msg, "problem");
       return undefined;
@@ -101,6 +107,28 @@ export function useAction() {
     }
   }
   return { act, pending, error, setError };
+}
+
+/** When a send got no reply: it may have arrived, and sending again is safe. */
+export const UNCONFIRMED_SEND =
+  "We couldn't confirm this was sent. Check your connection and send it again: it won't arrive twice.";
+
+/**
+ * One submission ID per send (brief reconciliation increment 3). The same content keeps its ID
+ * until the server confirms it, so sending again after a lost reply can't make a second copy;
+ * new content, or `done()` after a confirmed send, starts a new ID.
+ */
+export function useSubmission() {
+  const current = useRef<{ key: string; id: string } | null>(null);
+  return {
+    idFor(key: string) {
+      if (current.current?.key !== key) current.current = { key, id: newSubmissionId() };
+      return current.current.id;
+    },
+    done() {
+      current.current = null;
+    },
+  };
 }
 
 /* ---------------- dates ---------------- */
