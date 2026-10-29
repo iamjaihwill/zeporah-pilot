@@ -24,3 +24,8 @@ production readiness.
 | D-14 | Permanent separation of demo, pilot and production                     | W3 · PB-02                 | With D-02's build-out                                                | Not yet written             |
 | D-15 | A verified 24-hour clinical line                                       | PB-22 (proposed)           | [D-15-verified-clinical-line.md](D-15-verified-clinical-line.md)     | Decided → #72               |
 | D-16 | Delivery, retries and fallback (brief §14)                             | §14 · D-06                 | [D-16-delivery-and-fallback.md](D-16-delivery-and-fallback.md)       | Decided → #88–91            |
+
+Short briefs for the items marked "Not yet written", and for product questions that have no ID
+(pilot terms and state, selected-participant messaging, pediatric inclusion, safeguarding, death
+before activation), are in [outstanding-briefs-2026-10-29.md](outstanding-briefs-2026-10-29.md).
+They are proposals; the statuses above are unchanged.
