@@ -5,6 +5,11 @@ Every change that alters behaviour is recorded here in the pull request that mak
 
 ## Unreleased
 
+- Tests (threat T19): a complete-output check (`scripts/check-output-redaction.ts`, in the full CI
+  run) drives seven scenarios with unique markers on the development server and a local
+  production build and fails if any marker, the password or the session token reaches server
+  output, the browser console or a table it shouldn't. The error-redaction tests now cover every
+  error shape, with four known gaps recorded as expected failures. No application change.
 - Tests (PB-06, PB-05): a browser spec sends five kinds of cross-site request to every server
   function that changes data (listed from the source; 124) and expects each refused, plus a real
   send that must never arrive; another checks the header baseline on every response type and HSTS

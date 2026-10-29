@@ -23,6 +23,10 @@ step "End-to-end"; bunx playwright test
 step "Read-only mode"; bunx playwright test --config playwright.readonly.config.ts
 step "Upgrade and downgrade"; bunx playwright test --config playwright.upgrade.config.ts
 step "Verify (includes macOS pixel baselines)"; bunx playwright test --config playwright.verify.config.ts
+# Threat T19: what people type never appears in server output or the browser console, on the
+# development server and a local production build (docs/readiness/evidence/logging-paths-2026-10-29.md).
+step "Complete-output redaction (development server)"; bun scripts/check-output-redaction.ts --server dev
+step "Complete-output redaction (local production build)"; bun scripts/check-output-redaction.ts --server prod
 
 # e2e-verify/sweep.spec.ts (frozen) rewrites docs/review-screenshots/after on every run. Put those
 # back, then fail on any other change the run made to tracked files. Fix the spec when the freeze
