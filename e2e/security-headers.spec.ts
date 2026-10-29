@@ -73,14 +73,24 @@ test("HSTS is added when the request arrived over https, and only then", async (
 });
 
 /**
- * Known gap, found 2026-10-29: an error the framework raises before the app's handlers run (here,
- * an unknown server function address) escapes the header middleware in src/start.ts, so its 500
- * reply has no baseline headers. Marked as expected to fail so it reports when fixed. The fix (a
- * catch around `next()` in src/start.ts) changes the demo build's behaviour and waits for a lift.
+ * Found 2026-10-29 and fixed the same day under a freeze lift: an error the framework raises before
+ * the app's handlers run (here, an unknown server function address) used to escape the header
+ * middleware in src/start.ts, so its 500 reply had no baseline headers. The reply keeps the
+ * framework's own body.
  */
-test("a framework error before any handler still carries the baseline (known gap)", async ({ page }) => {
-  test.fail();
-  const res = await page.request.post("/_serverFn/not-a-function", { data: {} });
-  expect(res.status()).toBe(500);
-  expectBaseline(res, "framework error");
+test("a framework error before any handler still carries the baseline", async ({ page }) => {
+  for (const [label, call] of [
+    ["unknown server function (POST)", () => page.request.post("/_serverFn/not-a-function", { data: {} })],
+    ["unknown server function (GET)", () => page.request.get("/_serverFn/not-a-function")],
+  ] as const) {
+    const res = await call();
+    expect(res.status(), label).toBe(500);
+    expect(await res.json(), label).toEqual({ status: 500, unhandled: true, message: "HTTPError" });
+    expectBaseline(res, label);
+  }
+  const https = await page.request.post("/_serverFn/not-a-function", {
+    headers: { "X-Forwarded-Proto": "https" },
+    data: {},
+  });
+  expectBaseline(https, "framework error over https", HTTPS);
 });

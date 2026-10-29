@@ -13,10 +13,26 @@ const hostOf = (request: Request) =>
  * (behind the load balancer, X-Forwarded-Proto says so).
  */
 const headers = createMiddleware().server(async ({ request, next }) => {
-  const result = await next();
   const proto =
     request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim() || new URL(request.url).protocol;
   const add = securityHeaders({ https: proto.replace(/:$/, "") === "https" });
+  let result: Awaited<ReturnType<typeof next>>;
+  try {
+    result = await next();
+  } catch (e) {
+    // An error the framework raises before any handler runs (an unknown server function address,
+    // for one) would otherwise reach the browser as the framework's own 500 without these headers.
+    // Send the same reply, with them. A thrown Response (a redirect) keeps its status and body.
+    let response: Response;
+    if (e instanceof Response)
+      response = new Response(e.body, { status: e.status, statusText: e.statusText, headers: e.headers });
+    else {
+      console.error(e);
+      response = Response.json({ status: 500, unhandled: true, message: "HTTPError" }, { status: 500 });
+    }
+    for (const [k, v] of Object.entries(add)) response.headers.set(k, v);
+    return response;
+  }
   // No response yet (the framework reports that itself): nothing to add headers to.
   if (!result.response) return result;
   try {

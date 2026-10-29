@@ -42,22 +42,26 @@ It adds two browser specs and changes no application file and no frozen file.
 
 ## Results
 
-| Command                                                                    | Result                                                                                                                              |
-| -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `bunx playwright test e2e/cross-site.spec.ts e2e/security-headers.spec.ts` | 7 passed, one of them the known gap marked as expected to fail (below)                                                              |
-| `bunx playwright test` (whole browser suite, with the two new specs)       | 208 passed (201 as before plus the 7 new tests, one of which is the expected failure), 2 skipped (the same two as before), 0 failed |
+| Command                                                                    | Result                                                                                                                                                       |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `bunx playwright test e2e/cross-site.spec.ts e2e/security-headers.spec.ts` | 7 passed (after the fix in finding 1, all as normal tests)                                                                                                   |
+| `bunx playwright test` (whole browser suite, with the two new specs)       | 208 passed before the fix (201 as before plus the 7 new tests); after the fix: 208 passed, 2 skipped, 0 failed, 2 skipped (the same two as before), 0 failed |
+
+After the `src/start.ts` fix, every suite was run again: quick CI (types, formatting, links,
+tracker, baseline, migrations, advisories) passed; unit and integration 622 of 622; browser suite
+208 passed, 2 skipped; read-only 2 passed; upgrade and downgrade 10 passed; verify 22 passed, 12
+skipped (the screenshot-capture specs, run on request only).
 
 ## Findings
 
-1. **Framework errors before any handler have no security headers (low).** A request to an unknown
-   server function address gets the framework's own 500 reply without any baseline header. The
-   error escapes `next()` in the header middleware (`src/start.ts`). The reply is a short JSON error
-   with no household data, so the exposure is small, but PB-05's closure criterion is "every
-   response carries the policy". **Proposed fix:** catch around `next()` in that middleware and send a
-   plain 500 with the baseline. `src/start.ts` isn't in the frozen manifest, but it runs on every
-   demo request, and earlier changes to it were made under a lift; so it waits for the founder's
-   approval. The spec keeps this case as a test marked "expected to fail", so it reports as soon as
-   the gap is fixed.
+1. **Framework errors before any handler had no security headers (low). Fixed the same day.** A
+   request to an unknown server function address got the framework's own 500 reply without any
+   baseline header, because the error escaped `next()` in the header middleware (`src/start.ts`).
+   The reply is a short JSON error with no household data, but PB-05's closure criterion is "every
+   response carries the policy". With the founder's approval (a freeze lift for `src/start.ts` only),
+   the middleware now catches that error and sends the same reply (same status and body) with the
+   baseline; a thrown `Response` keeps its own status and body. The spec's test for it, first
+   marked "expected to fail", is now a normal test covering POST, GET and https.
 2. **A refused send surfaces as an uncaught page error (low).** When the page's own send is
    refused, the client throws the refusal as an uncaught error instead of showing the composer's
    error state. A real person only meets this if their address configuration is wrong (an Origin

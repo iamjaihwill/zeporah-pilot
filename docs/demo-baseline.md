@@ -199,6 +199,14 @@ for GHSA-f86p-h4j2-7qgj and GHSA-9wx9-5pv9-3349 (both moderate). Both are TanSta
 dependencies and 1.6.11 is within the `^1.6.7` range it asks for, so `package.json` is unchanged.
 The manifest entry for `bun.lock` was refreshed. **What a demo now shows differently:** nothing.
 
+**Freeze lifted on 2026-10-29** for `src/start.ts` only, with the founder's explicit approval: the
+header middleware now catches an error the framework raises before any handler runs (for example, a
+request to an unknown server function address) and sends the same 500 reply with the security
+headers, which it had been missing
+([evidence](readiness/evidence/security-evidence-2026-10-29.md)). The file isn't in the manifest, so
+no entry changed; it's recorded because it runs on every demo request. **What a demo now shows
+differently:** nothing.
+
 ## What's frozen
 
 - **The build:** 403 files covering the application code (including migrations through

@@ -114,12 +114,12 @@
         },
         {
           "type": "test",
-          "ref": "docs/readiness/evidence/security-evidence-2026-10-29.md (e2e/security-headers.spec.ts: the baseline on every response type tested; HSTS only over https: passed; one known gap, framework errors before any handler, recorded as expected to fail)",
+          "ref": "docs/readiness/evidence/security-evidence-2026-10-29.md (e2e/security-headers.spec.ts: the baseline on every response type tested; HSTS only over https: passed; including framework errors raised before any handler, after the 2026-10-29 fix in src/start.ts)",
           "date": "2026-10-29"
         }
       ],
       "approvals": [],
-      "note": "Header baseline built (src/domain/security-headers.ts, src/start.ts); an end-to-end test now checks every response type (2026-10-29). Still needed: headers on framework errors raised before any handler (found 2026-10-29; the fix in src/start.ts waits for a lift), a nonce-based script policy in place of 'unsafe-inline', headers on static files at the edge (PB-02), and a scan of staging."
+      "note": "Header baseline built (src/domain/security-headers.ts, src/start.ts); an end-to-end test now checks every response type (2026-10-29). Framework errors raised before any handler now carry the headers too (found and fixed 2026-10-29 under a lift). Still needed: a nonce-based script policy in place of 'unsafe-inline', headers on static files at the edge (PB-02), and a scan of staging."
     },
     {
       "id": "PB-06",

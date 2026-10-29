@@ -8,8 +8,8 @@ Every change that alters behaviour is recorded here in the pull request that mak
 - Tests (PB-06, PB-05): a browser spec sends five kinds of cross-site request to every server
   function that changes data (listed from the source; 124) and expects each refused, plus a real
   send that must never arrive; another checks the header baseline on every response type and HSTS
-  only over https. One known gap is recorded as an expected failure: framework errors raised before
-  any handler carry no security headers. No application change.
+  only over https. Framework errors raised before any handler (an unknown server function address)
+  now carry the security headers too; their status and body are unchanged.
 - Security: seroval and seroval-plugins 1.6.11 (from 1.6.9) for GHSA-f86p-h4j2-7qgj and
   GHSA-9wx9-5pv9-3349, within the range TanStack Start already allows.
 - Outbox (decisions 88–91): every outgoing email is saved with the change it reports and sent
