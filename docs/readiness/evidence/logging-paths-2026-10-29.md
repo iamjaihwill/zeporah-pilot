@@ -1,8 +1,8 @@
 # Evidence: logging-path assessment for threat T19, 2026-10-29
 
 **Status: an assessment with local, synthetic evidence. T19 stays partial. Nothing here closes T19
-or shows the application is ready for hosting.** No frozen file was changed; the corrections that
-need a lift are proposed in §5. Revision: `main` after `5b1cabb`, plus the files this note
+or shows the application is ready for hosting.** Corrections L1–L3 were made the same day under
+the founder's lift (§7); L4 and L5 remain proposals. Revision: `main` after `5b1cabb`, plus the files this note
 introduces. Threat model: [threat-model.md](../../architecture/threat-model.md) (T19).
 
 ## 1. The emission that printed the refused-send text
@@ -40,7 +40,7 @@ them, and never on the production build.
 Every case confirms first that the private text is in the thrown value. Tests:
 `tests/unit/errors.test.ts` (existing, frozen) and `tests/integration/error-redaction.test.ts`.
 
-| Shape                                                                                     | Logged?                     | Test                               |
+| Shape                                                                                     | Logged when found           | Test                               |
 | ----------------------------------------------------------------------------------------- | --------------------------- | ---------------------------------- |
 | Query parameters in the message (`params: …`)                                             | No                          | Both files; real insert and update |
 | Query parameters in a stack line                                                          | No                          | `error-redaction`                  |
@@ -54,7 +54,7 @@ Every case confirms first that the private text is in the thrown value. Tests:
 | **An error message that quotes a value**                                                  | **Yes**                     | `error-redaction`, `it.fails`      |
 | **A cause's message that quotes a value**                                                 | **Yes**                     | `error-redaction`, `it.fails`      |
 
-The four leaks are kept as expected failures (`it.fails`), each checked to fail on the leak itself
+Since L1 (§7), none of these shapes is logged, and all eleven pass. When found, the four leaks were kept as expected failures (`it.fails`), each checked to fail on the leak itself
 and not on its precondition. Reachability today: the app's own thrown messages quote configuration
 only (`src/domain/addresses.ts`, `src/domain/record-classes.ts`, `src/fixtures/demo-week.ts`), and
 zod validates types before a query runs, so no route found reaches a quoting database cause with
@@ -127,7 +127,7 @@ A local production build is not a deployment: nothing left this computer.
 | E9  | Harness output files                                       | `scripts/check-output-redaction.ts`                                      | Complete captured output                                                | Git-ignored `.data/`                         | Local                              | —                                                                   | Synthetic only                                                                                  | —                                       |
 | E10 | TanStack Start startup notice                              | Server start                                                             | Fixed text about its CSRF middleware                                    | Fixed                                        | Development and production         | Captured                                                            | None (noise)                                                                                    | Optional: silence it in the lift for L3 |
 
-## 6. Proposed corrections (each needs the founder's lift; none is made)
+## 6. Proposed corrections (L1–L3 made under a lift, see §7; L4 and L5 still proposals)
 
 **L1. Log approved diagnostic categories only** (`src/server/observability.ts`, frozen).
 
@@ -175,6 +175,46 @@ A local production build is not a deployment: nothing left this computer.
 - **Proposal:** record as a standing condition that test suites never run against an environment
   with real data (D-14). Consider `trace: "off"` in CI if hosted CI is ever pointed at anything
   else.
+
+## 7. Corrections made (2026-10-29, under the founder's lift)
+
+The founder lifted the freeze for L1–L3, and for `tests/unit/environment.test.ts`, whose
+error-reporting test checked the old log line and wasn't named in the L1 proposal (approved
+separately when found).
+
+- **L1** (`src/server/observability.ts`). The line now holds only:
+  - level, time, reference and type;
+  - a category: `database`, `error` or `non-error`;
+  - for a database error, the SQLSTATE `code` and any `constraint`, `table` and `column` that are
+    plain schema names (checked against an identifier pattern);
+  - call frames only, at most six.
+
+  No message, no cause message, and no first stack line. `tests/unit/errors.test.ts` and
+  `tests/unit/environment.test.ts` now expect these fields. The four expected failures in
+  `error-redaction.test.ts` are normal tests and pass. The type-error case keeps `code: "22P02"`
+  instead of the quoted value.
+
+- **L2** (`src/functions/session.ts`). An unexpected sign-in error is reported with `reportError`.
+  The person sees the same words. The output check's production run starts a second server
+  without `ZEPORAH_ENVIRONMENT`, signs in, and requires the generic message and one structured line.
+- **L3** (`vite.config.ts`). `forwardConsole: false`. The self-test now fails if the planted
+  marker reaches the server's output. With the agent variables present it stays in the browser.
+
+| Check after the corrections                                                                          | Result                                                                                  |
+| ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Quick CI (types, formatting, links, tracker, baseline, migrations, advisories, unit and integration) | Passed; 634 of 634, no expected failures                                                |
+| Output check: development, agent present and removed; production, agent present and removed          | Passed, no problems; L2 scenario passed in both production runs                         |
+| Self-test: development with the agent present, development without it, production                    | Caught, in the browser console only, in all three                                       |
+| Browser suites (end-to-end, read-only, upgrade, verify)                                              | End-to-end 208 passed, 2 skipped; read-only 2; upgrade 10; verify 22 passed, 12 skipped |
+
+**Still open for T19:**
+
+- **Framework output (E4, L4):** printed before the app sees the error.
+- **Test traces and runner output (E7, E8, L5):** safe while data is synthetic.
+- **Staff-side scenarios:** not yet in the output check.
+- **Hosted log pipeline:** none exists yet.
+
+T19 stays partial.
 
 ## Limits
 

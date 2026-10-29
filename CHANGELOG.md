@@ -5,6 +5,10 @@ Every change that alters behaviour is recorded here in the pull request that mak
 
 ## Unreleased
 
+- Error lines (threat T19, corrections L1–L3): the server's error line now holds only the error's
+  type, a category, a database error's code and schema names, and call frames, never a message.
+  An unexpected error during sign-in is now reported (the person sees the same words). The
+  development server no longer copies the browser's console into its terminal.
 - Tests (threat T19): a complete-output check (`scripts/check-output-redaction.ts`, in the full CI
   run) drives seven scenarios with unique markers on the development server and a local
   production build and fails if any marker, the password or the session token reaches server

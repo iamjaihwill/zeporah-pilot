@@ -140,6 +140,10 @@ export const signInWithPassword = createServerFn({ method: "POST" })
               : undefined;
         return { ok: false, message: e.message, ...(goTo ? { goTo } : {}) };
       }
+      // Anything else isn't the person's mistake (the database refusing to open, for one). They see
+      // the same words, but it's reported, so it can't pass for a run of wrong passwords (T19, L2).
+      const { newReference, reportError } = await import("@/server/observability");
+      reportError(e, newReference());
       return { ok: false, message: auth.SIGN_IN_FAILED };
     }
   });

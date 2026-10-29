@@ -14,9 +14,9 @@ import { reportError } from "@/server/observability";
  * from there being nothing to remove. What must survive is the safe diagnostic event (level,
  * reference, error type), not the database's own wording, which isn't an approved category.
  *
- * Cases marked `it.fails` are known gaps, found 2026-10-29: the logger writes an error's message and
- * its cause's message as they are. They report as soon as the gap is fixed. The fix is in
- * src/server/observability.ts (frozen) and waits for a lift: see
+ * Four cases were known gaps when found on 2026-10-29 (the logger wrote an error's message and its
+ * cause's message as they were) and ran as expected failures. Correction L1, made the same day
+ * under a lift, writes approved fields only, so they are normal tests now: see
  * docs/readiness/evidence/logging-paths-2026-10-29.md.
  */
 let t: Awaited<ReturnType<typeof freshDb>>;
@@ -96,10 +96,13 @@ describe("error output after a real database failure", () => {
       expect(raw, field).not.toContain(`"${field}"`);
   });
 
-  it.fails("known gap: a type error's cause quotes the typed value", async () => {
+  it("a type error's cause, which quotes the typed value, isn't logged", async () => {
     // PGlite: 'invalid input syntax for type integer: "<the value>"', in the cause's message.
     const e = await thrownBy(() => t.db.execute(sql`select ${PRIVATE}::int`));
-    expect(logged(e)).not.toContain(PRIVATE);
+    const raw = logged(e);
+    expect(raw).not.toContain(PRIVATE);
+    // What's kept is the approved category and the database's code (22P02: invalid text representation).
+    expect(JSON.parse(raw)).toMatchObject({ category: "database", code: "22P02" });
   });
 });
 
@@ -129,15 +132,15 @@ describe("error output for every shape a thrown value can take", () => {
     expect(logged(e)).not.toContain(PRIVATE);
   });
 
-  it.fails("known gap: a thrown string is logged as it is", () => {
+  it("a thrown string isn't logged", () => {
     expect(logged(PRIVATE)).not.toContain(PRIVATE);
   });
 
-  it.fails("known gap: an error message that quotes a value is logged as it is", () => {
+  it("an error message that quotes a value isn't logged", () => {
     expect(logged(new Error(`Could not save "${PRIVATE}"`))).not.toContain(PRIVATE);
   });
 
-  it.fails("known gap: a cause's message is logged as it is", () => {
+  it("a cause's message isn't logged", () => {
     expect(logged(new Error("outer", { cause: new Error(`inner: ${PRIVATE}`) }))).not.toContain(PRIVATE);
   });
 });

@@ -56,7 +56,9 @@ describe("error reporting", () => {
     reportError(new TypeError("boom"), ref);
     expect(spy).toHaveBeenCalledTimes(1);
     const line = JSON.parse(spy.mock.calls[0]![0] as string);
-    expect(Object.keys(line).sort()).toEqual(["at", "level", "message", "ref", "stack", "type"]);
-    expect(line).toMatchObject({ level: "error", ref, type: "TypeError", message: "boom" });
+    // Threat T19, correction L1: approved fields only; the message ("boom") is never written.
+    expect(Object.keys(line).sort()).toEqual(["at", "category", "level", "ref", "stack", "type"]);
+    expect(line).toMatchObject({ level: "error", ref, type: "TypeError", category: "error" });
+    expect(JSON.stringify(line)).not.toContain("boom");
   });
 });

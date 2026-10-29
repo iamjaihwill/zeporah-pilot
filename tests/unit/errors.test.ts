@@ -12,16 +12,32 @@ describe("unexpected errors", () => {
     expect(m.match(/Nothing was changed/g)).toHaveLength(1);
   });
 
-  it("are logged with the same reference and the database's reason, but never the query's parameters", () => {
+  it("are logged with the same reference and approved fields only, never the query's parameters", () => {
+    // Threat T19, correction L1: the database's own wording isn't kept; its code and names are.
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
-    const e = new Error('Failed query: insert into "messages" ("body") values ($1)\nparams: my private words', {
-      cause: new Error('column "email_notices" does not exist'),
+    const cause = Object.assign(new Error('column "email_notices" does not exist'), {
+      code: "42703",
+      table: "preferences",
+      column: "email_notices",
     });
+    const e = new Error(
+      'Failed query: insert into "messages" ("body") values ($1)\nparams: my private words',
+      {
+        cause,
+      },
+    );
     reportError(e, "AB12CD34");
     const line = JSON.parse(spy.mock.calls[0]![0] as string);
     spy.mockRestore();
-    expect(line.ref).toBe("AB12CD34");
-    expect(line.cause).toBe('column "email_notices" does not exist');
+    expect(line).toMatchObject({
+      ref: "AB12CD34",
+      category: "database",
+      code: "42703",
+      table: "preferences",
+      column: "email_notices",
+    });
+    expect(line).not.toHaveProperty("message");
+    expect(line).not.toHaveProperty("cause");
     expect(JSON.stringify(line)).not.toContain("my private words");
     expect(withoutParams("a\nparams: x, y")).toBe("a");
   });

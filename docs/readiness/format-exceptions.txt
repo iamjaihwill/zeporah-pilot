@@ -7,5 +7,4 @@ tests/integration/founder-decisions-23-28.test.ts
 tests/integration/interaction-review.test.ts
 tests/integration/remember-me.test.ts
 tests/integration/report-set.test.ts
-tests/unit/errors.test.ts
 tests/unit/visibility-labels.test.ts

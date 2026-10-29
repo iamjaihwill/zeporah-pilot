@@ -1,13 +1,14 @@
 # Monitoring and alerting plan (planned)
 
 **Status: a plan (W7). Today the app writes one structured line per unexpected error to stdout,
-with a reference and no request data (`src/server/observability.ts`). Nothing collects or alerts
+with a reference and no request data (`src/server/observability.ts`): approved fields only, never
+an error's message (threat T19, correction L1). Nothing collects or alerts
 on it.**
 
 ## Principles
 
 - **No PHI in telemetry.** No names, message or note text, household names, or URLs with record IDs
-  beyond opaque identifiers. The current error line already drops query parameters; every new
+  beyond opaque identifiers. The current error line writes no message text at all; every new
   signal is reviewed against this rule before it ships.
 - **Only BAA-covered tooling** for anything that could, by mistake, carry PHI (decision 65).
 - **Alerts go to a person on call** (W7 on-call rota), with a runbook link in every alert.

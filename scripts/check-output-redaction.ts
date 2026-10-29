@@ -303,6 +303,36 @@ async function main() {
     }
     await close2();
   }
+  // Production only (correction L2): a sign-in on a server whose environment isn't named. The
+  // database refuses to open; the person sees the usual words, and one structured line is written.
+  if (SERVER === "prod") {
+    const unnamed = { ...env };
+    delete unnamed["ZEPORAH_ENVIRONMENT"];
+    const second = run("bun", ["--bun", "vite", "preview", "--port", String(PORT), "--strictPort"], unnamed);
+    try {
+      await waitUntilUp();
+      const browser = await chromium.launch();
+      const page = await browser.newPage();
+      await signIn(page, "redaction-check@example.invalid", password);
+      await page.getByText("That email and password didn't work").first().waitFor();
+      await browser.close();
+      await new Promise((r) => setTimeout(r, 500));
+    } finally {
+      second.child.kill("SIGTERM");
+      await Promise.race([second.exited, new Promise((r) => setTimeout(r, 5000))]);
+    }
+    const line = `${second.out.stderr}\n${second.out.stdout}`
+      .split("\n")
+      .map((l) => l.slice(l.indexOf("{")))
+      .find((l) => l.startsWith('{"level":"error"') && l.includes('"ref"'));
+    if (!line) problems.push("a sign-in that failed on the server wrote no structured error line");
+    else
+      exercised["sign-in with the database refused"] =
+        `generic message; reported as ${JSON.parse(line).type}`;
+    if (password && (second.out.stderr + second.out.stdout).includes(password))
+      problems.push("password in the unnamed server's output");
+  }
+
   // The safe diagnostic event: the unknown function's failure is reported as one structured line.
   const diagnostic = server.out.stderr
     .split("\n")
@@ -322,16 +352,18 @@ async function main() {
     exercised,
     markersFoundIn: found,
     secretsChecked: Object.keys(SECRETS),
-    diagnosticEvent: diagnostic ? JSON.parse(diagnostic).type : null,
+    diagnosticEvent: diagnostic ? JSON.parse(diagnostic) : null,
     capturedLines: Object.fromEntries(Object.entries(channels).map(([c, x]) => [c, x.split("\n").length])),
     output: outDir,
     problems,
   };
   console.log(JSON.stringify(report, null, 2));
   if (SELF_TEST) {
-    // The planted marker must be caught; anything else found is still a failure.
-    const caught = problems.some((p) => p.startsWith('"query" marker in browser console'));
-    const others = problems.filter((p) => !p.startsWith('"query" marker'));
+    // The planted marker must be caught in the browser console, and nowhere else: with console
+    // forwarding off (vite.config.ts, correction L3), it never reaches the server's output.
+    const planted = '"query" marker in browser console and page errors';
+    const caught = problems.includes(planted);
+    const others = problems.filter((p) => p !== planted);
     console.log(caught && !others.length ? "Self-test: the planted marker was caught." : "Self-test FAILED.");
     process.exit(caught && !others.length ? 0 : 1);
   }

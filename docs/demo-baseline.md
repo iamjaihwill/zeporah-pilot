@@ -207,13 +207,23 @@ headers, which it had been missing
 no entry changed; it's recorded because it runs on every demo request. **What a demo now shows
 differently:** nothing.
 
+**Freeze lifted on 2026-10-29** for threat T19's corrections L1–L3 only, with the founder's explicit
+approval ([evidence](readiness/evidence/logging-paths-2026-10-29.md#7-corrections-made-2026-10-29-under-the-founders-lift)):
+the error logger writes approved diagnostic fields only (`src/server/observability.ts`), an
+unexpected sign-in error is reported (`src/functions/session.ts`), and Vite's browser-console
+forwarding is off (`vite.config.ts`). Two tests that check the log line were updated with them:
+`tests/unit/errors.test.ts` and, approved separately when found, `tests/unit/environment.test.ts`.
+The manifest entries for those five files were refreshed, and `tests/unit/errors.test.ts` left the
+formatting exceptions. **What a demo now shows differently:** nothing; only the server's error
+lines changed.
+
 ## What's frozen
 
 - **The build:** 403 files covering the application code (including migrations through
   `0023_cover_notice` and seed fixtures), the tests, the configuration, the decision log and
   register, the presentation documents and the 22 run-through screenshots. Each file's SHA-256
   is in [demo-baseline-2026-10-22.sha256](demo-baseline-2026-10-22.sha256), and the manifest's
-  own SHA-256 is `aef6d4bae57f8a39aee6a8ea17bdeee6a68b96ad8ecbdf0c790d4fc517217c40`. To check
+  own SHA-256 is `c96ca89e0407079eef45f6e92573fc87eaf1837d3200c9ab65c597c2432d06c6`. To check
   for drift, run `shasum -a 256 -c docs/demo-baseline-2026-10-22.sha256 --quiet`.
 - **The presentation baseline:** [enterprise-demo-map.md](enterprise-demo-map.md) (the script,
   "Presenting it in about 15 minutes", with beat 8's note on decision 62 and an optional 30 s in
