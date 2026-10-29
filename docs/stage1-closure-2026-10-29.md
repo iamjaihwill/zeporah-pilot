@@ -274,7 +274,8 @@ lift):
 
 1. Cross-site refusal test across every POST server function; header test per route type (PB-06,
    PB-05). New spec files only.
-2. Threat-model draft (PB-04), with data-flow and trust-boundary documents.
+2. Threat-model draft (PB-04), with data-flow and trust-boundary documents. _Drafted later the same
+   day: [threat-model.md](architecture/threat-model.md); not reviewed._
 3. Local restore rehearsal (§7.5).
 4. Audit review procedure for the read log (PB-12).
 5. Tests that expose §7.2–7.4, then fixes †.

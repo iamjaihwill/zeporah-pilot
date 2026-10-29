@@ -79,7 +79,7 @@
       "class": "pilot_blocker",
       "workstream": "W2",
       "targetStage": 1,
-      "status": "open",
+      "status": "in_progress",
       "owner": "Engineering lead",
       "approvers": ["Privacy and security officer"],
       "dependsOn": ["PB-01"],
@@ -88,8 +88,15 @@
       "verification": "Review session with the privacy and security officer",
       "evidenceRequired": "Threat model with owners and mitigations, each linked to a control or an accepted risk",
       "closureCriteria": "Every high threat has a control or a signed acceptance",
-      "evidence": [],
-      "approvals": []
+      "evidence": [
+        {
+          "type": "document",
+          "ref": "docs/architecture/threat-model.md, docs/architecture/data-flow.md, docs/architecture/trust-boundaries.md (draft: 30 threats with owners, controls and test references; not reviewed)",
+          "date": "2026-10-29"
+        }
+      ],
+      "approvals": [],
+      "note": "2026-10-29: draft threat model, data flow and trust boundaries written. Four High-impact threats have no control today (T02 staff MFA, T20 encryption at rest, T21 restore, T30 environment separation); eleven more are partial. Still needed: the review session with the privacy and security officer, agreed ratings and owners, and a control or signed acceptance for every high threat."
     },
     {
       "id": "PB-05",
