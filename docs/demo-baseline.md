@@ -185,13 +185,21 @@ again, instead of "Something went wrong on our side", and isn't logged as an err
 passed with 1 skipped; verify 22 passed with 12 skipped. The manifest entries were refreshed. **What
 a demo now shows differently:** only when a page can't load.
 
+**Decision record updated and freeze lifted on 2026-10-28** for the D-16 increment only, with the
+founder's explicit approval: decisions 88–91 (delivery, retries and fallback) were added to
+`founder-decision-log.md` and built ([evidence](readiness/evidence/outbox-2026-10-28.md)): one outbox
+for every email, checks at send time, at most 5 attempts, and "Email not delivered" for operations
+(migration `0032_outbox`). The manifest entries for the frozen files it touches were refreshed.
+**What a demo now shows differently:** nothing, unless an email can't be delivered, which the
+development mailbox never causes.
+
 ## What's frozen
 
 - **The build:** 403 files covering the application code (including migrations through
   `0023_cover_notice` and seed fixtures), the tests, the configuration, the decision log and
   register, the presentation documents and the 22 run-through screenshots. Each file's SHA-256
   is in [demo-baseline-2026-10-22.sha256](demo-baseline-2026-10-22.sha256), and the manifest's
-  own SHA-256 is `9647cf7fc2494c73582584f97bd0742b131357d39b8aae2e060c9163ec903eaa`. To check
+  own SHA-256 is `9bbfae8c652692dc441727fa09ac8026e97f03c42ef275853de5cfae5930fa90`. To check
   for drift, run `shasum -a 256 -c docs/demo-baseline-2026-10-22.sha256 --quiet`.
 - **The presentation baseline:** [enterprise-demo-map.md](enterprise-demo-map.md) (the script,
   "Presenting it in about 15 minutes", with beat 8's note on decision 62 and an optional 30 s in

@@ -17,13 +17,12 @@ import * as s from "../db/schema";
 import { appendAudit } from "../audit";
 import { mailChannel, senderNameFor } from "../mail";
 import { newReference, reportError } from "../observability";
-import { PILOT_DISPLAY } from "@/domain/display-config";
 import { notify } from "./common";
+import { dispatchOutbox, enqueue, NOTICE_EXPIRY_MS } from "./outbox";
 
-export const NOTICE_SUBJECT = "You have a new update in Zeporah";
-export const NOTICE_BODY =
-  "There's something new for you in Zeporah. Sign in to see it. To keep things private, this email never includes names, health details or message text.";
-export const NOTICE_LINK = "/family/notifications";
+// The fixed wording (decision 23), shared with the outbox's check (domain/email-wording.ts).
+import { NOTICE_BODY, NOTICE_LINK, NOTICE_SUBJECT } from "@/domain/email-wording";
+export { NOTICE_BODY, NOTICE_LINK, NOTICE_SUBJECT };
 
 /**
  * Essential (founder decision 47): an action, access, safety or time-sensitive change someone could
@@ -103,31 +102,9 @@ export async function remindDueTasks(db: DB, now = new Date()) {
 
 const DAY_MS = 86_400_000;
 
-/** Minutes after midnight, in the pilot's display time zone. */
-function localMinutes(at: Date) {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: PILOT_DISPLAY.timeZone,
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-  }).formatToParts(at);
-  const n = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? 0);
-  return n("hour") * 60 + n("minute");
-}
-
-const toMinutes = (hhmm: string) => {
-  const [h, m] = hhmm.split(":").map(Number);
-  return (h ?? 0) * 60 + (m ?? 0);
-};
-
-/** Quiet hours may wrap past midnight (21:00–08:00). Equal start and end means none. */
-export function inQuietHours(start: string, end: string, at: Date) {
-  const a = toMinutes(start);
-  const b = toMinutes(end);
-  if (a === b) return false;
-  const now = localMinutes(at);
-  return a < b ? now >= a && now < b : now >= a || now < b;
-}
+// Quiet hours live in domain/quiet-hours.ts, so the outbox's send-time check uses the same rule.
+import { inQuietHours } from "@/domain/quiet-hours";
+export { inQuietHours };
 
 /**
  * Send whatever nudges are due now. Safe to call often: each notification is covered at most once.
@@ -156,6 +133,7 @@ export async function sendDueEmailNotices(db: DB, now = new Date()) {
       and(eq(s.preferences.emailNotices, true), eq(s.actors.kind, "family"), isNull(s.actors.deactivatedAt)),
     );
   let sent = 0;
+  const queued: string[] = [];
   for (const p of people) {
     if (!p.email || inQuietHours(p.quietStart, p.quietEnd, now)) continue;
     if (p.cadence === "daily_summary" && p.last && now.getTime() - p.last.getTime() < DAY_MS) continue;
@@ -174,7 +152,11 @@ export async function sendDueEmailNotices(db: DB, now = new Date()) {
       .map((m) => m.id)
       .filter((x): x is string => !!x);
     const pending = await db
-      .select({ id: s.notifications.id, kind: s.notifications.kind })
+      .select({
+        id: s.notifications.id,
+        kind: s.notifications.kind,
+        householdId: s.notifications.householdId,
+      })
       .from(s.notifications)
       .where(
         and(
@@ -197,16 +179,28 @@ export async function sendDueEmailNotices(db: DB, now = new Date()) {
       now.getTime() - p.last.getTime() < DAY_MS
     )
       continue;
+    const email = p.email;
     await db.transaction(async (tx) => {
-      await channel.send(tx, {
-        tenantId: p.tenantId,
-        fromName: await senderNameFor(tx, p.tenantId),
-        to: p.email,
-        kind: "notice",
-        subject: NOTICE_SUBJECT,
-        body: NOTICE_BODY,
-        link: NOTICE_LINK,
-      });
+      // Decision 88: saved with the notifications it covers; the dispatcher sends it.
+      queued.push(
+        await enqueue(
+          tx,
+          {
+            tenantId: p.tenantId,
+            householdId: pending.find((n) => n.householdId)?.householdId ?? null,
+            kind: "notice",
+            toActorId: p.actorId,
+            toEmail: email,
+            fromName: await senderNameFor(tx, p.tenantId),
+            subject: NOTICE_SUBJECT,
+            body: NOTICE_BODY,
+            link: NOTICE_LINK,
+            about: { notificationIds: pending.map((n) => n.id) },
+            expiresAt: new Date(now.getTime() + NOTICE_EXPIRY_MS),
+          },
+          now,
+        ),
+      );
       await tx
         .update(s.notifications)
         .set({ emailedAt: now })
@@ -229,7 +223,7 @@ export async function sendDueEmailNotices(db: DB, now = new Date()) {
         action: "notification.emailed",
         subjectType: "actor",
         subjectId: p.actorId,
-        summary: "A generic email notice was sent (no names, health details or message text).",
+        summary: "A generic email notice was queued (no names, health details or message text).",
         visibility: "staff",
         context: { channel: channel.name, covered: pending.length },
         at: now,
@@ -237,6 +231,8 @@ export async function sendDueEmailNotices(db: DB, now = new Date()) {
     });
     sent++;
   }
+  // Try them now; anything that can't go yet is retried by the dispatcher (decision 89).
+  if (queued.length) await dispatchOutbox(db, { now, ids: queued }).catch(() => 0);
   return sent;
 }
 
@@ -269,7 +265,11 @@ export function startEmailNoticeTimer(getDb: () => Promise<DB>) {
   if (g.__zeporahNoticeTimer || !mailChannel()) return;
   g.__zeporahNoticeTimer = setInterval(() => {
     void getDb()
-      .then((db) => sendDueEmailNotices(db))
+      .then(async (db) => {
+        await sendDueEmailNotices(db);
+        // And every other email that's due, including retries (decisions 88–89).
+        await dispatchOutbox(db);
+      })
       .catch((e) => reportError(e, newReference()));
   }, 60_000);
   g.__zeporahNoticeTimer.unref?.();

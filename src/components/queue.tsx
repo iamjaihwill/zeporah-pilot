@@ -34,6 +34,7 @@ const KIND_TONE: Record<QueueKind, Tone> = {
   coverage: "rose",
   checkin: "neutral",
   risk: "ochre",
+  undelivered: "ochre",
 };
 /** Shape and word, never color alone. */
 const PRIORITY_MARK: Record<Priority, { mark: string; tone: Tone }> = {

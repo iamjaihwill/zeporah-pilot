@@ -23,4 +23,4 @@ production readiness.
 | D-13 | Release governance and production-change approval                      | W1 · PB-01                 | With D-01's build-out                                                | Not yet written             |
 | D-14 | Permanent separation of demo, pilot and production                     | W3 · PB-02                 | With D-02's build-out                                                | Not yet written             |
 | D-15 | A verified 24-hour clinical line                                       | PB-22 (proposed)           | [D-15-verified-clinical-line.md](D-15-verified-clinical-line.md)     | Decided → #72               |
-| D-16 | Delivery, retries and fallback (brief §14)                             | §14 · D-06                 | [D-16-delivery-and-fallback.md](D-16-delivery-and-fallback.md)       | Brief, awaiting decision    |
+| D-16 | Delivery, retries and fallback (brief §14)                             | §14 · D-06                 | [D-16-delivery-and-fallback.md](D-16-delivery-and-fallback.md)       | Decided → #88–91            |

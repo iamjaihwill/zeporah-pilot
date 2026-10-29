@@ -82,6 +82,11 @@ export const TABLE_CLASSES: Record<string, Entry> = {
   acknowledgements: { class: "acknowledgement" },
   thread_visits: { class: "view_receipt" },
   notifications: { class: "notification" },
+  outbox: {
+    class: "notification",
+    review:
+      "Email addresses and delivery outcomes; links (which may hold a one-time token) are cleared once settled",
+  },
   users: { class: "account_security" },
   sessions: { class: "account_security" },
   password_resets: { class: "account_security" },

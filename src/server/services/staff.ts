@@ -20,6 +20,7 @@ import { staffRequestState } from "@/domain/request-lifecycle";
 import { bereavementWorkload, createPlanInTx, staffPlan } from "./bereavement";
 import { careGuideMayComplete, markFamilyTaskDone } from "./tasks";
 import { checkNextUpdate } from "./requests";
+import { KIND_LABELS as OUTBOX_KIND_LABELS, undelivered } from "./outbox";
 import {
   AccessError,
   loadContext,
@@ -984,6 +985,38 @@ export async function coordinationQueue(db: DB, ctx: ActorContext): Promise<Queu
         priorityReason: "A household's escalation is stuck between owners",
         link: "/staff/exceptions?view=all&kind=escalation",
         subject: { ids: [e.id] },
+      });
+    }
+    // Decision 90: an email that couldn't be delivered after every attempt. Who and what kind,
+    // never the content; operations decides what to do and closes it with a reason.
+    const failed = (await undelivered(db, T)).filter((u) => u.householdId && ids.includes(u.householdId));
+    const failedNames = await actorNames(
+      db,
+      T,
+      failed.map((u) => u.toActorId),
+    );
+    for (const u of failed) {
+      const who = failedNames.get(u.toActorId) ?? "Someone";
+      items.push({
+        kind: "undelivered",
+        key: `undelivered:outbox:${u.id}`,
+        householdId: u.householdId!,
+        household: name(u.householdId!),
+        summary: `${who}'s ${OUTBOX_KIND_LABELS[u.kind]} wasn't delivered`,
+        owner: null,
+        state: `Not delivered after ${u.attempts} attempts`,
+        status: { domain: "household", value: "active" },
+        subjectId: u.id,
+        deepLink: `/staff/households/${u.householdId}?tab=overview`,
+        next: "Reach them another way (call them, or check their email address), then close this",
+        why: "The email couldn't be delivered after 5 attempts over about 10 hours (decision 89). Nothing switched to another channel on its own.",
+        source: "rule",
+        dueBy: null,
+        since: u.settledAt ?? u.createdAt,
+        priority: "normal",
+        priorityReason: "An email didn't reach someone",
+        link: "/staff/exceptions?view=all",
+        subject: { ids: [u.id] },
       });
     }
     const absences = await db

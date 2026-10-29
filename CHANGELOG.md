@@ -5,6 +5,11 @@ Every change that alters behaviour is recorded here in the pull request that mak
 
 ## Unreleased
 
+- Outbox (decisions 88–91): every outgoing email is saved with the change it reports and sent
+  separately, so a failed send never undoes the change. Before each send it's checked (fixed
+  wording, the person's account and address, still relevant, their settings, not expired). A failed
+  send is tried at most 5 times over about 10.5 hours, then shows as "Email not delivered" in
+  Exceptions for operations. Nothing switches channel on its own. Migration `0032_outbox`.
 - Offline status (decisions 84–87): while the device is offline, the family and staff workspaces
   show a banner with when the page was loaded and the hospice's 24-hour line, and every change is
   paused; nothing is queued. A send whose reply was lost is checked by its submission ID on

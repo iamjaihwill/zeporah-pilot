@@ -20,6 +20,7 @@ import { appendAudit } from "../audit";
 import { AccessError, type ActorContext } from "../context";
 import { hashPassword, hashToken, looksLikeEmail, newToken, normalizeEmail } from "../auth/crypto";
 import { mailChannel, senderNameFor } from "../mail";
+import { enqueue } from "./outbox";
 import { actorNames, careGuidesFor, householdMembers, notify, staffWithRole } from "./common";
 import { passwordProblem } from "./auth";
 import {
@@ -32,9 +33,9 @@ import {
 } from "@/domain/model";
 import { statusOf } from "@/domain/status";
 
-export const RECIPIENT_ALERT_SUBJECT = "A shared packet is ready for you in Zeporah";
-export const RECIPIENT_ALERT_BODY =
-  "A hospice has shared a packet with you in Zeporah. Sign in to read it. To keep things private, this email never includes names, health details or the packet's contents.";
+// The fixed wording (decision 48c), shared with the outbox's check (domain/email-wording.ts).
+import { RECIPIENT_ALERT_BODY, RECIPIENT_ALERT_SUBJECT } from "@/domain/email-wording";
+export { RECIPIENT_ALERT_BODY, RECIPIENT_ALERT_SUBJECT };
 export const NOT_AVAILABLE = "This packet isn't available to you.";
 const VIEW_LOG_GAP_MS = 10 * 60_000;
 
@@ -97,18 +98,22 @@ export async function grantRecipientAccess(
       alerted: mailChannel() !== null,
     },
   });
-  const channel = mailChannel();
-  if (channel)
-    await channel.send(tx, {
-      tenantId: ctx.tenantId,
-      fromName: await senderNameFor(tx, ctx.tenantId),
-      to: email,
-      kind: "recipient_alert",
-      subject: RECIPIENT_ALERT_SUBJECT,
-      body: RECIPIENT_ALERT_BODY,
-      link: token ? `/recipient/setup/${token}` : "/recipient",
-    });
-  return { ...access!, alerted: !!channel };
+  // Decision 88: saved with the access it reports; the caller sends it once this commits.
+  const alertId = mailChannel()
+    ? await enqueue(tx, {
+        tenantId: ctx.tenantId,
+        householdId: p.householdId,
+        kind: "recipient_alert",
+        toActorId: actor!.id,
+        toEmail: email,
+        fromName: await senderNameFor(tx, ctx.tenantId),
+        subject: RECIPIENT_ALERT_SUBJECT,
+        body: RECIPIENT_ALERT_BODY,
+        link: token ? `/recipient/setup/${token}` : "/recipient",
+        about: { accessId: access!.id },
+      })
+    : null;
+  return { ...access!, alerted: !!alertId, alertId };
 }
 
 /** Packets whose named recipient was sent the sign-in alert (decision 48c). */

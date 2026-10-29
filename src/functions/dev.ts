@@ -24,5 +24,10 @@ export const sendDueNoticesNow = createServerFn({ method: "POST" }).handler(asyn
   await gate();
   const { getDb } = await import("@/server/db/client");
   const { sendDueEmailNotices } = await import("@/server/services/email-notices");
-  return { sent: await sendDueEmailNotices(await getDb()) };
+  const { dispatchOutbox } = await import("@/server/services/outbox");
+  const db = await getDb();
+  const sent = await sendDueEmailNotices(db);
+  // And any other email that's due, including retries (decisions 88–89).
+  await dispatchOutbox(db);
+  return { sent };
 });

@@ -1,6 +1,6 @@
 # D-16 · Delivery, retries and fallback (brief §14)
 
-**Status:** brief, for the founder's decision. Related: D-06 (whether Stage 1 includes email at all),
+**Status:** decided by the founder on 2026-10-28 (decisions 88–91) and built ([evidence](../readiness/evidence/outbox-2026-10-28.md)). Related: D-06 (whether Stage 1 includes email at all),
 D-02 (a hosting and email vendor with a BAA), decisions 23 and 47 (email nudges), increment 9
 (offline status, decisions 84–87).
 
@@ -23,9 +23,10 @@ the underlying message unsent", §12) are about that.
 
 [Code]
 
-- **Five places send email directly** through `mailChannel()`: notification nudges
-  (`email-notices.ts`), password resets, a recipient's access alert (`recipient.ts`), packet and
-  sharing emails (`sharing.ts`) and system messages (`system.ts`).
+- **Four places send email directly** through `mailChannel()`: notification nudges
+  (`email-notices.ts`), the password reset link and the password-changed notice (`password-reset.ts`),
+  and a recipient's sign-in alert (`recipient.ts`). `sharing.ts` and `system.ts` only check whether
+  email is available. (First written as "five places"; corrected when building.)
 - **Nudges run on a timer in the server's memory** (`startEmailNoticeTimer`). A notification is
   marked emailed in the same transaction as the send.
 - **A failed send isn't counted.** The transaction rolls back, the error is reported, and the next

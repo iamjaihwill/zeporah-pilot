@@ -13,6 +13,7 @@ import {
 } from "./recipient";
 import { REVOCATION_NOTE, releaseNote } from "@/domain/claims";
 import { mailChannel } from "../mail";
+import { trySendingNow } from "./outbox";
 import { usedPreparedDraft } from "./prepared";
 import { CORRECTION_CATEGORY_LABELS, type CorrectionCategory } from "@/domain/consent";
 import { closeOpenCorrection } from "./corrections";
@@ -222,8 +223,10 @@ export async function requestRelease(
   deps: Deps = { appendAudit },
 ) {
   const now = new Date();
+  // The recipient's sign-in alert, saved with the release and sent after it commits (decision 88).
+  let alert: string | null = null;
   try {
-    return await db.transaction(async (tx) => {
+    const out = await db.transaction(async (tx) => {
       const p = await packetForStaff(tx, ctx, packetId);
       if (!p) return outOfScope();
       const input = await releaseInput(tx, ctx, p, now);
@@ -277,7 +280,9 @@ export async function requestRelease(
           })
           .returning();
         // Decision 45: the named recipient can now read it in Zeporah, read-only, until it expires.
-        await grantRecipientAccess(tx, ctx, p, { id: receipt!.id, expiresAt: p.expiresAt });
+        alert =
+          (await grantRecipientAccess(tx, ctx, p, { id: receipt!.id, expiresAt: p.expiresAt }))?.alertId ??
+          null;
         const household = await membersWho(tx, ctx.tenantId, p.householdId, input.household.lifecycle, {
           permission: "consent.view",
         });
@@ -344,6 +349,8 @@ export async function requestRelease(
       }
       return result;
     });
+    await trySendingNow(db, [alert]);
+    return out;
   } catch (e) {
     if (e instanceof AccessError) throw e;
     // Gate 10: no audit event, no release. Nothing above was committed.

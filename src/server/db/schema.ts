@@ -1090,6 +1090,46 @@ export const devMailbox = pgTable(
 );
 
 /**
+ * The outbox (founder decisions 88–90): every outgoing email, written in the same transaction as
+ * the change it reports and sent separately by the dispatcher (services/outbox.ts). A failed send
+ * never undoes the change. Fixed wording only; the link (which may hold a one-time token) is
+ * cleared once the row is settled. State: pending → sent, dropped (a check said no) or failed
+ * (out of attempts, an "Email not delivered" exception).
+ */
+export const outbox = pgTable(
+  "outbox",
+  {
+    id: id(),
+    tenantId: tenantId(),
+    /** For the exception and the checks: the household it's about, when there is one. */
+    householdId: text("household_id"),
+    kind: text("kind")
+      .$type<"notice" | "password_reset" | "password_changed" | "recipient_alert" | "invitation">()
+      .notNull(),
+    toActorId: text("to_actor_id").notNull(),
+    toEmail: text("to_email").notNull(),
+    fromName: text("from_name").notNull().default("Zeporah"),
+    subject: text("subject").notNull(),
+    body: text("body").notNull(),
+    link: text("link"),
+    /** What the checks look at: the notifications a nudge covers, the reset or recipient access. */
+    about: jsonb("about").$type<{ notificationIds?: string[]; resetId?: string; accessId?: string }>(),
+    state: text("state").$type<"pending" | "sent" | "dropped" | "failed">().notNull().default("pending"),
+    attempts: integer("attempts").notNull().default(0),
+    nextAttemptAt: ts("next_attempt_at").notNull(),
+    expiresAt: ts("expires_at"),
+    /** Why it was dropped or last failed, in a few words: never the content. */
+    reason: text("reason"),
+    settledAt: ts("settled_at"),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index("outbox_due_idx").on(t.state, t.nextAttemptAt),
+    foreignKey({ columns: [t.tenantId], foreignColumns: [tenants.id] }),
+  ],
+);
+
+/**
  * When each person last opened their household's message thread: the "New since your last visit"
  * divider and the home page's "new reply" item come from this (interaction review, item 9).
  */

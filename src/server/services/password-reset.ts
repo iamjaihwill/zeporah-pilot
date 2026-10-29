@@ -29,6 +29,7 @@ import {
   normalizeEmail,
 } from "../auth/crypto";
 import { mailChannel, senderNameFor } from "../mail";
+import { enqueue, NOTICE_EXPIRY_MS, trySendingNow } from "./outbox";
 import { careGuidesFor, notify } from "./common";
 
 export const RESET_MINUTES = 30;
@@ -40,11 +41,9 @@ export const RESET_REQUESTED =
   "If that email belongs to a family account, we've sent it a link to reset the password. The link works once and expires in 30 minutes.";
 export const RESET_UNUSABLE =
   "This reset link can't be used. It may have expired or already been used. Ask for a new one, or ask your care guide for a new invitation link.";
-export const RESET_SUBJECT = "Reset your Zeporah password";
-export const CHANGED_SUBJECT = "Your Zeporah password was changed";
-export const CHANGED_BODY = "Your Zeporah password was changed. If this wasn't you, tell your care team.";
-export const RESET_BODY =
-  "Someone asked to reset the password for this Zeporah account. If it was you, open the link within 30 minutes. If it wasn't, ignore this email: your password hasn't changed.";
+// The fixed wording, shared with the outbox's check (domain/email-wording.ts).
+import { CHANGED_BODY, CHANGED_SUBJECT, RESET_BODY, RESET_SUBJECT } from "@/domain/email-wording";
+export { CHANGED_BODY, CHANGED_SUBJECT, RESET_BODY, RESET_SUBJECT };
 
 const passwordProblem = (password: string) =>
   password.length < PASSWORD_MIN_LENGTH
@@ -112,7 +111,7 @@ export async function requestPasswordReset(db: DB, input: { email: string }, now
       ),
     );
   if (recent) return { message: RESET_REQUESTED };
-  await db.transaction(async (tx) => {
+  const queued = await db.transaction(async (tx) => {
     // Only the newest link works.
     await tx
       .update(s.passwordResets)
@@ -128,15 +127,24 @@ export async function requestPasswordReset(db: DB, input: { email: string }, now
         expiresAt: new Date(now.getTime() + RESET_MINUTES * 60_000),
       })
       .returning({ id: s.passwordResets.id });
-    await channel.send(tx, {
-      tenantId: u.tenantId,
-      fromName: await senderNameFor(tx, u.tenantId),
-      to: u.email,
-      kind: "password_reset",
-      subject: RESET_SUBJECT,
-      body: RESET_BODY,
-      link: `/reset/${token}`,
-    });
+    // Decision 88: saved with the reset; the dispatcher sends it, and only while the link works.
+    const id = await enqueue(
+      tx,
+      {
+        tenantId: u.tenantId,
+        householdId: await firstHousehold(tx, u.tenantId, u.actorId),
+        kind: "password_reset",
+        toActorId: u.actorId,
+        toEmail: u.email,
+        fromName: await senderNameFor(tx, u.tenantId),
+        subject: RESET_SUBJECT,
+        body: RESET_BODY,
+        link: `/reset/${token}`,
+        about: { resetId: r!.id },
+        expiresAt: new Date(now.getTime() + RESET_MINUTES * 60_000),
+      },
+      now,
+    );
     await appendAudit(tx, {
       tenantId: u.tenantId,
       actorId: u.actorId,
@@ -148,8 +156,26 @@ export async function requestPasswordReset(db: DB, input: { email: string }, now
       context: { resetId: r!.id, channel: channel.name },
       at: now,
     });
+    return id;
   });
+  await trySendingNow(db, [queued], now);
   return { message: RESET_REQUESTED };
+}
+
+/** The household an account's email is about, for the "Email not delivered" exception. */
+async function firstHousehold(conn: Conn, tenantId: string, actorId: string) {
+  const [m] = await conn
+    .select({ id: s.memberships.householdId })
+    .from(s.memberships)
+    .where(
+      and(
+        eq(s.memberships.tenantId, tenantId),
+        eq(s.memberships.actorId, actorId),
+        eq(s.memberships.status, "active"),
+      ),
+    )
+    .limit(1);
+  return m?.id ?? null;
 }
 
 async function findUsable(conn: Conn, token: string, now: Date) {
@@ -189,7 +215,7 @@ export async function completePasswordReset(
   if (problem) throw new AccessError("INVALID", problem);
   const hash = await hashPassword(input.password);
   const { reset, user } = found;
-  await db.transaction(async (tx) => {
+  const queued = await db.transaction(async (tx) => {
     // Use the link exactly once, even if two requests race.
     const used = await tx
       .update(s.passwordResets)
@@ -221,15 +247,22 @@ export async function completePasswordReset(
       at: now,
     });
     // Decision 29d: tell the account, and the household's care guides (without naming anyone).
-    await mailChannel()!.send(tx, {
-      tenantId: user.tenantId,
-      fromName: await senderNameFor(tx, user.tenantId),
-      to: user.email,
-      kind: "password_changed",
-      subject: CHANGED_SUBJECT,
-      body: CHANGED_BODY,
-      link: "/",
-    });
+    const id = await enqueue(
+      tx,
+      {
+        tenantId: user.tenantId,
+        householdId: await firstHousehold(tx, user.tenantId, user.actorId),
+        kind: "password_changed",
+        toActorId: user.actorId,
+        toEmail: user.email,
+        fromName: await senderNameFor(tx, user.tenantId),
+        subject: CHANGED_SUBJECT,
+        body: CHANGED_BODY,
+        link: "/",
+        expiresAt: new Date(now.getTime() + NOTICE_EXPIRY_MS),
+      },
+      now,
+    );
     const households = await tx
       .select({ id: s.memberships.householdId })
       .from(s.memberships)
@@ -252,6 +285,8 @@ export async function completePasswordReset(
         link: `/staff/households/${h.id}?tab=overview`,
       });
     }
+    return id;
   });
+  await trySendingNow(db, [queued], now);
   return { ok: true as const };
 }

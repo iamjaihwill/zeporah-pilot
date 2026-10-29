@@ -22,6 +22,8 @@ export const QUEUE_KINDS = [
   "coverage",
   "checkin",
   "risk",
+  // Decision 90: an email that couldn't be delivered after every attempt.
+  "undelivered",
 ] as const;
 export type QueueKind = (typeof QUEUE_KINDS)[number];
 
@@ -43,6 +45,7 @@ export const QUEUE_LABELS: Record<QueueKind, string> = {
   coverage: "Coverage gap",
   checkin: "Bereavement check-in",
   risk: "Coordination risk",
+  undelivered: "Email not delivered",
 };
 
 /**
@@ -65,6 +68,7 @@ export const EXCEPTION_CATEGORIES = [
   "risk",
   "setup",
   "transition",
+  "undelivered",
 ] as const;
 export type ExceptionCategory = (typeof EXCEPTION_CATEGORIES)[number];
 export const CATEGORY_LABELS: Record<ExceptionCategory, string> = {
@@ -83,6 +87,7 @@ export const CATEGORY_LABELS: Record<ExceptionCategory, string> = {
   risk: "Coordination risk",
   setup: "Setup",
   transition: "Transition",
+  undelivered: "Email not delivered",
 };
 const KIND_CATEGORY: Record<Exclude<QueueKind, "escalation">, ExceptionCategory> = {
   correction: "consent_held",
@@ -101,6 +106,7 @@ const KIND_CATEGORY: Record<Exclude<QueueKind, "escalation">, ExceptionCategory>
   coverage: "coverage_gap",
   checkin: "checkin_due",
   risk: "risk",
+  undelivered: "undelivered",
 };
 /** Escalations about sharing are consent work; a recipient's question waits on a partner. */
 const ESCALATION_CATEGORY: Record<string, ExceptionCategory> = {
