@@ -27,7 +27,10 @@ const headers = createMiddleware().server(async ({ request, next }) => {
     if (e instanceof Response)
       response = new Response(e.body, { status: e.status, statusText: e.statusText, headers: e.headers });
     else {
-      console.error(e);
+      // Through the observability hook, which drops query parameters (they can hold what someone
+      // typed), never straight to the console.
+      const { newReference, reportError } = await import("@/server/observability");
+      reportError(e, newReference());
       response = Response.json({ status: 500, unhandled: true, message: "HTTPError" }, { status: 500 });
     }
     for (const [k, v] of Object.entries(add)) response.headers.set(k, v);

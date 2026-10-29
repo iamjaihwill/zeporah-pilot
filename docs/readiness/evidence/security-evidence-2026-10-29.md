@@ -60,7 +60,9 @@ skipped (the screenshot-capture specs, run on request only).
    The reply is a short JSON error with no household data, but PB-05's closure criterion is "every
    response carries the policy". With the founder's approval (a freeze lift for `src/start.ts` only),
    the middleware now catches that error and sends the same reply (same status and body) with the
-   baseline; a thrown `Response` keeps its own status and body. The spec's test for it, first
+   baseline; a thrown `Response` keeps its own status and body. The error is logged through the
+   observability hook (`src/server/observability.ts`), which drops query parameters; a first version
+   logged it with `console.error` and was corrected before any other change. The spec's test for it, first
    marked "expected to fail", is now a normal test covering POST, GET and https.
 2. **A refused send surfaces as an uncaught page error (low).** When the page's own send is
    refused, the client throws the refusal as an uncaught error instead of showing the composer's
