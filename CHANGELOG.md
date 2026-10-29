@@ -5,6 +5,8 @@ Every change that alters behaviour is recorded here in the pull request that mak
 
 ## Unreleased
 
+- Security: seroval and seroval-plugins 1.6.11 (from 1.6.9) for GHSA-f86p-h4j2-7qgj and
+  GHSA-9wx9-5pv9-3349, within the range TanStack Start already allows.
 - Outbox (decisions 88–91): every outgoing email is saved with the change it reports and sent
   separately, so a failed send never undoes the change. Before each send it's checked (fixed
   wording, the person's account and address, still relevant, their settings, not expired). A failed

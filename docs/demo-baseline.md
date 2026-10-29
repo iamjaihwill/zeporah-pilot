@@ -193,13 +193,19 @@ for every email, checks at send time, at most 5 attempts, and "Email not deliver
 **What a demo now shows differently:** nothing, unless an email can't be delivered, which the
 development mailbox never causes.
 
+**Freeze lifted and re-frozen on 2026-10-28** for a dependency security fix only, with the
+founder's explicit approval: seroval and seroval-plugins updated from 1.6.9 to 1.6.11 in `bun.lock`
+for GHSA-f86p-h4j2-7qgj and GHSA-9wx9-5pv9-3349 (both moderate). Both are TanStack Start's own
+dependencies and 1.6.11 is within the `^1.6.7` range it asks for, so `package.json` is unchanged.
+The manifest entry for `bun.lock` was refreshed. **What a demo now shows differently:** nothing.
+
 ## What's frozen
 
 - **The build:** 403 files covering the application code (including migrations through
   `0023_cover_notice` and seed fixtures), the tests, the configuration, the decision log and
   register, the presentation documents and the 22 run-through screenshots. Each file's SHA-256
   is in [demo-baseline-2026-10-22.sha256](demo-baseline-2026-10-22.sha256), and the manifest's
-  own SHA-256 is `9bbfae8c652692dc441727fa09ac8026e97f03c42ef275853de5cfae5930fa90`. To check
+  own SHA-256 is `aef6d4bae57f8a39aee6a8ea17bdeee6a68b96ad8ecbdf0c790d4fc517217c40`. To check
   for drift, run `shasum -a 256 -c docs/demo-baseline-2026-10-22.sha256 --quiet`.
 - **The presentation baseline:** [enterprise-demo-map.md](enterprise-demo-map.md) (the script,
   "Presenting it in about 15 minutes", with beat 8's note on decision 62 and an optional 30 s in
