@@ -304,6 +304,10 @@ every route type" gaps that PB-06 and PB-05 record, touches no frozen file, need
 no hosting, and produces evidence the privacy and security officer can review. It doesn't close
 either item: both still need staging checks and approval.
 
+**Built later the same day** (after this record's revision): both specs, with two low findings and
+no application change; see [security-evidence-2026-10-29.md](readiness/evidence/security-evidence-2026-10-29.md).
+PB-05 and PB-06 stay in progress.
+
 ## 9. Final statement
 
 **Independently verified today, at `453a2fb`:** every local CI stage and test suite in §2, run

@@ -4,6 +4,11 @@
 `453a2fb1a413fe0e61f245933abdd1e1da1f47fc`. Titles and definitions are copied from their source;
 nothing is inferred from an identifier. Nothing here accepts, closes or re-scopes an item.
 
+**Update, same day:** the PB-05 and PB-06 next actions below (a header test per route type; the
+all-POST cross-site test) were done after this revision:
+[security-evidence-2026-10-29.md](readiness/evidence/security-evidence-2026-10-29.md). Both stay in
+progress.
+
 **Sources.** D items: [decision-register/README.md](decision-register/README.md) and each brief. R
 items: [enterprise-decision-register.md](enterprise-decision-register.md). PB items:
 [readiness/tracker.json](readiness/tracker.json) (owner, approvers, dependencies, artifact,

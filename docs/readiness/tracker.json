@@ -1,6 +1,6 @@
 {
   "$comment": "Zeporah production-readiness tracker. Statuses: open, in_progress, evidence_submitted, closed, accepted_with_control (pilot conditions only). A gap is closed only with non-document evidence and every approver's signed approval; run `bun scripts/readiness-check.ts`.",
-  "updated": "2026-10-22",
+  "updated": "2026-10-29",
   "items": [
     {
       "id": "PB-01",
@@ -111,10 +111,15 @@
           "type": "test",
           "ref": "docs/readiness/evidence/security-headers-2026-10-27.md (header baseline on every response type; 21 pages with no policy violations: passed)",
           "date": "2026-10-27"
+        },
+        {
+          "type": "test",
+          "ref": "docs/readiness/evidence/security-evidence-2026-10-29.md (e2e/security-headers.spec.ts: the baseline on every response type tested; HSTS only over https: passed; one known gap, framework errors before any handler, recorded as expected to fail)",
+          "date": "2026-10-29"
         }
       ],
       "approvals": [],
-      "note": "Header baseline built (src/domain/security-headers.ts, src/start.ts). Still needed: a nonce-based script policy in place of 'unsafe-inline', headers on static files at the edge (PB-02), a scan of staging, and automated header tests on every route type in the end-to-end suite."
+      "note": "Header baseline built (src/domain/security-headers.ts, src/start.ts); an end-to-end test now checks every response type (2026-10-29). Still needed: headers on framework errors raised before any handler (found 2026-10-29; the fix in src/start.ts waits for a lift), a nonce-based script policy in place of 'unsafe-inline', headers on static files at the edge (PB-02), and a scan of staging."
     },
     {
       "id": "PB-06",
@@ -136,10 +141,15 @@
           "type": "test",
           "ref": "docs/readiness/evidence/csrf-origin-check-2026-10-27.md (origin and fetch-metadata check in src/start.ts; unit tests and a replay against the development server: passed)",
           "date": "2026-10-27"
+        },
+        {
+          "type": "test",
+          "ref": "docs/readiness/evidence/security-evidence-2026-10-29.md (e2e/cross-site.spec.ts: all 124 state-changing server functions refused for five cross-site variants; a real send refused and never delivered: passed)",
+          "date": "2026-10-29"
         }
       ],
       "approvals": [],
-      "note": "Origin and fetch-metadata check built for every request (src/domain/same-origin.ts, src/start.ts). Still needed: an automated end-to-end test across every POST server function, the check repeated on staging behind the load balancer (PB-02), and the privacy and security officer's approval."
+      "note": "Origin and fetch-metadata check built for every request (src/domain/same-origin.ts, src/start.ts); an end-to-end test now covers every POST server function, listed from the source (2026-10-29). Still needed: the check repeated on staging behind the load balancer (PB-02), and the privacy and security officer's approval."
     },
     {
       "id": "PB-07",
