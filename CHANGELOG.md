@@ -5,6 +5,13 @@ Every change that alters behaviour is recorded here in the pull request that mak
 
 ## Unreleased
 
+- Tests (threat T19, residual review): the output check now also covers care-team sessions (sign-in,
+  the wrong sign-in page, a permission refusal, recovery, an expired session, and an unexpected
+  error whose reference must be the one logged), a body that isn't JSON, and a negative control in
+  which the server itself writes markers to its output (`--self-test server`, in the full CI run).
+  The error-redaction tests try spoofed and malformed thrown values; 14 logger gaps are recorded
+  as expected failures (correction L6, proposed). A test-artifact policy is proposed (L5). No
+  application change.
 - Error lines (threat T19, corrections L1–L3): the server's error line now holds only the error's
   type, a category, a database error's code and schema names, and call frames, never a message.
   An unexpected error during sign-in is now reported (the person sees the same words). The

@@ -27,6 +27,8 @@ step "Verify (includes macOS pixel baselines)"; bunx playwright test --config pl
 # development server and a local production build (docs/readiness/evidence/logging-paths-2026-10-29.md).
 step "Complete-output redaction (development server)"; bun scripts/check-output-redaction.ts --server dev
 step "Complete-output redaction (local production build)"; bun scripts/check-output-redaction.ts --server prod
+# Negative control: the server process itself writes two markers, and the check must catch both.
+step "Complete-output redaction negative control (server output)"; bun scripts/check-output-redaction.ts --self-test server
 
 # e2e-verify/sweep.spec.ts (frozen) rewrites docs/review-screenshots/after on every run. Put those
 # back, then fail on any other change the run made to tracked files. Fix the spec when the freeze

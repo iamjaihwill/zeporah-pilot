@@ -2,7 +2,8 @@
 
 **Status: an assessment with local, synthetic evidence. T19 stays partial. Nothing here closes T19
 or shows the application is ready for hosting.** Corrections L1–L3 were made the same day under
-the founder's lift (§7); L4 and L5 remain proposals. Revision: `main` after `5b1cabb`, plus the files this note
+the founder's lift (§7) and are recorded as implemented in `1eb6e86`, verified on a clean checkout of that commit
+([residual review](residual-logging-2026-10-29.md) §1). L4 and L5 remain proposals, now characterized there. Revision: `main` after `5b1cabb`, plus the files this note
 introduces. Threat model: [threat-model.md](../../architecture/threat-model.md) (T19).
 
 ## 1. The emission that printed the refused-send text
