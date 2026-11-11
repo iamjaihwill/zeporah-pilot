@@ -11,7 +11,11 @@ readiness or compliance claim.
 
 **Status of L1–L3: implemented** in `1eb6e86` under the founder's lift, and verified on that exact
 commit (§1). Two parts of what was built differ from the approved L1 wording (§3), and the logger
-has gaps the review found (§4–§5). Closing them needs a further lift (L6, §10).
+has gaps the review found (§4–§5).
+
+**Update, 2026-11-11: L6 and L4-a made** under the founder's lift (§12). The logger gaps G1–G9 are
+closed, and so is the one confirmed quoting path in the framework's output. L4-b, R1, R2 and L5 are
+still proposals, and T19 stays partial.
 
 ## 1. The evidence maps to commit 1eb6e86
 
@@ -349,7 +353,7 @@ It changes no file. Two of its rules would need a lift if they were ever trigger
 - turning traces off in a frozen config;
 - making the CI job run the output check.
 
-## 10. Proposed further corrections (none made)
+## 10. Proposed further corrections (L6 and L4-a made 2026-11-11, §12)
 
 Each needs the founder's explicit approval. None is covered by the L1–L3 lift.
 
@@ -424,12 +428,78 @@ editing the link in `docs/founder-decision-log.md`, is frozen).
 - **Tests:** the end-to-end suite, with that test passing, not skipped.
 - **Rollback:** revert.
 
+**R3. Let the date-bound specs pass in any month** (`e2e/cover-notice.spec.ts` and
+`e2e/sharing-register-review.spec.ts`, frozen).
+
+- **Smallest change:** match any month name (`[A-Z][a-z]{2}`) in place of `Oct`.
+- **Tests:** both specs, and the end-to-end suite.
+- **Rollback:** revert.
+
 ## 11. What T19 still lacks
 
-- The logger gaps G1–G9 (L6).
-- The framework's raw printing, with one confirmed quoting path (L4-a and L4-b).
+- The framework still prints its own line for every other error raised while a request is decoded
+  or a result is serialized (§7), including the latent `value` property (L4-b).
 - Handler errors returned to the browser unredacted (O1).
 - Test artifacts: the policy isn't adopted yet (L5).
 - Unexpected care-team errors after authentication aren't exercised.
 - There's no hosted log pipeline to check.
-- The production runtime isn't chosen (Node would quote more of a bad body than Bun).
+- The production runtime isn't chosen (Node's JSON errors quote more than Bun's; L4-a now refuses
+  those bodies before they're parsed by the framework, on either runtime).
+- The category names differ from the L1 wording (§3): kept as built, pending the founder's choice.
+
+## 12. Corrections made (2026-11-11, under the founder's lift)
+
+The founder lifted the freeze for L6 and L4-a only.
+
+**L6** (`src/server/observability.ts`, frozen; manifest entry refreshed):
+
+- Every property is read through a guard, so a throwing getter or proxy can't escape.
+- `type` comes from a fixed list of error names; any other error is written as `Error`.
+- `code` must be in a Postgres SQLSTATE class; `table` must be a table the schema defines;
+  `column` and `constraint` keep the shape check (the residual in §5).
+- Frames: the message is cut off wherever it appears in the stack (a stack without the message
+  keeps none); of each frame only the location is kept, as the approved L1 wording said, inside
+  the project as a path from its root; at most 6, each at most 300 characters.
+- `ref` must be eight hex capitals, else `INVALID`.
+- If anything still fails, a fixed line is written (`type: "Unknown"`, `category: "unloggable"`).
+  The logger never throws.
+- Category names stay `database`, `error` and `non-error`. Renaming them to the L1 wording would
+  change `tests/unit/errors.test.ts`, which is frozen and not in this lift.
+
+**L4-a** (`src/start.ts`, not in the manifest, recorded as a lift):
+
+- A request middleware, after the cross-site check, refuses a server-function request whose JSON
+  body or GET `payload` doesn't parse: a 400 reply (with the security headers, from the header
+  middleware) and one structured line (type `SyntaxError`, a reference). The body is never logged.
+- Every other request passes on unchanged, and every other framework error still prints as
+  before: this isn't a blanket suppression.
+
+**Tests:**
+
+- The 14 `it.fails` cases in `error-redaction.test.ts` are normal tests. Two more were added: frames
+  keep their location only, and a reference the app didn't make is written as `INVALID`.
+- The integration tests' own references are now hex (`7E57AB01`, `7E57AB02`), since `T19TEST1`
+  would now be written as `INVALID`.
+- The output check's `badJson` known gap is now an ordinary scenario that must get a 400, and a
+  GET `payload` that isn't JSON was added (`badPayload`). The check has no known gaps.
+
+**Result (working copy on top of `8dbca36`, 2026-11-11):**
+
+| Stage                                | Result                                                                                                                               |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Static checks, frozen baseline (403) | Pass                                                                                                                                 |
+| Unit and integration                 | 655 of 655 (the first attempt timed out 11 tests in setup while the machine's load was about 44; re-run at normal load, all passed)  |
+| End-to-end                           | 204 passed, 2 skipped, 4 failed: two timeouts under the same load (both pass on a re-run) and two that fail on `8dbca36` too (below) |
+| Read-only, upgrade and downgrade     | 2 and 10 passed                                                                                                                      |
+| Verify                               | 22 passed, 12 skipped                                                                                                                |
+| Output check, all four variants      | No problems and no known gaps; both unreadable requests refused 400 and logged as `SyntaxError`                                      |
+| Browser and server self-tests        | Both caught exactly their planted markers                                                                                            |
+
+**Two end-to-end failures that aren't from this change.** `e2e/cover-notice.spec.ts:5` and
+`e2e/sharing-register-review.spec.ts:7` expect "Oct" in dates the seed sets relative to today.
+Since November they can't match, and they fail the same way on `8dbca36` without this change.
+Both specs are frozen; proposed as R3 (§10). Until then the full CI run fails at the end-to-end
+stage, so the stages after it were run one by one, as in the table.
+
+**Not run as one command:** `scripts/ci.sh`'s last stage (no changes to tracked files) needs a
+committed tree; it's run on the commit.

@@ -2,7 +2,8 @@
 
 **Status: a plan (W7). Today the app writes one structured line per unexpected error to stdout,
 with a reference and no request data (`src/server/observability.ts`): approved fields only, never
-an error's message (threat T19, correction L1). Nothing collects or alerts
+an error's message (threat T19, correction L1), each field guarded, checked and length-limited, and the
+logger never throws (correction L6). Nothing collects or alerts
 on it.**
 
 ## Principles

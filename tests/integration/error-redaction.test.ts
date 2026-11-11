@@ -42,13 +42,13 @@ function carries(e: unknown, seen = new Set<unknown>()): boolean {
 function logged(error: unknown) {
   expect(carries(error), "the thrown value should hold the private text").toBe(true);
   const spy = vi.spyOn(console, "error").mockImplementation(() => {});
-  reportError(error, "T19TEST1");
+  reportError(error, "7E57AB01");
   const raw = spy.mock.calls.map((c) => c.map(String).join(" "));
   spy.mockRestore();
   expect(raw).toHaveLength(1);
   const line = JSON.parse(raw[0]!) as Record<string, unknown>;
   // The safe diagnostic event.
-  expect(line).toMatchObject({ level: "error", ref: "T19TEST1" });
+  expect(line).toMatchObject({ level: "error", ref: "7E57AB01" });
   expect(typeof line["type"]).toBe("string");
   return raw[0]!;
 }
@@ -150,9 +150,8 @@ describe("error output for every shape a thrown value can take", () => {
  * can control every property of what it throws, so each retained field is tried with private
  * text in it, and the logger itself must never throw or print the value it was given.
  *
- * The `it.fails` cases are known gaps in the L1 logger, found by this review and not yet
- * corrected (correction L6, proposed in docs/readiness/evidence/residual-logging-2026-10-29.md).
- * They pass while the gap is there; when L6 is made, each must become a normal test.
+ * The cases marked "was a known gap" ran as `it.fails` until correction L6 (2026-11-11, under
+ * the founder's lift; docs/readiness/evidence/residual-logging-2026-10-29.md).
  */
 const PRIVATE_TOKEN = "synthetic_private_mums_morphine_dose";
 /** A line no longer than this: a type, a code, three names and six short frames fit easily. */
@@ -163,7 +162,7 @@ function loggedSafely(error: unknown) {
   const spy = vi.spyOn(console, "error").mockImplementation(() => {});
   let thrown: unknown;
   try {
-    reportError(error, "T19TEST2");
+    reportError(error, "7E57AB02");
   } catch (e) {
     thrown = e;
   }
@@ -171,7 +170,7 @@ function loggedSafely(error: unknown) {
   spy.mockRestore();
   expect(thrown, "the logger threw").toBeUndefined();
   expect(raw).toHaveLength(1);
-  expect(JSON.parse(raw[0]!)).toMatchObject({ level: "error", ref: "T19TEST2" });
+  expect(JSON.parse(raw[0]!)).toMatchObject({ level: "error", ref: "7E57AB02" });
   return raw[0]!;
 }
 const withName = (name: unknown) => Object.assign(new Error("x"), { name });
@@ -213,20 +212,36 @@ describe("error output for spoofed error-like values", () => {
     expect(raw).not.toContain("Mum");
   });
 
-  it.fails("KNOWN GAP (L6): an error name holding private text isn't logged", () => {
+  it("(was a known gap) an error name holding private text isn't logged", () => {
     expect(loggedSafely(withName(PRIVATE))).not.toContain(PRIVATE);
   });
 
-  it.fails("KNOWN GAP (L6): an error name that isn't a string isn't serialized", () => {
+  it("(was a known gap) an error name that isn't a string isn't serialized", () => {
     expect(loggedSafely(withName({ secret: PRIVATE }))).not.toContain(PRIVATE);
   });
 
-  it.fails("KNOWN GAP (L6): message lines shaped like call frames aren't kept as frames", () => {
+  it("(was a known gap) message lines shaped like call frames aren't kept as frames", () => {
     expect(loggedSafely(new Error(`first\n    at ${PRIVATE} (file.ts:1:1)`))).not.toContain(PRIVATE);
   });
 
-  it.fails("KNOWN GAP (L6): a table name is kept only if the schema has that table", () => {
+  it("(was a known gap) a table name is kept only if the schema has that table", () => {
     expect(loggedSafely({ code: "23505", table: PRIVATE_TOKEN })).not.toContain(PRIVATE_TOKEN);
+  });
+
+  it("call frames keep their location only, never a function name", () => {
+    const e = new Error("x");
+    e.stack = `Error: x\n    at ${PRIVATE_TOKEN} (/srv/app (new)/f.ts:1:2)\n    at /srv/app (new)/g.ts:3:4\n    at async Promise.all (index 0)`;
+    const line = JSON.parse(loggedSafely(e)) as Record<string, unknown>;
+    expect(line["stack"]).toBe("    at /srv/app (new)/f.ts:1:2\n    at /srv/app (new)/g.ts:3:4");
+  });
+
+  it("a reference that isn't one the app made is written as INVALID", () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    reportError(new Error("x"), PRIVATE);
+    const raw = String(spy.mock.calls[0]?.[0]);
+    spy.mockRestore();
+    expect(JSON.parse(raw)).toMatchObject({ ref: "INVALID" });
+    expect(raw).not.toContain(PRIVATE);
   });
 
   it("RESIDUAL (accepted until reviewed): an identifier-shaped column or constraint name is kept", () => {
@@ -237,17 +252,17 @@ describe("error output for spoofed error-like values", () => {
     expect(JSON.parse(raw)).toMatchObject({ column: PRIVATE_TOKEN, constraint: PRIVATE_TOKEN });
   });
 
-  it.fails("KNOWN GAP (L6): an operating-system code (EPERM) isn't taken for a database code", () => {
+  it("(was a known gap) an operating-system code (EPERM) isn't taken for a database code", () => {
     expect(JSON.parse(loggedSafely(Object.assign(new Error("x"), { code: "EPERM" })))).toMatchObject({
       category: "error",
     });
   });
 
-  it.fails("KNOWN GAP (L6): every field has a length limit", () => {
+  it("(was a known gap) every field has a length limit", () => {
     expect(loggedSafely(withName("E".repeat(100_000))).length).toBeLessThanOrEqual(LINE_LIMIT);
   });
 
-  it.fails("KNOWN GAP (L6): a frame has a length limit", () => {
+  it("(was a known gap) a frame has a length limit", () => {
     const e = new Error("x");
     e.stack = `Error: x\n    at ${"f".repeat(100_000)} (/a.ts:1:1)`;
     expect(loggedSafely(e).length).toBeLessThanOrEqual(LINE_LIMIT);
@@ -278,7 +293,7 @@ describe("the logger never throws on a malformed value", () => {
       ),
   };
   for (const [name, make] of Object.entries(cases))
-    it.fails(`KNOWN GAP (L6): ${name}`, () => {
+    it(`(was a known gap) ${name}`, () => {
       expect(loggedSafely(make())).not.toContain(PRIVATE);
     });
 });

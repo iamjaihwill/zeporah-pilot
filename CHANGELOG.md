@@ -5,6 +5,11 @@ Every change that alters behaviour is recorded here in the pull request that mak
 
 ## Unreleased
 
+- Error lines (threat T19, corrections L6 and L4-a): every field of the server's error line is read
+  through a guard, checked against a fixed list or a strict shape, and limited in length; call
+  frames keep their location only; the logger never throws. A server-function request whose JSON
+  can't be read is now refused with 400 and one structured line, before the framework can print
+  its body.
 - Tests (threat T19, residual review): the output check now also covers care-team sessions (sign-in,
   the wrong sign-in page, a permission refusal, recovery, an expired session, and an unexpected
   error whose reference must be the one logged), a body that isn't JSON, and a negative control in

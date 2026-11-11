@@ -67,7 +67,8 @@ const M = {
   password: mark("PASSWORD"), // a wrong password
   query: mark("QUERY"), // in a page address
   malformed: mark("MALFORMED"), // inside a request body the framework can't read
-  badJson: mark("BADJSON"), // a bare word in a body that isn't JSON (known gap, L4)
+  badJson: mark("BADJSON"), // a bare word in a body that isn't JSON: refused before the framework (L4-a)
+  badPayload: mark("BADPAYLOAD"), // the same, in a GET request's payload (L4-a)
   // Care-team sessions.
   staffEmail: mark("STAFFEMAIL"), // a care-team sign-in email that has no account
   staffPassword: mark("STAFFPASSWORD"), // a wrong care-team password
@@ -85,10 +86,8 @@ const STORED_OK = new Set([M.sent]);
  * failed; failed if they stop appearing there.
  */
 const KNOWN_GAPS: Record<string, { channel: string; gap: string }> = {
-  badJson: {
-    channel: "server stderr",
-    gap: 'L4: TanStack Start prints "Server Fn Error!" with Bun\'s JSON parse error, which quotes the first bare word',
-  },
+  // None today. badJson was one until correction L4-a (2026-11-11): the framework printed Bun's
+  // JSON parse error, which quotes the first bare word of the body.
 };
 /** Secrets learnt during the run (the generated passwords, the session tokens): never anywhere. */
 const SECRETS: Record<string, string> = {};
@@ -360,15 +359,24 @@ async function main() {
     if (malformed.status() < 400) throw new Error(`A malformed body gave ${malformed.status()}.`);
     exercised["malformed body"] = String(malformed.status());
 
-    // 7. A body that isn't JSON at all, starting with a bare word (known gap, L4).
+    // 7. A body that isn't JSON at all, starting with a bare word: refused with 400 by the app's
+    //    own middleware, before the framework can print it (correction L4-a).
     const notJson = await page.request.post(sendRequest.url(), {
       headers: { "content-type": "application/json", origin: BASE },
       // As bytes: Playwright sends a string that isn't JSON as a quoted JSON string.
       data: Buffer.from(`${M.badJson} and the rest of what was typed`),
     });
     responses.push({ url: "not JSON", status: notJson.status(), body: await notJson.text() });
-    if (notJson.status() < 400) throw new Error(`A body that isn't JSON gave ${notJson.status()}.`);
-    exercised["body that isn't JSON"] = String(notJson.status());
+    if (notJson.status() !== 400) throw new Error(`A body that isn't JSON gave ${notJson.status()}.`);
+    const notJsonGet = await page.request.get(
+      `${BASE}/_serverFn/${ids["checkResetLink"]}?payload=${encodeURIComponent(`[${M.badPayload}]`)}`,
+      { headers: { origin: BASE } },
+    );
+    responses.push({ url: "not JSON (GET)", status: notJsonGet.status(), body: await notJsonGet.text() });
+    if (notJsonGet.status() !== 400)
+      throw new Error(`A GET payload that isn't JSON gave ${notJsonGet.status()}.`);
+    exercised["body that isn't JSON"] =
+      `${notJson.status()} (POST body), ${notJsonGet.status()} (GET payload)`;
 
     // 8. A marker in a page address.
     await page.goto(`${BASE}/family/messages?q=${M.query}`);

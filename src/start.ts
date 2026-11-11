@@ -73,6 +73,36 @@ const sameOrigin = createMiddleware().server(async ({ request, next }) => {
 });
 
 /**
+ * Refuses a server-function request whose JSON can't be read: a body that doesn't parse, or a GET
+ * `payload` that doesn't. The framework would otherwise print its own "Server Fn Error!" line, and
+ * Bun's parse error quotes the first bare word of the body (threat T19, correction L4-a). Here it's
+ * one structured line instead (type and reference, never the body) and a 400 reply. Every other
+ * error still reaches the framework as before.
+ */
+const readableServerFnBody = createMiddleware().server(async ({ request, next }) => {
+  const url = new URL(request.url);
+  if (!url.pathname.startsWith("/_serverFn/")) return next();
+  let unreadable: unknown;
+  try {
+    if (request.method === "GET") {
+      const payload = url.searchParams.get("payload");
+      if (payload) JSON.parse(payload);
+    } else if (request.headers.get("content-type")?.includes("application/json")) {
+      JSON.parse(await request.clone().text());
+    }
+  } catch (e) {
+    unreadable = e;
+  }
+  if (unreadable === undefined) return next();
+  const { newReference, reportError } = await import("@/server/observability");
+  reportError(unreadable, newReference());
+  return Response.json(
+    { status: 400, message: "This request couldn't be read. Nothing was changed." },
+    { status: 400 },
+  );
+});
+
+/**
  * Sends each page to its own address (domain/addresses.ts): family pages to the app address, the
  * staff workspace to the care address, and the care address's root to the staff sign-in. Does
  * nothing unless ZEPORAH_APP_URL and ZEPORAH_CARE_URL are set.
@@ -87,5 +117,5 @@ const addressRedirect = createMiddleware().server(async ({ request, next }) => {
 });
 
 export const startInstance = createStart(() => ({
-  requestMiddleware: [headers, sameOrigin, addressRedirect],
+  requestMiddleware: [headers, sameOrigin, readableServerFnBody, addressRedirect],
 }));

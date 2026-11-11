@@ -217,13 +217,25 @@ The manifest entries for those five files were refreshed, and `tests/unit/errors
 formatting exceptions. **What a demo now shows differently:** nothing; only the server's error
 lines changed.
 
+**Freeze lifted on 2026-11-11** for threat T19's corrections L6 and L4-a only, with the founder's
+explicit approval ([evidence](readiness/evidence/residual-logging-2026-10-29.md)):
+the error logger reads every field through a guard, checks it against a fixed list or a strict
+shape, limits its length, keeps call-frame locations only, and never throws
+(`src/server/observability.ts`); and a server-function request whose JSON can't be read is refused
+with 400 by the app's own middleware before the framework can print it (`src/start.ts`, not in the
+manifest, recorded because it runs on every demo request). The manifest entry for
+`src/server/observability.ts` was refreshed. Category names stay `database`, `error` and
+`non-error` (plus `unloggable`); renaming them to the L1 wording would change the frozen
+`tests/unit/errors.test.ts`, which this lift doesn't cover. **What a demo now shows differently:**
+nothing; only the server's error lines changed.
+
 ## What's frozen
 
 - **The build:** 403 files covering the application code (including migrations through
   `0023_cover_notice` and seed fixtures), the tests, the configuration, the decision log and
   register, the presentation documents and the 22 run-through screenshots. Each file's SHA-256
   is in [demo-baseline-2026-10-22.sha256](demo-baseline-2026-10-22.sha256), and the manifest's
-  own SHA-256 is `c96ca89e0407079eef45f6e92573fc87eaf1837d3200c9ab65c597c2432d06c6`. To check
+  own SHA-256 is `38c59173cd0dc96845f5fd481116f202e2c6a7cfc81a64f9c22256fdfb6b0c5e`. To check
   for drift, run `shasum -a 256 -c docs/demo-baseline-2026-10-22.sha256 --quiet`.
 - **The presentation baseline:** [enterprise-demo-map.md](enterprise-demo-map.md) (the script,
   "Presenting it in about 15 minutes", with beat 8's note on decision 62 and an optional 30 s in
